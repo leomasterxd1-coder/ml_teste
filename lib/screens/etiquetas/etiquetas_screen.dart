@@ -566,15 +566,15 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
   }
 
   Widget _buildHeader(bool isTomorrow, DateTime nextDay) {
-    const primaryRed = Color(0xFFC61033);
     return Container(
       width: double.infinity,
-      color: primaryRed,
+      color: Colors.transparent,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
         ),
         child: Row(
           children: [

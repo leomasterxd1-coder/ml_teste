@@ -588,6 +588,13 @@ class _GondolaPreviewPainter extends CustomPainter {
         ..layout())
       .width;
 
+  /// Posição X da vírgula de um número alinhado à direita em [rightX].
+  double _commaXFromRight(String texto, double rightX, double size) {
+    final i = texto.lastIndexOf(',');
+    if (i < 0) return rightX - _largura(texto, size) / 2;
+    return rightX - _largura(texto.substring(i), size);
+  }
+
   double _ajustarTexto(
       String texto, double maxTam, double minTam, double maxLargura) {
     var tam = maxTam;
@@ -653,7 +660,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       tp.paint(canvas, Offset(dx, y - base));
     }
 
-    var larguraValorPx = 0.0;
+    var valorCommaX = 0.0;
 
     // Código lateral (SAP) na vertical (promocional: mais ao topo).
     if (codigo.isNotEmpty) {
@@ -696,7 +703,7 @@ class _GondolaPreviewPainter extends CustomPainter {
         final tamValor = _ajustarTexto(valor, maxValor, 50, 280);
         draw(valor, tx(345), ty(baseline), tamValor, TextAlign.right,
             const Color(0xFF000000));
-        larguraValorPx = _largura(valor, px(tamValor));
+        valorCommaX = _commaXFromRight(valor, tx(345), px(tamValor));
 
         final maxCifrao =
             (ehDepor && (temMilhar || parteInteira.length >= 3)) ? 30.0 : 45.0;
@@ -723,8 +730,13 @@ class _GondolaPreviewPainter extends CustomPainter {
         final numero = idx >= 0 ? unidade.substring(idx + 8).trim() : unidade;
         draw('R\$/PCE', tx(30), ty(262), 15, TextAlign.left,
             const Color(0xFF000000));
-        draw('R\$' + numero, tx(345) - larguraValorPx, ty(262), 15,
-            TextAlign.left, const Color(0xFF000000));
+        // Alinha a vírgula do valor unitário com a vírgula do valor acima.
+        final uAp = numero.contains(',')
+            ? numero.substring(numero.lastIndexOf(','))
+            : numero;
+        final uRight = valorCommaX + _largura(uAp, px(15));
+        draw('R\$' + numero, uRight, ty(262), 15, TextAlign.right,
+            const Color(0xFF000000));
       } else {
         draw(unidade, tx(_TW / 2), ty(252), 15, TextAlign.center,
             const Color(0xFF000000));

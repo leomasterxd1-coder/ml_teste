@@ -130,7 +130,7 @@ class _MainScreenState extends State<MainScreen> {
                 _menuOpen ? '✕' : '☰',
                 style: const TextStyle(
                   color: Color(0xFFD81B3A),
-                  fontSize: 20,
+                  fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -138,20 +138,17 @@ class _MainScreenState extends State<MainScreen> {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _sectionTitle == null
-                ? Image.asset('assets/icons/icon_header.png',
-                    height: 36, fit: BoxFit.contain)
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(_sectionTitle!,
-                          style: const TextStyle(
-                            color: Color(0xFFD81B3A),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          )),
-                    ],
-                  ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(_sectionTitle ?? 'minha loja',
+                    style: const TextStyle(
+                      color: Color(0xFFD81B3A),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ],
+            ),
           ),
           // Avatar
           GestureDetector(
@@ -228,20 +225,24 @@ class _MainScreenState extends State<MainScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Image.asset('assets/icons/logo_menu.png',
-                  width: 40, height: 40, fit: BoxFit.contain),
-              const SizedBox(width: 8),
-              const Text(
-                'minha loja',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _toggleMenu,
+            child: Row(
+              children: [
+                Image.asset('assets/icons/logo_menu.png',
+                    width: 40, height: 40, fit: BoxFit.contain),
+                const SizedBox(width: 8),
+                const Text(
+                  'minha loja',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           _menuItem('assets/icons/eti_avulsa.png', 'ETIQUETA AVULSA',
