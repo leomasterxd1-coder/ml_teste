@@ -725,43 +725,54 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
                     ),
                   ),
                 const SizedBox(height: 12),
-                if (_isLoading && _items.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 40),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                else if (_items.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 30),
-                    child: Column(
-                      children: const [
-                        Icon(Icons.print_disabled,
-                            size: 80, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          'Nenhuma papeleta para este período',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 8),
-                        Text('Tente ajustar os filtros acima.',
-                            style: TextStyle(color: Colors.black54)),
-                      ],
-                    ),
-                  )
-                else
-                  ..._items.map((it) => Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: PapeletaDiariaCard(
-                          item: it,
-                          onChangedCheckbox: (v) => _onItemCheck(it, v),
-                          onChangedQuantity: (q) => _onItemQty(it, q),
-                        ),
-                      )),
               ],
             ),
           ),
         ),
+        if (_isLoading && _items.isEmpty)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          )
+        else if (_items.isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 30),
+              child: Column(
+                children: const [
+                  Icon(Icons.print_disabled, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'Nenhuma papeleta para este período',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text('Tente ajustar os filtros acima.',
+                      style: TextStyle(color: Colors.black54)),
+                ],
+              ),
+            ),
+          )
+        else
+          // Lazy: só monta os itens visíveis (antes era um Column com TODOS
+          // os itens, o que deixava a rolagem pesada em listas grandes).
+          SliverList.builder(
+            itemCount: _items.length,
+            itemBuilder: (context, i) {
+              final it = _items[i];
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                child: PapeletaDiariaCard(
+                  item: it,
+                  onChangedCheckbox: (v) => _onItemCheck(it, v),
+                  onChangedQuantity: (q) => _onItemQty(it, q),
+                ),
+              );
+            },
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 16)),
       ],
     );
   }
