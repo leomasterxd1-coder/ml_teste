@@ -511,8 +511,9 @@ Widget _qtyBox(TextEditingController c, ValueChanged<int> onChange) {
           counterText: '',
         ),
         onChanged: (v) {
-          final n = int.tryParse(v) ?? 1;
-          onChange(n.clamp(1, 99));
+          if (v.isEmpty) return;
+          final n = int.tryParse(v);
+          if (n != null) onChange(n.clamp(1, 99));
         },
       ),
     ),
@@ -676,8 +677,9 @@ class _PriceTagCardState extends State<PriceTagCard> {
                         counterText: '',
                       ),
                       onChanged: (v) {
-                        final n = int.tryParse(v) ?? 1;
-                        widget.onChangedQuantity(n.clamp(1, 99));
+                        if (v.isEmpty) return;
+                        final n = int.tryParse(v);
+                        if (n != null) widget.onChangedQuantity(n.clamp(1, 99));
                       },
                     ),
                   ),
@@ -911,8 +913,9 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                         counterText: '',
                       ),
                       onChanged: (v) {
-                        final n = int.tryParse(v) ?? 1;
-                        widget.onChangedQuantity(n.clamp(1, 99));
+                        if (v.isEmpty) return;
+                        final n = int.tryParse(v);
+                        if (n != null) widget.onChangedQuantity(n.clamp(1, 99));
                       },
                     ),
                   ),

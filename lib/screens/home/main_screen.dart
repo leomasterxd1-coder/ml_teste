@@ -272,6 +272,7 @@ class _MainScreenState extends State<MainScreen> {
       onWillPop: _onWillPop,
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6F8),
+        resizeToAvoidBottomInset: false,
         body: GestureDetector(
           onHorizontalDragEnd: (details) {
             if (details.primaryVelocity == null) return;

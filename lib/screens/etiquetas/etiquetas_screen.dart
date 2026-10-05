@@ -511,7 +511,6 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
   @override
   Widget build(BuildContext context) {
     final isTomorrow = _currentDate != _today;
-    final nextDay = _fromApi(_today).add(const Duration(days: 1));
     const primaryRed = Color(0xFFC61033);
 
     // Corpo compartilhado (embutido na tela única ou como tela própria).
@@ -521,7 +520,6 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
         children: [
           Column(
             children: [
-              if (_expandido) _buildHeader(isTomorrow, nextDay),
               Expanded(
                 child: _buildBody(),
               ),
@@ -565,7 +563,9 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
     );
   }
 
-  Widget _buildHeader(bool isTomorrow, DateTime nextDay) {
+  Widget _buildHeader() {
+    final isTomorrow = _currentDate != _today;
+    final nextDay = _fromApi(_today).add(const Duration(days: 1));
     return Container(
       width: double.infinity,
       color: Colors.transparent,
@@ -712,7 +712,7 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
-
+        if (_expandido) SliverToBoxAdapter(child: _buildHeader()),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
