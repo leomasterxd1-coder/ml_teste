@@ -41,7 +41,6 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/overlays/
-    - shorebird.yaml
 
   fonts:
     - family: HelveticaNeueCondensed

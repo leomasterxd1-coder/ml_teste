@@ -252,7 +252,7 @@ Future<List<Uint8List>> buildCompositePages({
   }
 
   final overlayData =
-      await rootBundle.load('assets/overlays/1x1.png');
+      await rootBundle.load('assets/overlays/1x1_p8.png');
   final overlay = img.decodeImage(overlayData.buffer.asUint8List());
 
   final gridCap = cols * rows;
@@ -364,7 +364,7 @@ Future<List<Uint8List>> buildCompositePages({
         vds.add(validades.length > idx ? validades[idx] : '');
         payload.add(pdfBytes[i] ?? Uint8List(0));
       }
-      final overlayName = 'assets/overlays/1x1.png';
+      final overlayName = 'assets/overlays/1x1_p8.png';
       final res = await _pdfChannel.invokeMethod<Map<dynamic, dynamic>>(
           'composePage', {
         'pdfs': payload,
