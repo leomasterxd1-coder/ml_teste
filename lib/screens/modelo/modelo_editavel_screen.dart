@@ -68,6 +68,8 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   DateTime _lastPageChange = DateTime(0);
   final TextEditingController _copiaCtrl = TextEditingController(text: '1');
   final ScrollController _scrollCtrl = ScrollController();
+  final GlobalKey _bottomBarKey = GlobalKey();
+  double _bottomBarH = 0;
 
   @override
   void initState() {
@@ -411,6 +413,16 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   Widget build(BuildContext context) {
     final h = MediaQuery.sizeOf(context).height;
     final previewH = (h * 0.55).clamp(280.0, 620.0);
+    // Mede a altura do card inferior para descontar do inset do teclado —
+    // senão sobra uma faixa da altura do card entre o conteúdo e o teclado.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final box =
+          _bottomBarKey.currentContext?.findRenderObject() as RenderBox?;
+      final mh = box?.size.height ?? 0;
+      if (mounted && mh > 0 && (mh - _bottomBarH).abs() > 0.5) {
+        setState(() => _bottomBarH = mh);
+      }
+    });
     return Scaffold(
       backgroundColor: _kBg,
       resizeToAvoidBottomInset: false,
@@ -424,6 +436,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
               // permanecem intactos (antes usava MediaQuery.of no build, que
               // reconstruía a tela toda a cada frame do teclado).
               child: _KeyboardInsetPadding(
+                descontar: _bottomBarH,
                 child: SingleChildScrollView(
                   controller: _scrollCtrl,
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -823,6 +836,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
 
   Widget _buildBottomBar() {
     return Container(
+      key: _bottomBarKey,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -949,12 +963,18 @@ class _ValidadeMask extends TextInputFormatter {
 /// cada frame do teclado.
 class _KeyboardInsetPadding extends StatelessWidget {
   final Widget child;
-  const _KeyboardInsetPadding({required this.child});
+
+  /// Espaço já ocupado abaixo do scroll (ex.: altura do card inferior), que
+  /// é descontado do inset do teclado para não sobrar um vão em branco.
+  final double descontar;
+  const _KeyboardInsetPadding({required this.child, this.descontar = 0});
 
   @override
   Widget build(BuildContext context) {
+    final kb = MediaQuery.viewInsetsOf(context).bottom;
+    final bottom = (kb - descontar).clamp(0.0, double.infinity);
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: bottom),
       child: child,
     );
   }
