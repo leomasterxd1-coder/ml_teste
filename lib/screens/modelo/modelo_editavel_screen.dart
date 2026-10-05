@@ -409,9 +409,8 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
+    final h = MediaQuery.sizeOf(context).height;
     final previewH = (h * 0.55).clamp(280.0, 620.0);
-    final kbHeight = MediaQuery.of(context).viewInsets.bottom;
     return Scaffold(
       backgroundColor: _kBg,
       resizeToAvoidBottomInset: false,
@@ -420,29 +419,35 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollCtrl,
-                padding: EdgeInsets.fromLTRB(16, 16, 16, 8 + kbHeight),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          _titulo,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: _kRed,
-                            letterSpacing: 0.5,
+              // Isola a dependência do teclado: só este Padding reconstrói
+              // quando o viewInsets muda — a pré-visualização e o formulário
+              // permanecem intactos (antes usava MediaQuery.of no build, que
+              // reconstruía a tela toda a cada frame do teclado).
+              child: _KeyboardInsetPadding(
+                child: SingleChildScrollView(
+                  controller: _scrollCtrl,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            _titulo,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: _kRed,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    _buildPreviewCard(previewH),
-                    if (_modoEditavel) _buildEditarItens(),
-                  ],
+                      _buildPreviewCard(previewH),
+                      if (_modoEditavel) _buildEditarItens(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -615,8 +620,8 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
                     child: Image.memory(
                     _pages[i],
                     fit: BoxFit.contain,
-                    cacheWidth: (MediaQuery.of(context).size.width *
-                            MediaQuery.of(context).devicePixelRatio)
+                    cacheWidth: (MediaQuery.sizeOf(context).width *
+                            MediaQuery.devicePixelRatioOf(context))
                         .round()
                         .clamp(720, 2160),
                     gaplessPlayback: true,
@@ -934,6 +939,23 @@ class _ValidadeMask extends TextInputFormatter {
     return TextEditingValue(
       text: buf.toString(),
       selection: TextSelection.collapsed(offset: buf.length),
+    );
+  }
+}
+
+/// Adiciona o inset do teclado (viewInsets) como padding sem reconstruir o
+/// conteúdo passado em [child]. Como o `child` é sempre a mesma instância,
+/// o Flutter pula o rebuild da subárvore — só este Padding é recalculado a
+/// cada frame do teclado.
+class _KeyboardInsetPadding extends StatelessWidget {
+  final Widget child;
+  const _KeyboardInsetPadding({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: child,
     );
   }
 }

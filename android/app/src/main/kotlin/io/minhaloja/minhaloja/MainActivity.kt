@@ -42,10 +42,6 @@ class MainActivity : FlutterActivity() {
             prevHandler?.uncaughtException(t, e)
         }
         super.onCreate(savedInstanceState)
-        try {
-            com.tom_roush.pdfbox.android.PDFBoxResourceLoader.init(applicationContext)
-        } catch (_: Throwable) {
-        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -210,115 +206,6 @@ class MainActivity : FlutterActivity() {
                                 runOnUiThread {
                                     try {
                                         startActivity(android.content.Intent.createChooser(intent, "Compartilhar PDF com"))
-                                        result.success(null)
-                                    } catch (e: Exception) {
-                                        result.error("SHARE_FAIL", e.message, null)
-                                    }
-                                }
-                            } catch (t: Throwable) {
-                                runOnUiThread { result.error("EXC", t.message, null) }
-                            }
-                        }.start()
-                    }
-                    "mergeVectorPdf" -> {
-                        @Suppress("UNCHECKED_CAST")
-                        val vpRaw = call.argument<List<Any>>("pdfs")
-                        val vp = vpRaw?.mapNotNull { it as? ByteArray } ?: emptyList()
-                        val vCols = call.argument<Int>("cols") ?: 1
-                        val vRows = call.argument<Int>("rows") ?: 1
-                        val vLand = call.argument<Boolean>("isLandscape") ?: false
-                        val vOverlay = call.argument<String>("overlay")
-                        val vSem = call.argument<Boolean>("semOverlay") ?: false
-                        if (vp.isEmpty() || vCols <= 0 || vRows <= 0) {
-                            result.error("BAD_ARGS", "pdfs/cols/rows invalid", null)
-                            return@setMethodCallHandler
-                        }
-                        Thread {
-                            try {
-                                val srcDocs = ArrayList<com.tom_roush.pdfbox.pdmodel.PDDocument>()
-                                for (b in vp) srcDocs.add(com.tom_roush.pdfbox.pdmodel.PDDocument.load(b))
-                                val out = com.tom_roush.pdfbox.pdmodel.PDDocument()
-                                val a4W = 595f
-                                val a4H = 842f
-                                val pw = if (vLand) a4H else a4W
-                                val ph = if (vLand) a4W else a4H
-                                val margin = 14f
-                                var idx = 0
-                                while (idx < srcDocs.size) {
-                                    val page = com.tom_roush.pdfbox.pdmodel.PDPage(
-                                        com.tom_roush.pdfbox.pdmodel.common.PDRectangle(pw, ph))
-                                    out.addPage(page)
-                                    val cellW = (pw - 2 * margin) / vCols
-                                    val cellH = (ph - 2 * margin) / vRows
-                                    val cs = com.tom_roush.pdfbox.pdmodel.PDPageContentStream(
-                                        out, page,
-                                        com.tom_roush.pdfbox.pdmodel.PDPageContentStream.AppendMode.APPEND,
-                                        true, true)
-                                    for (r in 0 until vRows) {
-                                        for (c in 0 until vCols) {
-                                            if (idx >= srcDocs.size) break
-                                            val doc = srcDocs[idx]
-                                            idx++
-                                            val cellRect = doc.getPage(0).mediaBox
-                                            val util = com.tom_roush.pdfbox.multipdf.LayerUtility(out)
-                                            val form = util.importPageAsForm(doc, 0)
-                                            val s = min(cellW / cellRect.width, cellH / cellRect.height)
-                                            val x = margin + c * cellW
-                                            val y = ph - margin - (r + 1) * cellH
-                                            if (!vSem && vOverlay != null) {
-                                                try {
-                                                    val ob = assetBytes(vOverlay)
-                                                    if (ob != null) {
-                                                        if (vOverlay.endsWith(".pdf", true)) {
-                                                            val ovDoc = com.tom_roush.pdfbox.pdmodel.PDDocument.load(ob)
-                                                            try {
-                                                                val ovRect = ovDoc.getPage(0).mediaBox
-                                                                val util = com.tom_roush.pdfbox.multipdf.LayerUtility(out)
-                                                                val ovForm = util.importPageAsForm(ovDoc, 0)
-                                                                val os = min(cellW / ovRect.width, cellH / ovRect.height)
-                                                                cs.saveGraphicsState()
-                                                                cs.transform(com.tom_roush.pdfbox.util.Matrix.getTranslateInstance(x, y))
-                                                                cs.transform(com.tom_roush.pdfbox.util.Matrix.getScaleInstance(os, os))
-                                                                cs.drawForm(ovForm)
-                                                                cs.restoreGraphicsState()
-                                                            } finally {
-                                                                ovDoc.close()
-                                                            }
-                                                        } else {
-                                                            val bmp = BitmapFactory.decodeByteArray(ob, 0, ob.size)
-                                                            if (bmp != null) {
-                                                                val xi = com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
-                                                                    .createFromImage(out, bmp)
-                                                                cs.drawImage(xi, x, y, cellW, cellH)
-                                                            }
-                                                        }
-                                                    }
-                                                } catch (_: Throwable) {
-                                                }
-                                            }
-                                            cs.saveGraphicsState()
-                                            cs.transform(com.tom_roush.pdfbox.util.Matrix.getTranslateInstance(x, y))
-                                            cs.transform(com.tom_roush.pdfbox.util.Matrix.getScaleInstance(s, s))
-                                            cs.drawForm(form)
-                                            cs.restoreGraphicsState()
-                                        }
-                                    }
-                                    cs.close()
-                                }
-                                val vFile = File(cacheDir, "papeletas_vet_${System.nanoTime()}.pdf")
-                                FileOutputStream(vFile).use { out.save(it) }
-                                out.close()
-                                for (d in srcDocs) try { d.close() } catch (_: Throwable) {}
-                                val vUri = androidx.core.content.FileProvider.getUriForFile(
-                                    this@MainActivity, "${packageName}.fileprovider", vFile)
-                                val vIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                    type = "application/pdf"
-                                    putExtra(android.content.Intent.EXTRA_STREAM, vUri)
-                                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                runOnUiThread {
-                                    try {
-                                        startActivity(android.content.Intent.createChooser(vIntent, "Compartilhar PDF com"))
                                         result.success(null)
                                     } catch (e: Exception) {
                                         result.error("SHARE_FAIL", e.message, null)

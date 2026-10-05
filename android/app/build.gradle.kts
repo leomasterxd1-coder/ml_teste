@@ -68,5 +68,4 @@ flutter {
 dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
-    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 }
