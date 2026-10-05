@@ -6,6 +6,8 @@ import 'package:minhaloja/core/theme.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_fragment.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_fragment.dart';
+import 'package:minhaloja/screens/etiquetas/etiquetas_screen.dart';
+import 'package:minhaloja/screens/papeletas/papeletas_diarias_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -51,13 +53,27 @@ class _MainScreenState extends State<MainScreen> {
         _selecionarCorpo(1, 'PAPELETA AVULSA', 'assets/icons/pap_avulsa.png');
         break;
       case 2:
-        setState(() => _menuOpen = false);
-        Navigator.pushNamed(context, '/etiquetas');
+        _selecionarCorpo(
+            2, 'ETIQUETAS DIÁRIAS', 'assets/icons/eti_diaria.png');
         break;
       case 3:
-        setState(() => _menuOpen = false);
-        Navigator.pushNamed(context, '/papeletas_diarias');
+        _selecionarCorpo(
+            3, 'PAPELETAS DIÁRIAS', 'assets/icons/pap_diaria.png');
         break;
+    }
+  }
+
+  // Uma única tela: o menu lateral troca só o conteúdo (0..3).
+  Widget _bodyFor(int i) {
+    switch (i) {
+      case 1:
+        return const PapeletasFragment();
+      case 2:
+        return const EtiquetasScreen(embedded: true);
+      case 3:
+        return const PapeletasDiariasScreen(embedded: true);
+      default:
+        return const EtiquetasFragment();
     }
   }
 
@@ -273,9 +289,7 @@ class _MainScreenState extends State<MainScreen> {
                     child: _buildHeader(),
                   ),
                   Expanded(
-                    child: _currentBody == 0
-                        ? const EtiquetasFragment()
-                        : const PapeletasFragment(),
+                    child: _bodyFor(_currentBody),
                   ),
                 ],
               ),

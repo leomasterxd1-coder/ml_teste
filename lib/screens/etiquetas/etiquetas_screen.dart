@@ -12,7 +12,8 @@ import '../../utils/session_expired_handler.dart';
 import '../../utils/buscar_anim.dart';
 
 class EtiquetasScreen extends StatefulWidget {
-  const EtiquetasScreen({super.key});
+  final bool embedded;
+  const EtiquetasScreen({super.key, this.embedded = false});
 
   @override
   State<EtiquetasScreen> createState() => _EtiquetasScreenState();
@@ -513,6 +514,27 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
     final nextDay = _fromApi(_today).add(const Duration(days: 1));
     const primaryRed = Color(0xFFC61033);
 
+    // Corpo compartilhado (embutido na tela única ou como tela própria).
+    final conteudo = SafeArea(
+      top: false,
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              if (_expandido) _buildHeader(isTomorrow, nextDay),
+              Expanded(
+                child: _buildBody(),
+              ),
+              _buildBottomBar(),
+            ],
+          ),
+          if (_menuOpen) _buildMenuOverlay(),
+        ],
+      ),
+    );
+
+    if (widget.embedded) return conteudo;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
@@ -539,23 +561,7 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
         ],
         elevation: 0,
       ),
-      body: SafeArea(
-        top: false,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                if (_expandido) _buildHeader(isTomorrow, nextDay),
-                Expanded(
-                  child: _buildBody(),
-                ),
-                _buildBottomBar(),
-              ],
-            ),
-            if (_menuOpen) _buildMenuOverlay(),
-          ],
-        ),
-      ),
+      body: conteudo,
     );
   }
 

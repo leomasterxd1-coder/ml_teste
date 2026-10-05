@@ -12,7 +12,8 @@ import '../../utils/session_expired_handler.dart';
 import '../../utils/buscar_anim.dart';
 
 class PapeletasDiariasScreen extends StatefulWidget {
-  const PapeletasDiariasScreen({super.key});
+  final bool embedded;
+  const PapeletasDiariasScreen({super.key, this.embedded = false});
 
   @override
   State<PapeletasDiariasScreen> createState() => _PapeletasDiariasScreenState();
@@ -464,6 +465,27 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
     final nextDay = _fromApi(_today).add(const Duration(days: 1));
     const primaryRed = Color(0xFFC61033);
 
+    // Corpo compartilhado (embutido na tela única ou como tela própria).
+    final conteudo = SafeArea(
+      top: false,
+      child: Stack(
+        children: [
+          Column(
+            children: [
+              if (_expandido) _buildHeader(isTomorrow, nextDay),
+              Expanded(
+                child: _buildBody(),
+              ),
+              _buildBottomBar(),
+            ],
+          ),
+          if (_menuOpen) _buildMenuOverlay(),
+        ],
+      ),
+    );
+
+    if (widget.embedded) return conteudo;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
       appBar: AppBar(
@@ -490,23 +512,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
         ],
         elevation: 0,
       ),
-      body: SafeArea(
-        top: false,
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                if (_expandido) _buildHeader(isTomorrow, nextDay),
-                Expanded(
-                  child: _buildBody(),
-                ),
-                _buildBottomBar(),
-              ],
-            ),
-            if (_menuOpen) _buildMenuOverlay(),
-          ],
-        ),
-      ),
+      body: conteudo,
     );
   }
 
