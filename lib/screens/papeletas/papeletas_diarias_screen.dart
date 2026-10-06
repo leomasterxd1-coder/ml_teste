@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/models.dart';
@@ -38,6 +39,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
   int _naoImpressas = 0;
   int _impressas = 0;
   int _total = 0;
+  int _tomorrowCount = 0;
 
   List<Department> _departments = [];
   final Set<String> _selectedDepartments = {};
@@ -95,6 +97,11 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
     return p.length == 3 ? '${p[2]}/${p[1]}' : ymd;
   }
 
+  String get _amanhaDisplay {
+    final a = _fromApi(_currentDate).add(const Duration(days: 1));
+    return '${a.day.toString().padLeft(2, '0')}/${a.month.toString().padLeft(2, '0')}/${a.year}';
+  }
+
   Future<void> _loadFilters() async {
     setState(() => _isLoading = true);
     var ok = false;
@@ -123,6 +130,18 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
           final nb = int.tryParse(b.id) ?? 0;
           return na.compareTo(nb);
         });
+
+      // Contagem de "amanhã" (dashboard do dia seguinte), igual ao Kotlin.
+      try {
+        final amanha =
+            _toApi(_fromApi(_currentDate).add(const Duration(days: 1)));
+        final bytes = await _api.getPriceSignDashboard(_storeId, amanha);
+        final root = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+        _tomorrowCount =
+            (root['promoCardInfo']?['totalAvailable'] as num?)?.toInt() ?? 0;
+      } catch (_) {
+        _tomorrowCount = 0;
+      }
       ok = true;
     } on ApiException catch (e) {
       if (e.statusCode == 401) {
@@ -752,16 +771,38 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
             child: Padding(
               padding: const EdgeInsets.only(top: 30),
               child: Column(
-                children: const [
-                  Icon(Icons.print_disabled, size: 80, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
+                children: [
+                  const Icon(Icons.print_disabled, size: 80, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  const Text(
                     'Nenhuma papeleta para este período',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
-                  Text('Tente ajustar os filtros acima.',
+                  const SizedBox(height: 8),
+                  const Text('Tente ajustar os filtros acima.',
                       style: TextStyle(color: Colors.black54)),
+                  if (_currentDate == _today && _tomorrowCount > 0) ...[
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3F2FD),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Você tem $_tomorrowCount papeleta(s) de amanhã ($_amanhaDisplay) para imprimir! Selecione o tipo, os departamentos e o status para começar a imprimir.',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFFC61033),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
