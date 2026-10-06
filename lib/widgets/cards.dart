@@ -835,12 +835,14 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
       final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
           ? pd!.installmentPrice!
           : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+      final por = (precoPromo != null && precoPromo > 0) ? precoPromo : null;
       String? promo;
-      if (qtdParc != null) {
+      if (por != null && valorParc > 0) {
+        // Combinado depor+parcelado (igual Kotlin): R$por | Nx de R$parcela
+        promo = 'R\$${_num(por)} | ${qtdParc}x de R\$${_num(valorParc)}';
+      } else {
         promo =
             '${precoNormal > 0 ? _brl(precoNormal) : widget.item.price} | ${qtdParc}x de R\$${_num(valorParc)}';
-      } else if (valorParc > 0) {
-        promo = _brl(valorParc);
       }
       return (badge: 'PARCELADO', badgeColor: _orange, promo: promo, price: null);
     }
