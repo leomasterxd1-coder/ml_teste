@@ -294,7 +294,8 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
   Future<void> _onReport() async {
     setState(() => _isLoading = true);
     try {
-      final bytes = await _api.reportFullChanges(_storeId, _currentDate, isPriceTag: false);
+      // Igual ao Kotlin: o relatório é sempre do dia de hoje.
+      final bytes = await _api.reportFullChanges(_storeId, _today, isPriceTag: false);
       const channel = MethodChannel('minhaloja/pdf');
       final ts = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'relatorio_papeletas_$ts.pdf';
@@ -382,7 +383,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
         arguments: {
           'items': data,
           'size': _selectedSize,
-          'mostrarCheckbox': true,
+          'mostrarCheckboxOverlay': true,
           'modoEditavel': _usarModeloComum,
           'usarModeloComum': _usarModeloComum,
         });
