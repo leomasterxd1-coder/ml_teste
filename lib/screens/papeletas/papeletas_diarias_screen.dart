@@ -97,6 +97,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
 
   Future<void> _loadFilters() async {
     setState(() => _isLoading = true);
+    var ok = false;
     try {
       final filters = await _api.getPriceSignFilters(_storeId);
       _sizes = [
@@ -122,6 +123,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
           final nb = int.tryParse(b.id) ?? 0;
           return na.compareTo(nb);
         });
+      ok = true;
     } on ApiException catch (e) {
       if (e.statusCode == 401) {
         SessionExpiredHandler.handleSessionExpired(context);
@@ -134,6 +136,10 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
       LogHelper.e('PapeletasDiarias: erro filtros', e);
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+    // Igual ao Kotlin: ao abrir, já carrega as papeletas (sem tocar em BUSCAR).
+    if (ok && mounted) {
+      await _loadSigns();
     }
   }
 
@@ -233,11 +239,16 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
 
   void _onNextDay() {
     if (_currentDate != _today) return;
+    // Igual ao Kotlin: "Amanhã" limpa a lista/contadores e só carrega no BUSCAR.
     setState(() {
       final next = _fromApi(_currentDate).add(const Duration(days: 1));
       _currentDate = _toApi(next);
+      _items = [];
+      _allItems = [];
+      _naoImpressas = 0;
+      _impressas = 0;
+      _total = 0;
     });
-    _loadSigns();
   }
 
   void _onSelectAll(bool? value) {
