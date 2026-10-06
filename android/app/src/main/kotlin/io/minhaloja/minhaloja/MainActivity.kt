@@ -25,6 +25,16 @@ import kotlin.math.roundToInt
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "minhaloja/pdf"
+    private var beepGen: android.media.ToneGenerator? = null
+
+    override fun onDestroy() {
+        try {
+            beepGen?.release()
+        } catch (_: Throwable) {
+        }
+        beepGen = null
+        super.onDestroy()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Captura qualquer exceção Java/Kotlin não tratada (incluindo OOM)
@@ -46,6 +56,33 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        // Bip do scanner (ToneGenerator): "success" = leitura ok; "error" = falha.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "minhaloja/beep")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "success", "error" -> {
+                        try {
+                            if (beepGen == null) {
+                                beepGen = android.media.ToneGenerator(
+                                    android.media.AudioManager.STREAM_MUSIC, 100
+                                )
+                            }
+                            val tone = if (call.method == "success") {
+                                android.media.ToneGenerator.TONE_PROP_BEEP
+                            } else {
+                                android.media.ToneGenerator.TONE_PROP_NACK
+                            }
+                            beepGen?.startTone(tone, 160)
+                            result.success(null)
+                        } catch (t: Throwable) {
+                            result.error("BEEP_FAIL", t.message, null)
+                        }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {

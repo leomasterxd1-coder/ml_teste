@@ -11,6 +11,8 @@ import 'package:minhaloja/utils/toast_utils.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
 import 'package:minhaloja/utils/buscar_anim.dart';
+import 'package:minhaloja/utils/price_tag_mapper.dart';
+import 'package:minhaloja/screens/barcode/barcode_scanner_screen.dart';
 import 'package:minhaloja/widgets/cards.dart';
 import 'package:minhaloja/widgets/action_swipe_card.dart';
 import 'package:minhaloja/services/lista_pdf_service.dart';
@@ -23,44 +25,6 @@ import 'package:flutter_slidable/flutter_slidable.dart';
     final day = d.day.toString().padLeft(2, '0');
     return '$y-$m-$day';
   }
-
-  PrintingData _toPrintingData(SingleLabelPrintingData d) => PrintingData(
-      ean: d.ean,
-      description: d.description,
-      department: d.department,
-      displayPrice: d.displayPrice,
-      price: d.price,
-      promotionalPrice: d.promotionalPrice,
-      quantity: d.quantity,
-      movementType: d.movementType,
-      unit: d.unit,
-      unitQty: d.unitQty,
-      unitValue: d.unitValue,
-      printUnitValue: d.printUnitValue,
-      codSap: d.codSap,
-      takeAndWin: d.takeAndWin,
-      referenceDate: d.referenceDate,
-      template: d.template,
-      installments: d.installments,
-    );
-
-PriceTag _singleToPriceTag(SingleLabelItem item) => PriceTag(
-      id: item.id,
-      sap: item.sap,
-      department: item.department,
-      ean: item.ean,
-      description: item.description,
-      startDate: item.startDate,
-      endDate: item.endDate,
-      duration: item.duration,
-      price: item.price,
-      movement: item.movement,
-      status: item.status,
-      checkbox: false,
-      quantity: item.quantity,
-      printingData:
-          item.printingData != null ? _toPrintingData(item.printingData!) : null,
-    );
 
 class EtiquetasFragment extends StatefulWidget {
   const EtiquetasFragment({super.key});
@@ -155,12 +119,15 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
   }
 
   Future<void> _addByScan() async {
-    final result = await Navigator.pushNamed(context, '/barcode');
-    if (result is String && result.isNotEmpty) {
-      _eanController.text = result;
-      await _salvarColagem(result);
-      await _fetchAndAdd(result);
-    }
+    // Scanner contínuo: adiciona os itens direto na lista, com bip; ao voltar,
+    // recarrega a lista salva (sem sair da câmera a cada leitura).
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (_) => const BarcodeScannerScreen(continuo: true)),
+    );
+    await _loadSaved();
+    await _carregarColagem();
   }
 
   Future<void> _carregarColagem() async {
@@ -271,7 +238,7 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
           _tags[idx].quantity += 1;
           incremented++;
         } else {
-          _tags.add(_singleToPriceTag(item));
+          _tags.add(singleToPriceTag(item));
           added++;
         }
       }
