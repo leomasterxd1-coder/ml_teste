@@ -320,6 +320,13 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
       ToastUtils.show(context, 'Selecione ao menos uma papeleta');
       return;
     }
+
+    // Igual ao Kotlin: sem modelo personalizado, envia direto pela API.
+    if (!_usarModeloPersonalizado) {
+      await _enviarParaImpressaoNormal(selected);
+      return;
+    }
+
     final data = <PapeletaPrintingData>[];
     for (final e in selected) {
       final pd = e.printingData;
@@ -380,6 +387,43 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
           'usarModeloComum': _usarModeloComum,
         });
     if (r == true) await _loadSigns();
+  }
+
+  // Caminho normal de impressão: envia direto pela API (sem modelo personalizado).
+  Future<void> _enviarParaImpressaoNormal(List<PriceSign> selected) async {
+    setState(() => _isLoading = true);
+    try {
+      final products = selected
+          .where((e) => e.printingData != null)
+          .map((e) => e.printingData!.copyWith(
+                size: _selectedSize,
+                quantity: e.quantity > 0 ? e.quantity : 1,
+              ))
+          .toList();
+      if (products.isEmpty) {
+        ToastUtils.show(context, 'Dados de impressão não disponíveis');
+        return;
+      }
+      await _api.sendPriceSigns(
+          _storeId, SendPriceSignRequest(products: products));
+      final total = products.fold<int>(0, (s, d) => s + (d.quantity ?? 1));
+      if (!mounted) return;
+      ToastUtils.show(context, '$total papeletas enviadas para impressão!');
+      await _loadSigns();
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 401) {
+        SessionExpiredHandler.handleSessionExpired(context);
+      } else {
+        ToastUtils.show(context, '❌ Erro ao enviar para impressão');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.show(context, 'Erro ao enviar para impressão');
+      LogHelper.e('PapeletasDiarias: erro enviar impressão', e);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   bool get _allDepartmentsSelected =>
