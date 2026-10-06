@@ -167,18 +167,27 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
     startBuscarAnim();
     try {
       final comum = await _api.getPriceSigns(_storeId, Constants.signTypePapeletaComum,
-          status: _selectedStatus, startDate: _currentDate);
+          size: _selectedSize, status: _selectedStatus, startDate: _currentDate);
       final promo = await _api.getPriceSigns(
           _storeId, Constants.signTypePapeletaPromocional,
-          status: _selectedStatus, startDate: _currentDate);
+          size: _selectedSize, status: _selectedStatus, startDate: _currentDate);
       List<PriceSign> all = [...comum.priceSigns, ...promo.priceSigns];
 
       if (_selectedMovement.isNotEmpty) {
         if (_selectedMovement == 'Normal') {
-          all = all.where((it) =>
-            it.movement != 'De/Por' && it.movement != 'Parcelado' && it.movement != 'Leve e Ganhe').toList();
+          // Igual ao Kotlin ("Comum"): exclui DE/POR/LEVE/GANHE/PROMOCIONAL.
+          all = all.where((it) {
+            final m = it.movement.toUpperCase();
+            return !m.contains('DE') &&
+                !m.contains('POR') &&
+                !m.contains('LEVE') &&
+                !m.contains('GANHE') &&
+                !m.contains('PROMOCIONAL');
+          }).toList();
         } else {
-          all = all.where((it) => it.movement == _selectedMovement).toList();
+          all = all.where((it) =>
+              it.movement.toLowerCase() ==
+              _selectedMovement.toLowerCase()).toList();
         }
       }
       if (_selectedDepartments.isNotEmpty) {
