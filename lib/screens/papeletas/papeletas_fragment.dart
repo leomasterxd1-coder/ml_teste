@@ -123,19 +123,6 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       _usarMisto || _usarComumSimples || _usarModeloEditavel ||
       _usarComumEditavel || _usarVencimentos;
 
-  static int _maxItens(String size) {
-    switch (size) {
-      case '1×1':
-        return 1;
-      case '2×1':
-        return 2;
-      case '4×1':
-        return 4;
-      default:
-        return 6;
-    }
-  }
-
   static String _templatePorMovimento(String? movement) {
     final m = (movement ?? '').toLowerCase();
     if (m == 'de/por') return Constants.signTemplateDepor;
@@ -351,7 +338,9 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       return;
     }
 
-    final qtd = qty < _maxItens(tamanhoAtual) ? qty : _maxItens(tamanhoAtual);
+    // Quantidade = nº de papeletas (no tamanho escolhido), sem travar no
+    // limite da grade — a composição distribui em várias páginas.
+    final qtd = qty;
     final lista = List.generate(
         qtd,
         (_) => _ajustarDadosLeveGanhe(signData.copyWith(

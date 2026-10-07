@@ -154,24 +154,20 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   }
 
   List<PapeletaPrintingData> _selecionados() {
+    // Quantidade = nº de papeletas (no tamanho escolhido). Cada cópia é uma
+    // célula na grade do tamanho; a composição distribui em várias páginas.
     final out = <PapeletaPrintingData>[];
     for (int i = 0; i < _items.length; i++) {
-      out.add(_currentData(i).copyWith(size: _size, quantity: _copias));
+      final base = _currentData(i).copyWith(size: _size, quantity: 1);
+      for (var c = 0; c < _copias; c++) {
+        out.add(base);
+      }
     }
     return out;
   }
 
   List<String> _validades() =>
       [for (int i = 0; i < _items.length; i++) _ctrls[i].validade.text];
-
-  List<Uint8List> _comCopias(List<Uint8List> pages) {
-    if (_copias <= 1) return pages;
-    final out = <Uint8List>[];
-    for (var i = 0; i < _copias; i++) {
-      out.addAll(pages);
-    }
-    return out;
-  }
 
   Future<void> _gerarPreview() async {
     // Trava de reentrada: toques repetidos não disparam gerações concorrentes
@@ -302,7 +298,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         }
       }
       if (pages == null) throw Exception('Falha ao gerar páginas');
-      final pdfBytes = await _gerarPdfBytes(_comCopias(pages), _size);
+      final pdfBytes = await _gerarPdfBytes(pages, _size);
       final socket = await Socket.connect(_kPrinterIp, _kPrinterPort,
           timeout: const Duration(seconds: 5));
       socket.add(pdfBytes);
@@ -328,52 +324,37 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _gerando = true);
     try {
-      const channel = MethodChannel('minhaloja/pdf');
-      final pdfs = <Uint8List>[];
-      for (final d in toSend) {
-        final b = await api.previewPriceSign(d.copyWith(size: Constants.signSize1x1));
-        pdfs.add(b);
+      // Compõe as páginas (N papeletas no tamanho escolhido, distribuídas na
+      // grade do tamanho) e gera o PDF — mesmo pipeline do socket.
+      List<Uint8List>? pages;
+      for (final dpi in const [600, 300]) {
+        try {
+          final a4 = _a4CanvasDimensions(dpi);
+          pages = await buildCompositePages(
+            api: api,
+            items: toSend,
+            size: _size,
+            modoVencimentos: _modoVencimentos,
+            validades: _validades(),
+            semOverlay: _semOverlay,
+            previewScale: 1.0,
+            targetCanvasW: a4[0],
+            targetCanvasH: a4[1],
+          );
+          break;
+        } catch (e) {
+          LogHelper.e('ModeloEditavel: share fallback DPI $dpi', e);
+        }
       }
-      final s = _size.toUpperCase().replaceAll('×', 'X');
-      int cols = 2, rows = 2;
-      switch (s) {
-        case '1X1': cols = 1; rows = 1; break;
-        case '2X1': cols = 2; rows = 1; break;
-        case '6X1': cols = 3; rows = 2; break;
-      }
-      final isLandscape = cols > rows;
-      final cellW = (isLandscape ? 1200 : 850) ~/ cols;
-      final cellH = (isLandscape ? 850 : 1200) ~/ rows;
-      final comums = <int>[];
-      final tops = <double>[];
-      for (var i = 0; i < toSend.length; i++) {
-        // Mesma regra da pré-visualização (_isComum): templates Promocional/
-        // Depor/Modelo nunca são comuns (overlay aparece mesmo sem preço
-        // promocional preenchido).
-        final comum = _isComum(toSend[i]);
-        comums.add(comum ? 1 : 0);
-        tops.add(comum ? 0.25 : (cols * rows > 1 ? 0.28 : 0.25));
-      }
-      // Sempre raster (overlay PNG + conteúdo), inclusive no Promocional
-      // Editável 1x1 — o caminho vetorial (mergeVectorPdf) não desenhava o
-      // overlay e foi descontinuado.
-      await channel.invokeMethod('compartilharPdf', {
-        'pdfs': pdfs,
-        'cols': cols,
-        'rows': rows,
-        'cellW': cellW,
-        'cellH': cellH,
-        'overlay': 'assets/overlays/1x1_p8.png',
-        'semOverlay': _semOverlay,
-        'vencimentos': _modoVencimentos,
-        'misto': false,
-        'comums': comums,
-        'topFracs': tops,
-        'validades': _validades(),
-        'shiftVenc': 0.015,
-        'shiftMulti': 0.03,
-        'isLandscape': isLandscape,
-      });
+      if (pages == null) throw Exception('Falha ao gerar páginas');
+      final pdfBytes = await _gerarPdfBytes(pages, _size);
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/papeletas_${DateTime.now().millisecondsSinceEpoch}.pdf');
+      await file.writeAsBytes(pdfBytes);
+      if (!mounted) return;
+      await Share.shareXFiles([XFile(file.path)],
+          subject: 'Papeletas', text: 'Papeletas');
     } catch (e) {
       if (!mounted) return;
       ToastUtils.showError(context, 'Erro ao compartilhar PDF');
