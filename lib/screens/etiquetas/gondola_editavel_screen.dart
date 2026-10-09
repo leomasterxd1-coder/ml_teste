@@ -47,6 +47,14 @@ bool _ehDepor(PrintingData d) {
       promo < normal;
 }
 
+bool _ehDeporParcelado(PrintingData d) {
+  final promo = d.promotionalPrice?.value ?? 0;
+  final normal = d.price?.value ?? 0;
+  return (d.installments?.installmentQuantity ?? 0) > 0 &&
+      promo > 0 &&
+      (normal <= 0 || promo < normal);
+}
+
 class GondolaEditavelScreen extends StatefulWidget {
   final List<PrintingData> items;
   final String printerId;
@@ -71,6 +79,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
   final _qtdController = TextEditingController();
   final _precoPromoController = TextEditingController();
   final _quantoFicaController = TextEditingController();
+  final _valorAnteriorController = TextEditingController();
   final _precoParceladoController = TextEditingController();
   final _parcelasController = TextEditingController();
   final _valorParcelaController = TextEditingController();
@@ -113,6 +122,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     _qtdController.dispose();
     _precoPromoController.dispose();
     _quantoFicaController.dispose();
+    _valorAnteriorController.dispose();
     _precoParceladoController.dispose();
     _parcelasController.dispose();
     _valorParcelaController.dispose();
@@ -131,7 +141,13 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       _precoPromoController.text = _fmt(d.takeAndWin?.totalValue ?? 0);
       _quantoFicaController.text = _fmt(d.promotionalPrice?.value ?? 0);
     } else if (_ehParcelado(d)) {
-      _precoParceladoController.text = _fmt(_precoAtual(d));
+      final normal =
+          (d.price?.value ?? 0) > 0 ? d.price!.value : _precoAtual(d);
+      _valorAnteriorController.text = _fmt(normal);
+      final promo = (d.promotionalPrice?.value ?? 0) > 0
+          ? d.promotionalPrice!.value
+          : _precoAtual(d);
+      _precoParceladoController.text = _fmt(promo);
       _parcelasController.text =
           '${d.installments?.installmentQuantity ?? 1}';
       _valorParcelaController.text =
@@ -182,6 +198,9 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
         takeAndWinPrice: unit,
       );
     } else if (_ehParcelado(d)) {
+      final valAnterior = _parse(_valorAnteriorController.text) > 0
+          ? _parse(_valorAnteriorController.text)
+          : ((d.price?.value ?? 0) > 0 ? d.price!.value : _precoAtual(d));
       final preco = _parse(_precoParceladoController.text) > 0
           ? _parse(_precoParceladoController.text)
           : _precoAtual(d);
@@ -192,6 +211,11 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
           ? _parse(_valorParcelaController.text)
           : (d.installments?.installmentValue ?? 0);
       novo = novo.copyWith(
+        price: PriceInfo(
+            value: valAnterior,
+            discountPercent: d.price?.discountPercent ?? 0,
+            startAt: d.price?.startAt ?? '',
+            endAt: d.price?.endAt ?? ''),
         promotionalPrice: PromotionalPriceInfo(
             value: preco,
             discountPercent: d.promotionalPrice?.discountPercent ?? 0,
@@ -382,7 +406,8 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                     _campo('PREÇO POR (R\$)', _precoPorController),
                   ],
                   if (isParcelado) ...[
-                    _campo('PREÇO (R\$)', _precoParceladoController),
+                    _campo('VALOR ANTERIOR (R\$)', _valorAnteriorController),
+                    _campo('PREÇO PROMOCIONAL (R\$)', _precoParceladoController),
                     _campo('Nº DE PARCELAS', _parcelasController),
                     _campo('VALOR DA PARCELA (R\$)', _valorParcelaController),
                   ],
@@ -420,7 +445,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
   }
 
   String _cifrao(PrintingData d) {
-    if (_ehDepor(d)) return 'De R\$';
+    if (_ehDepor(d) || _ehDeporParcelado(d)) return 'De R\$';
     return 'R\$';
   }
 
@@ -430,8 +455,10 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return _fmt(v > 0 ? v : (d.price?.value ?? 0));
     }
     if (_ehParcelado(d)) {
-      final v = _parse(_precoParceladoController.text);
-      return _fmt(v > 0 ? v : _precoAtual(d));
+      final v = _parse(_valorAnteriorController.text);
+      return _fmt(v > 0
+          ? v
+          : ((d.price?.value ?? 0) > 0 ? d.price!.value : _precoAtual(d)));
     }
     if (_ehDepor(d)) {
       final v = _parse(_precoDeController.text);
@@ -450,6 +477,12 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return '$qty por R\$ ${_fmt(total)}';
     }
     if (_ehParcelado(d)) {
+      if (_ehDeporParcelado(d)) {
+        final por = _parse(_precoParceladoController.text) > 0
+            ? _parse(_precoParceladoController.text)
+            : (d.promotionalPrice?.value ?? 0);
+        return 'Por R\$ ${_fmt(por)}';
+      }
       final parcelas = int.tryParse(_parcelasController.text) ??
           d.installments?.installmentQuantity ??
           1;
@@ -474,7 +507,18 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
           : (d.promotionalPrice?.value ?? 0);
       return 'NA PROMOÇÃO A UND SAIRÁ POR R\$ ${_fmt(unit)}';
     }
-    if (_ehParcelado(d)) return 'SEM JUROS';
+    if (_ehParcelado(d)) {
+      if (_ehDeporParcelado(d)) {
+        final parcelas = int.tryParse(_parcelasController.text) ??
+            d.installments?.installmentQuantity ??
+            1;
+        final valor = _parse(_valorParcelaController.text) > 0
+            ? _parse(_valorParcelaController.text)
+            : (d.installments?.installmentValue ?? 0);
+        return '${parcelas}X de R\$ ${_fmt(valor)}';
+      }
+      return 'SEM JUROS';
+    }
     return '';
   }
 
