@@ -13,6 +13,7 @@ import 'package:minhaloja/utils/session_expired_handler.dart';
 import 'package:minhaloja/utils/buscar_anim.dart';
 import 'package:minhaloja/widgets/cards.dart';
 import 'package:minhaloja/widgets/action_swipe_card.dart';
+import 'package:minhaloja/widgets/buscar_botao.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class PapeletasFragment extends StatefulWidget {
@@ -194,28 +195,19 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
             description: _buscaTipo == 'Descrição' ? c : null,
             startDate: _startDate),
       ]);
-      int added = 0;
-      int incremented = 0;
       for (final r in results) {
         for (final it in r.items) {
           final idx = _items.indexWhere((e) => e.id == it.id);
           if (idx >= 0) {
             _items[idx].quantity += 1;
-            incremented++;
           } else {
             _items.add(it);
-            added++;
           }
         }
       }
       setState(() {});
       if (!mounted) return;
-      if (added == 0 && incremented == 0) {
-        ToastUtils.showInfo(context, 'Nenhuma papeleta encontrada');
-      } else {
-        ToastUtils.showSuccess(
-            context, '$added adicionado(s) | $incremented incrementado(s)');
-      }
+      // Sem toast no scan: só o badge com o contador (atualizado no setState).
       await _persist();
     } on ApiException catch (e) {
       if (e.statusCode == 401) {
@@ -686,38 +678,41 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                   Container(height: 1, color: borderGrey),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _eanController,
-                            keyboardType: _eanKeyboardType,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-                            decoration: InputDecoration(
-                              hintText: _eanHint,
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
-                              border: InputBorder.none,
-                              isDense: true,
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: const Color(0xFF9AA5B1)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                child: TextField(
+                                  controller: _eanController,
+                                  keyboardType: _eanKeyboardType,
+                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                                  decoration: InputDecoration(
+                                    hintText: _eanHint,
+                                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                  ),
+                                  onSubmitted: (v) => _addStandalone(),
+                                ),
+                              ),
                             ),
-                            onSubmitted: (v) => _addStandalone(),
-                          ),
-                        ),
-                        SizedBox(
-                          height: 38,
-                           child: ElevatedButton.icon(
-                             onPressed: buscando ? null : _addStandalone,
-                             icon: const Icon(Icons.search, size: 18, color: Colors.white),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryRed,
-                              disabledBackgroundColor: const Color(0xFFE57373),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                            BuscarBotao(
+                              porDescricao: _buscaTipo == 'Descrição',
+                              buscando: buscando,
+                              onPressed: _addStandalone,
                             ),
-                            label: buscando ? Text(buscandoLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)) : const Text('BUSCAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -858,7 +853,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
         ),
         Positioned(
           right: 24,
-          bottom: 24,
+          bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
           child: AnimatedSlide(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOut,

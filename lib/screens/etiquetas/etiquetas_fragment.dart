@@ -15,6 +15,7 @@ import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/screens/barcode/barcode_scanner_screen.dart';
 import 'package:minhaloja/widgets/cards.dart';
 import 'package:minhaloja/widgets/action_swipe_card.dart';
+import 'package:minhaloja/widgets/buscar_botao.dart';
 import 'package:minhaloja/services/lista_pdf_service.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
@@ -537,58 +538,42 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                     // Busca
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      child: Row(
-                        children: [
-
-                        Expanded(
-                          child: TextField(
-                            controller: _eanController,
-                            focusNode: _eanFocus,
-                            keyboardType: _eanKeyboardType,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              isDense: true,
-                            hintText: _eanHint,
-                              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
-                            ),
-                          ),
+                      child: Container(
+                        height: 48,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xFF9AA5B1)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        SizedBox(
-                          height: 38,
-                           child: ElevatedButton.icon(
-                             onPressed: buscando ? null : () => _fetchAndAdd(_eanController.text),
-                             icon: const Icon(Icons.search, size: 18, color: Colors.white),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryRed,
-                              disabledBackgroundColor: const Color(0xFFE57373),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            label: buscando
-                                ? Text(buscandoLabel,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  )
-                                : const Text(
-                                    'BUSCAR',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                      letterSpacing: 0.5,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  child: TextField(
+                                    controller: _eanController,
+                                    focusNode: _eanFocus,
+                                    keyboardType: _eanKeyboardType,
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      hintText: _eanHint,
+                                      hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
                                     ),
                                   ),
+                                ),
+                              ),
+                              BuscarBotao(
+                                porDescricao: _buscaTipo == 'Descrição',
+                                buscando: buscando,
+                                onPressed: () => _fetchAndAdd(_eanController.text),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
                     ),
                   ],
                 ),
@@ -791,7 +776,7 @@ if (_tags.isNotEmpty)
         ),
         Positioned(
           right: 24,
-          bottom: 24,
+          bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
           child: AnimatedSlide(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeOut,

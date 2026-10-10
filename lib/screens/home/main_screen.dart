@@ -47,18 +47,18 @@ class _MainScreenState extends State<MainScreen> {
   void _onMenuItem(int index) {
     switch (index) {
       case 0:
-        _selecionarCorpo(0, 'ETIQUETA AVULSA', 'assets/icons/eti_avulsa.png');
+        _selecionarCorpo(0, 'Etiqueta avulsa', 'assets/icons/eti_avulsa.png');
         break;
       case 1:
-        _selecionarCorpo(1, 'PAPELETA AVULSA', 'assets/icons/pap_avulsa.png');
+        _selecionarCorpo(1, 'Papeleta avulsa', 'assets/icons/pap_avulsa.png');
         break;
       case 2:
         _selecionarCorpo(
-            2, 'ETIQUETAS DIÁRIAS', 'assets/icons/eti_diaria.png');
+            2, 'Etiquetas diárias', 'assets/icons/eti_diaria.png');
         break;
       case 3:
         _selecionarCorpo(
-            3, 'PAPELETAS DIÁRIAS', 'assets/icons/pap_diaria.png');
+            3, 'Papeletas diárias', 'assets/icons/pap_diaria.png');
         break;
     }
   }
@@ -245,16 +245,16 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _menuItem('assets/icons/eti_avulsa.png', 'ETIQUETA AVULSA',
+          _menuItem('assets/icons/eti_avulsa.png', 'Etiqueta avulsa',
               () => _onMenuItem(0)),
           _divider(),
-          _menuItem('assets/icons/pap_avulsa.png', 'PAPELETA AVULSA',
+          _menuItem('assets/icons/pap_avulsa.png', 'Papeleta avulsa',
               () => _onMenuItem(1)),
           _divider(),
-          _menuItem('assets/icons/eti_diaria.png', 'ETIQUETAS DIÁRIAS',
+          _menuItem('assets/icons/eti_diaria.png', 'Etiquetas diárias',
               () => _onMenuItem(2)),
           _divider(),
-          _menuItem('assets/icons/pap_diaria.png', 'PAPELETAS DIÁRIAS',
+          _menuItem('assets/icons/pap_diaria.png', 'Papeletas diárias',
               () => _onMenuItem(3)),
         ],
       ),
