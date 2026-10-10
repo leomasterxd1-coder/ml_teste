@@ -97,6 +97,25 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
               : take.totalValue;
       return (leveGanhe: 'Leve ${take.qty} por ${_brl(totalLeve)} | ${_brl(precoNormal)}', deporValor: null, deporBadge: null);
     }
+    final inst = pd?.installments;
+    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
+    final valorParc = (inst != null && inst.installmentValue > 0)
+        ? inst.installmentValue
+        : (pd != null && pd.displayPrice > 0)
+            ? pd.displayPrice
+            : (pd != null && pd.unitValue > 0)
+                ? pd.unitValue
+                : (pd != null && pd.unitQty > 0)
+                    ? pd.unitQty
+                    : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+    // De/Por + Parcelado: badge combinado (De R$X|Por R$Y|Nx de R$Z).
+    if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
+      return (
+        leveGanhe: null,
+        deporValor: 'De R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
+        deporBadge: 'parcelado'
+      );
+    }
     if (precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
       return (
         leveGanhe: null,
@@ -104,26 +123,13 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
         deporBadge: 'de por'
       );
     }
-    final inst = pd?.installments;
-    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
     // Parcelado só com DADOS de parcela (igual à tela de entrada);
     // movement="Parcelado" sem installments abre como de por.
     if (qtdParc != null) {
-      final valorParc = (inst != null && inst.installmentValue > 0)
-          ? inst.installmentValue
-          : (pd != null && pd.displayPrice > 0)
-              ? pd.displayPrice
-              : (pd != null && pd.unitValue > 0)
-                  ? pd.unitValue
-                  : (pd != null && pd.unitQty > 0)
-                      ? pd.unitQty
-                      : (precoPromo != null && precoPromo > 0
-                          ? precoPromo
-                          : precoNormal);
       return (
         leveGanhe: null,
         deporValor:
-            '${precoNormal > 0 ? _brl(precoNormal) : widget.tag.price} | ${qtdParc != null ? '${qtdParc}x de R\$${_num(valorParc)}' : _brl(valorParc)}',
+            '${precoNormal > 0 ? _brl(precoNormal) : widget.tag.price} | ${qtdParc}x de R\$${_num(valorParc)}',
         deporBadge: 'parcelado'
       );
     }
@@ -324,6 +330,20 @@ class _PapeletaCardState extends State<PapeletaCard> {
         deporBadge: null
       );
     }
+    final qtdParc = (pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
+        ? pd!.installmentQuantity!
+        : null;
+    final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
+        ? pd!.installmentPrice!
+        : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+    // De/Por + Parcelado: badge combinado.
+    if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
+      return (
+        leveGanhe: null,
+        deporValor: 'De R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
+        deporBadge: 'parcelado'
+      );
+    }
     if (precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
       return (
         leveGanhe: null,
@@ -331,19 +351,13 @@ class _PapeletaCardState extends State<PapeletaCard> {
         deporBadge: 'de por'
       );
     }
-    final qtdParc = (pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
-        ? pd!.installmentQuantity!
-        : null;
     // Parcelado só com DADOS de parcela (igual à tela de entrada);
     // movement="Parcelado" sem installments abre como de por.
     if (qtdParc != null) {
-      final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
-          ? pd!.installmentPrice!
-          : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
       return (
         leveGanhe: null,
         deporValor:
-            '${precoNormal > 0 ? _brl(precoNormal) : widget.item.price} | ${qtdParc != null ? '${qtdParc}x de R\$${_num(valorParc)}' : _brl(valorParc)}',
+            '${precoNormal > 0 ? _brl(precoNormal) : widget.item.price} | ${qtdParc}x de R\$${_num(valorParc)}',
         deporBadge: 'parcelado'
       );
     }
@@ -574,6 +588,26 @@ class _PriceTagCardState extends State<PriceTagCard> {
       final price = precoNormal > 0 ? _brl(precoNormal) : widget.tag.price;
       return (badge: 'LEVE E GANHE', badgeColor: _green, promo: promo, price: price);
     }
+    final inst = pd?.installments;
+    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
+    final valorParc = (inst != null && inst.installmentValue > 0)
+        ? inst.installmentValue
+        : (pd != null && pd.displayPrice > 0)
+            ? pd.displayPrice
+            : (pd != null && pd.unitValue > 0)
+                ? pd.unitValue
+                : (pd != null && pd.unitQty > 0)
+                    ? pd.unitQty
+                    : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+    // De/Por + Parcelado: badge combinado.
+    if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
+      return (
+        badge: 'PARCELADO',
+        badgeColor: _orange,
+        promo: 'De R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
+        price: null
+      );
+    }
     if (movement.contains('DE') ||
         movement.contains('POR') ||
         movement.contains('PROMOCIONAL')) {
@@ -583,30 +617,16 @@ class _PriceTagCardState extends State<PriceTagCard> {
       }
       return (badge: 'DE/POR', badgeColor: _orange, promo: promo, price: null);
     }
-    final inst = pd?.installments;
-    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
     // Parcelado só com DADOS de parcela (igual à tela de entrada);
     // movement="Parcelado" sem installments abre como de por.
     if (qtdParc != null) {
-      final valorParc = (inst != null && inst.installmentValue > 0)
-          ? inst.installmentValue
-          : (pd != null && pd.displayPrice > 0)
-              ? pd.displayPrice
-              : (pd != null && pd.unitValue > 0)
-                  ? pd.unitValue
-                  : (pd != null && pd.unitQty > 0)
-                      ? pd.unitQty
-                      : (precoPromo != null && precoPromo > 0
-                          ? precoPromo
-                          : precoNormal);
-      String? promo;
-      if (qtdParc != null) {
-        promo =
-            '${precoNormal > 0 ? _brl(precoNormal) : widget.tag.price} | ${qtdParc}x de R\$${_num(valorParc)}';
-      } else if (valorParc > 0) {
-        promo = _brl(valorParc);
-      }
-      return (badge: 'PARCELADO', badgeColor: _orange, promo: promo, price: null);
+      return (
+        badge: 'PARCELADO',
+        badgeColor: _orange,
+        promo:
+            '${precoNormal > 0 ? _brl(precoNormal) : widget.tag.price} | ${qtdParc}x de R\$${_num(valorParc)}',
+        price: null
+      );
     }
     final price = precoNormal > 0 ? _brl(precoNormal) : widget.tag.price;
     return (badge: 'NORMAL', badgeColor: _grayBadge, promo: null, price: price);
@@ -817,6 +837,22 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
       final price = precoNormal > 0 ? _brl(precoNormal) : widget.item.price;
       return (badge: 'LEVE E GANHE', badgeColor: _green, promo: promo, price: price);
     }
+    final qtdParc = (pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
+        ? pd!.installmentQuantity!
+        : null;
+    final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
+        ? pd!.installmentPrice!
+        : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+    // De/Por + Parcelado: badge combinado.
+    if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
+      return (
+        badge: 'PARCELADO',
+        badgeColor: _orange,
+        promo:
+            'De R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
+        price: null
+      );
+    }
     if (movement.contains('DE') ||
         movement.contains('POR') ||
         movement.contains('PROMOCIONAL')) {
@@ -826,19 +862,12 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
       }
       return (badge: 'DE/POR', badgeColor: _orange, promo: promo, price: null);
     }
-    final qtdParc = (pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
-        ? pd!.installmentQuantity!
-        : null;
     // Parcelado só com DADOS de parcela (igual à tela de entrada);
     // movement="Parcelado" sem installments abre como de por.
     if (qtdParc != null) {
-      final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
-          ? pd!.installmentPrice!
-          : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
       final por = (precoPromo != null && precoPromo > 0) ? precoPromo : null;
       String? promo;
       if (por != null && valorParc > 0) {
-        // Combinado depor+parcelado (igual Kotlin): R$por | Nx de R$parcela
         promo = 'R\$${_num(por)} | ${qtdParc}x de R\$${_num(valorParc)}';
       } else {
         promo =

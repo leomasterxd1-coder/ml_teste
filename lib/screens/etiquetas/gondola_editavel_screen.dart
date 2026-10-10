@@ -445,7 +445,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
   }
 
   String _cifrao(PrintingData d) {
-    if (_ehDepor(d) || _ehDeporParcelado(d)) return 'De R\$';
+    if (_ehDepor(d)) return 'De R\$';
     return 'R\$';
   }
 
@@ -455,6 +455,10 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return _fmt(v > 0 ? v : (d.price?.value ?? 0));
     }
     if (_ehParcelado(d)) {
+      if (_ehDeporParcelado(d)) {
+        final v = _parse(_precoParceladoController.text);
+        return _fmt(v > 0 ? v : (d.promotionalPrice?.value ?? 0));
+      }
       final v = _parse(_valorAnteriorController.text);
       return _fmt(v > 0
           ? v
@@ -477,19 +481,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return '$qty por R\$ ${_fmt(total)}';
     }
     if (_ehParcelado(d)) {
-      if (_ehDeporParcelado(d)) {
-        final por = _parse(_precoParceladoController.text) > 0
-            ? _parse(_precoParceladoController.text)
-            : (d.promotionalPrice?.value ?? 0);
-        return 'Por R\$ ${_fmt(por)}';
-      }
-      final parcelas = int.tryParse(_parcelasController.text) ??
-          d.installments?.installmentQuantity ??
-          1;
-      final valor = _parse(_valorParcelaController.text) > 0
-          ? _parse(_valorParcelaController.text)
-          : (d.installments?.installmentValue ?? 0);
-      return '${parcelas}X de R\$ ${_fmt(valor)}';
+      return 'EM ATÉ';
     }
     if (_ehDepor(d)) {
       final por = _parse(_precoPorController.text) > 0
@@ -508,16 +500,13 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return 'NA PROMOÇÃO A UND SAIRÁ POR R\$ ${_fmt(unit)}';
     }
     if (_ehParcelado(d)) {
-      if (_ehDeporParcelado(d)) {
-        final parcelas = int.tryParse(_parcelasController.text) ??
-            d.installments?.installmentQuantity ??
-            1;
-        final valor = _parse(_valorParcelaController.text) > 0
-            ? _parse(_valorParcelaController.text)
-            : (d.installments?.installmentValue ?? 0);
-        return '${parcelas}X de R\$ ${_fmt(valor)}';
-      }
-      return 'SEM JUROS';
+      final parcelas = int.tryParse(_parcelasController.text) ??
+          d.installments?.installmentQuantity ??
+          1;
+      final valor = _parse(_valorParcelaController.text) > 0
+          ? _parse(_valorParcelaController.text)
+          : (d.installments?.installmentValue ?? 0);
+      return '${parcelas}x de R\$ ${_fmt(valor)}';
     }
     return '';
   }
