@@ -113,11 +113,11 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   // ---- Helpers (espelho do Kotlin) ----
   bool get _usarMisto => _modelo == 'Misto';
   bool get _usarModeloEditavel => _modelo == 'Promocional Editável';
-  bool get _usarComumEditavel => _modelo == 'Comum Editável';
-  bool get _usarComumSimples => _modelo == 'Comum';
+  bool get _usarComumEditavel => _modelo == 'Normal Editável';
+  bool get _usarComumSimples => _modelo == 'Normal';
   bool get _usarVencimentos => _modelo == 'Vencimentos';
   bool get _isModoEditavel =>
-      _modelo == 'Promocional Editável' || _modelo == 'Comum Editável';
+      _modelo == 'Promocional Editável' || _modelo == 'Normal Editável';
   // Misto/Comum/Promocional Editável/Comum Editável/Vencimentos abrem preview
   // (o modo Promocional simples foi removido).
   bool get _abrePreview =>
@@ -366,7 +366,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     for (final item in _items) {
       final ehComum = _isItemComum(item);
       if (!_usarMisto && !_usarVencimentos) {
-        if (_tipo == 'Comum' && (!ehComum || !_isComumElegivel(item))) continue;
+        if (_tipo == 'Normal' && (!ehComum || !_isComumElegivel(item))) continue;
         if (_tipo == 'Promocional' && ehComum) continue;
       }
       // Comum Editável: somente comums.
@@ -386,7 +386,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     }
     if (lista.isEmpty) {
       ToastUtils.show(context,
-          _tipo == 'Comum' ? 'Nenhum item do tipo Comum' : 'Nenhum item do tipo Promocional');
+          _tipo == 'Normal' ? 'Nenhum item do tipo Normal' : 'Nenhum item do tipo Promocional');
       return;
     }
 
@@ -602,7 +602,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                             icon: Icons.receipt_long,
                             label: 'PAPELETA',
                             value: _tipo,
-                            items: const ['Comum', 'Promocional'],
+                            items: const ['Normal', 'Promocional'],
                             onChanged: (v) {
                               if (v == null) return;
                               setState(() => _tipo = v);
@@ -618,8 +618,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                             items: const [
                               'Misto',
                               'Promocional Editável',
-                              'Comum',
-                              'Comum Editável',
+                              'Normal',
+                              'Normal Editável',
                               'Vencimentos'
                             ],
                             onChanged: (v) {
@@ -627,7 +627,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                               setState(() {
                                 _modelo = v;
                                 if (v == 'Promocional Editável') _tipo = 'Promocional';
-                                if (v == 'Comum Editável') _tipo = 'Comum';
+                                if (v == 'Normal Editável') _tipo = 'Normal';
                               });
                             },
                           ),

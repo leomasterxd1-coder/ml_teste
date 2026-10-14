@@ -690,7 +690,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     final hasTake = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
     final hasInst = d.installmentQuantity != null && d.installmentQuantity! > 0;
     final ehComum = !hasPromo && !hasTake && !hasInst;
-    final tipoLabel = ehComum ? 'Comum' : 'Promocional';
+    final tipoLabel = ehComum ? 'Normal' : 'Promocional';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
