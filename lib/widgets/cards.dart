@@ -250,11 +250,19 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(p.deporValor!,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(p.deporValor!,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white)),
+                                ),
+                              ),
                               const SizedBox(width: 4),
                               Container(
                                 height: 28,
@@ -493,11 +501,19 @@ class _PapeletaCardState extends State<PapeletaCard> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(p.deporValor!,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white)),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(p.deporValor!,
+                                      maxLines: 1,
+                                      softWrap: false,
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white)),
+                                ),
+                              ),
                               const SizedBox(width: 4),
                               Container(
                                 height: 28,
@@ -776,11 +792,19 @@ class _PriceTagCardState extends State<PriceTagCard> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(showPromo ? b.promo! : b.price!,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(showPromo ? b.promo! : b.price!,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                      ),
+                    ),
                     const SizedBox(width: 6),
                     Container(
                       height: 28,
@@ -1033,11 +1057,19 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(showPromo ? b.promo! : b.price!,
-                        style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(showPromo ? b.promo! : b.price!,
+                            maxLines: 1,
+                            softWrap: false,
+                            style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
+                      ),
+                    ),
                     const SizedBox(width: 6),
                     Container(
                       height: 28,
