@@ -203,7 +203,8 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                       if (p.leveGanhe != null) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          height: 28,
+                          padding: const EdgeInsets.only(left: 10),
                           decoration: BoxDecoration(
                             color: _green,
                             borderRadius: BorderRadius.circular(12),
@@ -218,10 +219,15 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                                       color: Colors.white)),
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                height: 28,
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(9),
+                                  borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12)),
+                                  border: Border.all(color: _green, width: 1),
                                 ),
                                 child: const Text('leve e ganhe',
                                     style: TextStyle(
@@ -235,7 +241,8 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                       ] else if (p.deporValor != null) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          height: 28,
+                          padding: const EdgeInsets.only(left: 12),
                           decoration: BoxDecoration(
                             color: _green,
                             borderRadius: BorderRadius.circular(12),
@@ -250,10 +257,15 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                                       color: Colors.white)),
                               const SizedBox(width: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                height: 28,
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(9),
+                                  borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12)),
+                                  border: Border.all(color: _green, width: 1),
                                 ),
                                 child: Text(p.deporBadge!,
                                     style: TextStyle(
@@ -434,7 +446,8 @@ class _PapeletaCardState extends State<PapeletaCard> {
                       if (p.leveGanhe != null) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          height: 28,
+                          padding: const EdgeInsets.only(left: 10),
                           decoration: BoxDecoration(
                             color: _green,
                             borderRadius: BorderRadius.circular(12),
@@ -449,10 +462,15 @@ class _PapeletaCardState extends State<PapeletaCard> {
                                       color: Colors.white)),
                               const SizedBox(width: 6),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                height: 28,
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(9),
+                                  borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12)),
+                                  border: Border.all(color: _green, width: 1),
                                 ),
                                 child: const Text('leve e ganhe',
                                     style: TextStyle(
@@ -466,7 +484,8 @@ class _PapeletaCardState extends State<PapeletaCard> {
                       ] else if (p.deporValor != null) ...[
                         const SizedBox(height: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          height: 28,
+                          padding: const EdgeInsets.only(left: 12),
                           decoration: BoxDecoration(
                             color: _green,
                             borderRadius: BorderRadius.circular(12),
@@ -481,10 +500,15 @@ class _PapeletaCardState extends State<PapeletaCard> {
                                       color: Colors.white)),
                               const SizedBox(width: 4),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                height: 28,
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(9),
+                                  borderRadius: const BorderRadius.only(
+                                      topRight: Radius.circular(12),
+                                      bottomRight: Radius.circular(12)),
+                                  border: Border.all(color: _green, width: 1),
                                 ),
                                 child: Text(p.deporBadge!,
                                     style: TextStyle(
@@ -743,7 +767,8 @@ class _PriceTagCardState extends State<PriceTagCard> {
             if (showPromo || showPrice) ...[
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                height: 28,
+                padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
                   color: _green,
                   borderRadius: BorderRadius.circular(12),
@@ -758,10 +783,15 @@ class _PriceTagCardState extends State<PriceTagCard> {
                             color: Colors.white)),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      height: 28,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12)),
+                        border: Border.all(color: _green, width: 1),
                       ),
                       child: Text(b.badge,
                           style: TextStyle(
@@ -775,7 +805,8 @@ class _PriceTagCardState extends State<PriceTagCard> {
             ] else ...[
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                height: 28,
+                padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
                   color: _green,
                   borderRadius: BorderRadius.circular(12),
@@ -993,7 +1024,8 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
             if (showPromo || showPrice) ...[
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                height: 28,
+                padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
                   color: _green,
                   borderRadius: BorderRadius.circular(12),
@@ -1008,10 +1040,15 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                             color: Colors.white)),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      height: 28,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(9),
+                        borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(12),
+                            bottomRight: Radius.circular(12)),
+                        border: Border.all(color: _green, width: 1),
                       ),
                       child: Text(b.badge,
                           style: TextStyle(
@@ -1025,7 +1062,8 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
             ] else ...[
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                height: 28,
+                padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
                   color: _green,
                   borderRadius: BorderRadius.circular(12),
