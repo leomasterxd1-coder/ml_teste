@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/models/models.dart';
 
@@ -13,6 +14,17 @@ const Color _descDark2 = Color(0xFF212121);
 const Color _eanGray = Color(0xFF666666);
 const Color _eanGray2 = Color(0xFF757575);
 const Color _green = Color(0xFF4CAF50);
+
+void _copiarEan(BuildContext context, String ean) {
+  Clipboard.setData(ClipboardData(text: ean));
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('EAN copiado: $ean'),
+      duration: const Duration(seconds: 1),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
 const Color _greenDark = Color(0xFF2E7D32);
 const Color _orange = Color(0xFFFF9800);
 const Color _grayBadge = Color(0xFF9E9E9E);
@@ -181,9 +193,12 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'DEP: $deptNum | EAN: ${widget.tag.ean} / SAP: ${widget.tag.sap}',
-                        style: const TextStyle(fontSize: 10, color: _eanGray2),
+                      GestureDetector(
+                        onTap: () => _copiarEan(context, widget.tag.ean),
+                        child: Text(
+                          'DEP: $deptNum | EAN: ${widget.tag.ean} / SAP: ${widget.tag.sap}',
+                          style: const TextStyle(fontSize: 10, color: _eanGray2),
+                        ),
                       ),
                       if (p.leveGanhe != null) ...[
                         const SizedBox(height: 6),
@@ -409,9 +424,12 @@ class _PapeletaCardState extends State<PapeletaCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'DEP: $deptNum | EAN: ${widget.item.ean} / SAP: ${widget.item.sap}',
-                        style: const TextStyle(fontSize: 10, color: _eanGray2),
+                      GestureDetector(
+                        onTap: () => _copiarEan(context, widget.item.ean),
+                        child: Text(
+                          'DEP: $deptNum | EAN: ${widget.item.ean} / SAP: ${widget.item.sap}',
+                          style: const TextStyle(fontSize: 10, color: _eanGray2),
+                        ),
                       ),
                       if (p.leveGanhe != null) ...[
                         const SizedBox(height: 6),
@@ -710,9 +728,12 @@ class _PriceTagCardState extends State<PriceTagCard> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'EAN: ${widget.tag.ean} • Dep: ${widget.tag.department}',
-                    style: const TextStyle(fontSize: 10, color: _eanGray),
+                  child: GestureDetector(
+                    onTap: () => _copiarEan(context, widget.tag.ean),
+                    child: Text(
+                      'EAN: ${widget.tag.ean} • Dep: ${widget.tag.department}',
+                      style: const TextStyle(fontSize: 10, color: _eanGray),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -957,9 +978,12 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    'EAN: ${widget.item.ean} • Dep: ${widget.item.department}',
-                    style: const TextStyle(fontSize: 10, color: _eanGray),
+                  child: GestureDetector(
+                    onTap: () => _copiarEan(context, widget.item.ean),
+                    child: Text(
+                      'EAN: ${widget.item.ean} • Dep: ${widget.item.department}',
+                      style: const TextStyle(fontSize: 10, color: _eanGray),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
