@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:barcode/barcode.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -9,7 +10,8 @@ import 'package:share_plus/share_plus.dart';
 import '../models/models.dart';
 
 /// Gera um PDF em formato de relatório/tabela com os itens da lista.
-/// Colunas: Quantidade, EAN, SAP, Descrição. Depois oferece compartilhamento.
+/// Colunas: Quantidade, EAN, Descrição e Código de Barras (EAN-13).
+/// Depois oferece compartilhamento.
 class ListaPdfService {
   ListaPdfService._();
 
@@ -41,41 +43,43 @@ class ListaPdfService {
             ),
           ),
           pw.SizedBox(height: 12),
-          pw.TableHelper.fromTextArray(
-            headers: const ['Quantidade', 'EAN', 'SAP', 'Descrição'],
-            data: [
-              for (final t in itens)
-                [
-                  t.quantity.toString(),
-                  t.ean,
-                  t.sap,
-                  t.description,
-                ],
-            ],
-            headerStyle: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              color: PdfColors.white,
-            ),
-            headerDecoration: const pw.BoxDecoration(
-              color: PdfColors.red700,
-            ),
-            cellStyle: const pw.TextStyle(fontSize: 10),
-            cellAlignments: {
-              0: pw.Alignment.centerLeft,
-              1: pw.Alignment.centerLeft,
-              2: pw.Alignment.centerLeft,
-              3: pw.Alignment.centerLeft,
-            },
+          pw.Table(
+            border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
             columnWidths: {
-              0: const pw.FixedColumnWidth(100),
-              1: const pw.FixedColumnWidth(120),
-              2: const pw.FixedColumnWidth(100),
-              3: const pw.FlexColumnWidth(),
+              0: const pw.FixedColumnWidth(70),
+              1: const pw.FixedColumnWidth(100),
+              2: const pw.FlexColumnWidth(),
+              3: const pw.FixedColumnWidth(165),
             },
-            border: pw.TableBorder.all(
-              color: PdfColors.grey300,
-              width: 0.5,
-            ),
+            children: [
+              pw.TableRow(
+                decoration: const pw.BoxDecoration(color: PdfColors.red700),
+                children: [
+                  _celula('Quantidade', header: true),
+                  _celula('EAN', header: true),
+                  _celula('Descrição', header: true),
+                  _celula('Código de Barras', header: true),
+                ],
+              ),
+              for (final t in itens)
+                pw.TableRow(
+                  children: [
+                    _celula(t.quantity.toString()),
+                    _celula(t.ean),
+                    _celula(t.description),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(4),
+                      child: pw.BarcodeWidget(
+                        barcode: _barcodePara(t.ean),
+                        data: t.ean,
+                        width: 155,
+                        height: 34,
+                        drawText: false,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
           ),
           pw.SizedBox(height: 16),
           pw.Text(
@@ -189,6 +193,37 @@ class ListaPdfService {
       [XFile(arquivo.path, mimeType: 'application/pdf')],
       text: 'Relatório de Papeletas',
     );
+  }
+
+  static pw.Widget _celula(String texto, {bool header = false}) => pw.Padding(
+        padding: const pw.EdgeInsets.all(6),
+        child: pw.Text(
+          texto,
+          style: header
+              ? pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                  color: PdfColors.white,
+                )
+              : const pw.TextStyle(fontSize: 10),
+        ),
+      );
+
+  /// EAN-13 quando válido; senão CODE_128 (aceita qualquer conteúdo).
+  static Barcode _barcodePara(String ean) {
+    if (_ean13Valido(ean)) return Barcode.ean13();
+    return Barcode.code128();
+  }
+
+  static bool _ean13Valido(String ean) {
+    if (!RegExp(r'^\d{13}$').hasMatch(ean)) return false;
+    var soma = 0;
+    for (var i = 0; i < 12; i++) {
+      final d = int.parse(ean[i]);
+      soma += (i.isEven) ? d : d * 3;
+    }
+    final dv = (10 - (soma % 10)) % 10;
+    return dv == int.parse(ean[12]);
   }
 
   static Future<void> _escreverArquivo(File arquivo, Uint8List bytes) async {
