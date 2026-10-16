@@ -785,7 +785,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       }
       if (promoLinha2.isNotEmpty) {
         final tam = _ajustarTexto(promoLinha2, 17, 10, _boxMax);
-        draw(promoLinha2, tx(_boxCx), ty(252), tam, TextAlign.center,
+        draw(promoLinha2, tx(_boxCx), promoLinha2 == 'EM ATÉ' ? ty(2 * _boxCy - 252) : ty(252), tam, TextAlign.center,
             const Color(0xFFFFE600));
       }
     }
