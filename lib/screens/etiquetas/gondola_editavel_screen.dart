@@ -481,7 +481,13 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return '$qty por R\$ ${_fmt(total)}';
     }
     if (_ehParcelado(d)) {
-      return 'EM ATÉ';
+      final parcelas = int.tryParse(_parcelasController.text) ??
+          d.installments?.installmentQuantity ??
+          1;
+      final valor = _parse(_valorParcelaController.text) > 0
+          ? _parse(_valorParcelaController.text)
+          : (d.installments?.installmentValue ?? 0);
+      return '${parcelas}x de R\$ ${_fmt(valor)}';
     }
     if (_ehDepor(d)) {
       final por = _parse(_precoPorController.text) > 0
@@ -500,13 +506,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return 'NA PROMOÇÃO A UND SAIRÁ POR R\$ ${_fmt(unit)}';
     }
     if (_ehParcelado(d)) {
-      final parcelas = int.tryParse(_parcelasController.text) ??
-          d.installments?.installmentQuantity ??
-          1;
-      final valor = _parse(_valorParcelaController.text) > 0
-          ? _parse(_valorParcelaController.text)
-          : (d.installments?.installmentValue ?? 0);
-      return '${parcelas}x de R\$ ${_fmt(valor)}';
+      return 'EM ATÉ';
     }
     return '';
   }
