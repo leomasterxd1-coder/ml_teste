@@ -46,19 +46,19 @@ class ListaPdfService {
           pw.Table(
             border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
             columnWidths: {
-              0: const pw.FixedColumnWidth(70),
-              1: const pw.FixedColumnWidth(100),
+              0: const pw.FixedColumnWidth(44),
+              1: const pw.FixedColumnWidth(120),
               2: const pw.FlexColumnWidth(),
-              3: const pw.FixedColumnWidth(165),
+              3: const pw.FixedColumnWidth(190),
             },
             children: [
               pw.TableRow(
                 decoration: const pw.BoxDecoration(color: PdfColors.red700),
                 children: [
-                  _celula('Quantidade', header: true),
-                  _celula('EAN', header: true),
-                  _celula('Descrição', header: true),
-                  _celula('Código de Barras', header: true),
+                  _celula('Qtd', header: true),
+                  _celula('COD EAN', header: true),
+                  _celula('DESCRIÇÃO', header: true),
+                  _celula('CÓDIGO DE BARRAS', header: true),
                 ],
               ),
               for (final t in itens)
@@ -72,7 +72,7 @@ class ListaPdfService {
                       child: pw.BarcodeWidget(
                         barcode: _barcodePara(t.ean),
                         data: t.ean,
-                        width: 155,
+                        width: 175,
                         height: 34,
                         drawText: false,
                       ),
@@ -199,6 +199,7 @@ class ListaPdfService {
         padding: const pw.EdgeInsets.all(6),
         child: pw.Text(
           texto,
+          textAlign: pw.TextAlign.center,
           style: header
               ? pw.TextStyle(
                   fontSize: 10,
