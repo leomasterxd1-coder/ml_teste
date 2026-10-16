@@ -201,7 +201,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                         ),
                       ),
                       if (p.leveGanhe != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 10),
@@ -239,7 +239,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                           ),
                         ),
                       ] else if (p.deporValor != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 12),
@@ -263,7 +263,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                                           color: Colors.white)),
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: p.deporBadge == 'parcelado' ? 10 : 8),
                               Container(
                                 height: 28,
                                 alignment: Alignment.center,
@@ -452,7 +452,7 @@ class _PapeletaCardState extends State<PapeletaCard> {
                         ),
                       ),
                       if (p.leveGanhe != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 10),
@@ -490,7 +490,7 @@ class _PapeletaCardState extends State<PapeletaCard> {
                           ),
                         ),
                       ] else if (p.deporValor != null) ...[
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 12),
@@ -514,7 +514,7 @@ class _PapeletaCardState extends State<PapeletaCard> {
                                           color: Colors.white)),
                                 ),
                               ),
-                              const SizedBox(width: 4),
+                              SizedBox(width: p.deporBadge == 'parcelado' ? 10 : 8),
                               Container(
                                 height: 28,
                                 alignment: Alignment.center,
@@ -781,7 +781,7 @@ class _PriceTagCardState extends State<PriceTagCard> {
               ],
             ),
             if (showPromo || showPrice) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
@@ -827,7 +827,7 @@ class _PriceTagCardState extends State<PriceTagCard> {
                 ),
               ),
             ] else ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
@@ -1046,7 +1046,7 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
               ],
             ),
             if (showPromo || showPrice) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
@@ -1092,7 +1092,7 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                 ),
               ),
             ] else ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 4),
               Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
