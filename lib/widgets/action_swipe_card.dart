@@ -86,7 +86,7 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
     final double largura = MediaQuery.of(context).size.width;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(16),
       child: Stack(
         children: [
           // 1. Fundo vermelho com a lixeira (igual ao Compose: raio 8,
