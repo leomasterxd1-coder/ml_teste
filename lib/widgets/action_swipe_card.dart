@@ -1,6 +1,4 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'animated_trash_icon.dart';
 
 class SwipeToTrashItem extends StatefulWidget {
   final Widget child;
@@ -25,14 +23,14 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
   late AnimationController _controller;
   late Animation<double> _animProgress;
 
-  final double _threshold = -100.0; // Distância mínima para acionar a eliminação
+  final double _threshold = 100.0; // Distância mínima para acionar a eliminação
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 250),
     );
 
     _animProgress = CurvedAnimation(
@@ -60,20 +58,19 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
     if (_isDeleting) return;
     setState(() {
       _dragOffset += details.delta.dx;
-      if (_dragOffset > 0) _dragOffset = 0; // Restringe deslize apenas para a esquerda
+      if (_dragOffset < 0) _dragOffset = 0; // Deslize apenas para a direita
     });
   }
 
   void _onHorizontalDragEnd(DragEndDetails details) {
     if (_isDeleting) return;
 
-    if (_dragOffset < _threshold) {
+    if (_dragOffset > _threshold) {
       setState(() {
         _isDeleting = true;
       });
       _controller.forward();
     } else {
-      // Retorna ao estado inicial
       setState(() {
         _dragOffset = 0.0;
       });
@@ -86,52 +83,30 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
       return const SizedBox.shrink();
     }
 
-    final bool isTrashOpen = _dragOffset < (_threshold / 2);
+    final double largura = MediaQuery.of(context).size.width;
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(8),
       child: Stack(
-        clipBehavior: Clip.none,
         children: [
-          // 1. Fundo Vermelho com o Ícone da Lixeira
+          // 1. Fundo vermelho com a lixeira (igual ao Compose: raio 8,
+          // icone estatico branco alinhado ao inicio).
           Positioned.fill(
             child: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD32F2F),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: AnimatedScale(
-                scale: isTrashOpen ? 1.3 : 1.0,
-                duration: const Duration(milliseconds: 200),
-                child: AnimatedRotation(
-                  turns: isTrashOpen ? -0.05 : 0.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: SizedBox(
-                    width: 36,
-                    height: 36,
-                    child: Center(
-                      child: AnimatedTrashIcon(animate: isTrashOpen || _isDeleting),
-                    ),
-                  ),
-                ),
-              ),
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: const BoxDecoration(color: Color(0xFFD32F2F)),
+              child: const Icon(Icons.delete, color: Colors.white, size: 28),
             ),
           ),
 
-          // 2. Card Interativo (Arraste + Animação de Papel Amassado)
+          // 2. Card arrastavel: slide simples ate sair (SwipeToDismiss).
           AnimatedBuilder(
             animation: _animProgress,
             builder: (context, _) {
-              final progress = _animProgress.value;
-
-              // FASE DE ARRASTE MANUAL
               if (!_isDeleting) {
                 return Transform(
-                  transform: Matrix4.identity()
-                    ..translate(_dragOffset)
-                    ..rotateZ(_dragOffset * 0.0008),
+                  transform: Matrix4.identity()..translate(_dragOffset),
                   alignment: Alignment.center,
                   child: GestureDetector(
                     onHorizontalDragUpdate: _onHorizontalDragUpdate,
@@ -141,39 +116,12 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
                 );
               }
 
-              // FASE DE ANIMAÇÃO (Amassar -> Voar para a Lixeira Vermelha)
-              double scaleFactor = 1.0;
-              double opacity = 1.0;
-              double translateX = _dragOffset;
-              double translateY = 0.0;
-              double rotation = _dragOffset * 0.0008;
-
-              if (progress <= 0.4) {
-                // Etapa A: Deforma / encolhe levemente
-                final p = progress / 0.4;
-                scaleFactor = 1.0 - (p * 0.3);
-              } else {
-                // Etapa B: O papel voa em arco em direção à lixeira vermelha
-                final p = (progress - 0.4) / 0.6;
-                scaleFactor = 0.7 * (1.0 - p * 0.5);
-                opacity = (1.0 - p).clamp(0.0, 1.0);
-
-                // Trajetória do salto para dentro do bloco vermelho
-                translateX = _dragOffset + (p * (-_dragOffset + 120));
-                translateY = math.sin(p * math.pi) * -30;
-                rotation = p * math.pi * 4;
-              }
-
-              return Opacity(
-                opacity: opacity,
-                child: Transform(
-                  transform: Matrix4.identity()
-                    ..translate(translateX, translateY)
-                    ..rotateZ(rotation)
-                    ..scale(scaleFactor),
-                  alignment: Alignment.center,
-                  child: widget.child,
-                ),
+              final progress = _animProgress.value;
+              final translateX = _dragOffset + ((largura - _dragOffset) * progress);
+              return Transform(
+                transform: Matrix4.identity()..translate(translateX),
+                alignment: Alignment.center,
+                child: widget.child,
               );
             },
           ),
