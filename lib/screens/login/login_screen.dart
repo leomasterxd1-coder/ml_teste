@@ -22,10 +22,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
+  late final AnimationController _pulse;
+  late final Animation<double> _pulseScale;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
@@ -46,6 +48,13 @@ class _LoginScreenState extends State<LoginScreen>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
+    );
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _pulseScale = Tween<double>(begin: 0.94, end: 1.06).animate(
+      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
     );
     _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(
@@ -287,10 +296,13 @@ class _LoginScreenState extends State<LoginScreen>
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
-        child: SvgPicture.asset(
-          'assets/icons/logo_minha_loja.svg',
-          width: 110,
-          height: 102,
+        child: ScaleTransition(
+          scale: _pulseScale,
+          child: SvgPicture.asset(
+            'assets/icons/loja_anim.svg',
+            width: 110,
+            height: 102,
+          ),
         ),
       ),
     );
@@ -538,6 +550,7 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
+    _pulse.dispose();
     _emailController.dispose();
     _senhaController.dispose();
     super.dispose();
