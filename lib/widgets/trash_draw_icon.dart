@@ -23,6 +23,7 @@ class _TrashDrawIconState extends State<TrashDrawIcon>
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
+    _controller.value = 1;
     if (widget.animate) _controller.forward(from: 0);
   }
 
@@ -33,7 +34,7 @@ class _TrashDrawIconState extends State<TrashDrawIcon>
       if (widget.animate) {
         _controller.forward(from: 0);
       } else {
-        _controller.value = 0;
+        _controller.value = 1;
       }
     }
   }

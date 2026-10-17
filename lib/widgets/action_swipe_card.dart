@@ -99,7 +99,7 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
               decoration: const BoxDecoration(color: Color(0xFFD32F2F)),
               child: TrashDrawIcon(
                 size: 34,
-                animate: _dragOffset > (_threshold / 2) || _isDeleting,
+                animate: _dragOffset > 0 || _isDeleting,
               ),
             ),
           ),
