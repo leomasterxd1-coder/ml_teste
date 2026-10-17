@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/badge_acao.dart';
 import 'package:flutter/services.dart';
 import '../../models/models.dart';
 import '../../network/api_service.dart';
@@ -993,50 +994,27 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
   }
 
   Widget _buildBottomBar() {
-    const primaryRed = Color(0xFFC61033);
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
+    if (_selectedCount == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _onReport,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: primaryRed,
-                side: const BorderSide(color: primaryRed),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-              ),
-              child: const Text('RELATÓRIO',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+          BadgeAcao(
+            texto: 'RELATÓRIO',
+            icone: Icons.picture_as_pdf,
+            corFundo: Colors.white,
+            corTexto: const Color(0xFFC61033),
+            corBorda: const Color(0xFFC61033),
+            onPressed: _onReport,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: _onPrint,
-              icon: const Icon(Icons.print),
-              label: const Text('IMPRIMIR',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryRed,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30)),
-              ),
-            ),
+          const SizedBox(width: 12),
+          BadgeAcao(
+            texto: 'IMPRIMIR',
+            icone: Icons.print,
+            corFundo: const Color(0xFFC61033),
+            corTexto: Colors.white,
+            onPressed: _onPrint,
           ),
         ],
       ),
