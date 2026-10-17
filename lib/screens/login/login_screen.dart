@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen>
     );
     _pulse = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 1800),
     )..repeat(reverse: true);
     _pulseScale = Tween<double>(begin: 0.94, end: 1.06).animate(
       CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
