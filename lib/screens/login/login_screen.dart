@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
@@ -285,11 +286,11 @@ class _LoginScreenState extends State<LoginScreen>
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
-        child: Image.asset(
-          'assets/icons/minha_loja_logo.png',
-          width: 84,
-          height: 84,
-          fit: BoxFit.contain,
+        child: Lottie.asset(
+          'assets/lottie/shop_active.json',
+          width: 120,
+          height: 120,
+          repeat: true,
         ),
       ),
     );

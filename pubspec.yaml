@@ -2,12 +2,13 @@ name: minhaloja
 description: "Port fiel do app Android MLoja para Flutter."
 publish_to: 'none'
 
-version: 1.1.124+124
+version: 1.1.125+125
 
 environment:
   sdk: ^3.3.0
 
 dependencies:
+  lottie: ^3.1.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -40,6 +41,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/lottie/
     - assets/images/
     - assets/icons/
     - assets/overlays/
