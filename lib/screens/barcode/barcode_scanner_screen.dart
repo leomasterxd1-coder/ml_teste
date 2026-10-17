@@ -3,12 +3,14 @@ import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/lista_store.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
+import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/beep.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
+import 'package:minhaloja/utils/toast_utils.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
@@ -124,6 +126,131 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
+  Future<void> _escolherImpressoraEEnviar() async {
+    final escolha = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Enviar impressão'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, Constants.printerZebra1),
+            child: const Text('Zebra 1'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, Constants.printerZebra2),
+            child: const Text('Zebra 2'),
+          ),
+        ],
+      ),
+    );
+    if (escolha == null || !mounted) return;
+    await _enviarImpressao(escolha);
+  }
+
+  Future<void> _enviarImpressao(String printerId) async {
+    final api = _api;
+    if (api == null) return;
+    final etiquetas = await ListaStore.instance.getEtiquetas();
+    if (etiquetas.isEmpty) {
+      ToastUtils.show(context, 'Nenhuma etiqueta adicionada');
+      return;
+    }
+    final lista = <PrintingData>[];
+    for (final item in etiquetas) {
+      final pd = item.printingData;
+      if (pd == null) continue;
+      final template = pd.takeAndWin != null
+          ? Constants.signTemplateModelo
+          : Constants.templateNormalizado(pd.template);
+      lista.add(pd.copyWith(quantity: 1, template: template));
+    }
+    if (lista.isEmpty) {
+      ToastUtils.show(context, 'Dados de impressão não disponíveis');
+      return;
+    }
+    try {
+      await api.sendPriceTagsToPrinter(
+        _storeId,
+        printerId,
+        Constants.tagGondola,
+        SendPriceTagsRequest(products: lista),
+      );
+      if (!mounted) return;
+      ToastUtils.show(
+          context, '${lista.length} etiqueta(s) enviada(s) para impressão!');
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.showError(context, 'Erro ao enviar: $e');
+    }
+  }
+
+  Future<void> _abrirPreviewPapeleta() async {
+    final api = _api;
+    if (api == null) return;
+    final etiquetas = await ListaStore.instance.getEtiquetas();
+    if (etiquetas.isEmpty) {
+      ToastUtils.show(context, 'Nenhuma etiqueta adicionada');
+      return;
+    }
+    try {
+      final lista = <PapeletaPrintingData>[];
+      final vistos = <String>{};
+      for (final et in etiquetas) {
+        for (final tipo in [Constants.tipoComum, Constants.tipoPromocional]) {
+          try {
+            final resp = await api.getPriceSignStandalone(_storeId, tipo,
+                ean: et.ean, startDate: _today);
+            for (final item in resp.items) {
+              final pd = item.printingData;
+              if (pd == null) continue;
+              if (!vistos.add(item.ean)) continue;
+              lista.add(pd.copyWith(quantity: 1, size: Constants.signSize1x1));
+            }
+          } catch (_) {}
+        }
+      }
+      if (lista.isEmpty) {
+        ToastUtils.show(context, 'Dados de papeleta não disponíveis');
+        return;
+      }
+      final tamanhos = ['1×1', '2×1', '4×1', '6×1'];
+      final sizes = [
+        Constants.signSize1x1,
+        Constants.signSize2x1,
+        Constants.signSize4x1,
+        Constants.signSize6x1,
+      ];
+      final escolha = await showDialog<String>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: const Text('Tamanho da papeleta'),
+          children: [
+            for (var i = 0; i < tamanhos.length; i++)
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, sizes[i]),
+                child: Text(tamanhos[i]),
+              ),
+          ],
+        ),
+      );
+      if (escolha == null || !mounted) return;
+      await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
+        'items': lista,
+        'size': escolha,
+        'mostrarCheckboxOverlay': true,
+        'modoEditavel': false,
+        'modoVencimentos': false,
+        'semOverlay': false,
+        'apiSemOverlay': true,
+        'hideGerarPreview': false,
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.showError(context, 'Erro: $e');
+    }
+  }
+
   void _onScaleStart(ScaleStartDetails details) {
     _scaleStart = _currentZoom;
   }
@@ -135,6 +262,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       _controller.setZoomScale((_currentZoom - 1) / 7);
       setState(() {});
     }
+  }
+
+  Widget _botaoCamera(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD7193F),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   @override
@@ -183,12 +328,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             ),
             if (_currentZoom > 1.0)
               Positioned(
-                bottom: 60,
+                bottom: 120,
                 left: 0,
                 right: 0,
                 child: Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black54,
                       borderRadius: BorderRadius.circular(20),
@@ -205,28 +351,45 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               ),
             if (widget.continuo)
               Positioned(
-                bottom: 56,
+                bottom: 40,
                 left: 0,
                 right: 0,
-                child: Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Text(
-                      _added == 1
-                          ? '1 item adicionado'
-                          : '$_added itens adicionados',
-                      style: const TextStyle(
-                        color: Color(0xFFD7193F),
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Text(
+                          _added == 1
+                              ? '1 item adicionado'
+                              : '$_added itens adicionados',
+                          style: const TextStyle(
+                            color: Color(0xFFD7193F),
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _botaoCamera(
+                            'ENVIAR IMPRESSÃO', _escolherImpressoraEEnviar),
+                        const SizedBox(width: 8),
+                        _botaoCamera(
+                            'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
+                      ],
+                    ),
+                  ],
                 ),
               ),
           ],
