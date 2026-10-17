@@ -106,6 +106,10 @@ class _TrashPainter extends CustomPainter {
 
   void _drawProgress(Canvas canvas, Path path, Paint paint, double fraction) {
     if (fraction <= 0) return;
+    if (fraction >= 0.999) {
+      canvas.drawPath(path, paint);
+      return;
+    }
     for (final metric in path.computeMetrics()) {
       canvas.drawPath(
         metric.extractPath(0, metric.length * fraction),
