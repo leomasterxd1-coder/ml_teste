@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/session_manager.dart';
@@ -286,11 +287,10 @@ class _LoginScreenState extends State<LoginScreen>
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
-        child: Lottie.asset(
-          'assets/lottie/shop_active.json',
-          width: 120,
-          height: 120,
-          repeat: true,
+        child: SvgPicture.asset(
+          'assets/icons/logo_minha_loja.svg',
+          width: 110,
+          height: 102,
         ),
       ),
     );
