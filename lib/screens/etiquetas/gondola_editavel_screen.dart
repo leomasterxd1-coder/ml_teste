@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/services.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/models/models.dart';
@@ -318,8 +319,14 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            backgroundColor: const Color(0xFFD7193F),
-            foregroundColor: Colors.white,
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFFD7193F),
+            systemOverlayStyle: const SystemUiOverlayStyle(
+              statusBarColor: Colors.white,
+              statusBarIconBrightness: Brightness.dark,
+              statusBarBrightness: Brightness.light,
+            ),
+            automaticallyImplyLeading: false,
             centerTitle: true,
             floating: true,
             title: const Text('Edição de gôndola'),
@@ -329,13 +336,13 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFFD7193F),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${_index + 1}/${_items.length}',
                   style: const TextStyle(
-                    color: Color(0xFFD7193F),
+                    color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                   ),
