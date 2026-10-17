@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'trash_draw_icon.dart';
 
 class SwipeToTrashItem extends StatefulWidget {
   final Widget child;
@@ -96,7 +97,10 @@ class _SwipeToTrashItemState extends State<SwipeToTrashItem>
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.symmetric(horizontal: 20),
               decoration: const BoxDecoration(color: Color(0xFFD32F2F)),
-              child: const Icon(Icons.delete, color: Colors.white, size: 28),
+              child: TrashDrawIcon(
+                size: 34,
+                animate: _dragOffset > (_threshold / 2) || _isDeleting,
+              ),
             ),
           ),
 
