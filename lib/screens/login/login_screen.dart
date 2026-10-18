@@ -349,12 +349,19 @@ class _LoginScreenState extends State<LoginScreen>
                 animation: _pulse,
                 builder: (context, _) => Stack(
                   children: [
-                    Positioned.fill(
+                    Positioned(
+                      left: 110,
+                      top: 95,
+                      width: 180,
+                      height: 180,
                       child: Opacity(
                         opacity: letterOpacity.value,
                         child: Transform.scale(
                           scale: letterScale.value,
-                          child: SvgPicture.string(letterSvg),
+                          child: SvgPicture.asset(
+                            'assets/icons/loja_anim.svg',
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
