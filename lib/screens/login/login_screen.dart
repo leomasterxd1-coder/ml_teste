@@ -292,8 +292,6 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLogo() {
-    const letterSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480">'
-        '<path fill="#FFFFFF" fill-rule="evenodd" d="M 230 115 C 180 115 150 145 150 185 C 150 220 175 235 210 235 C 228 235 242 228 250 218 L 250 240 C 250 258 238 266 215 266 C 190 266 170 255 158 245 L 142 272 C 160 288 188 300 220 300 C 265 300 290 278 290 230 L 290 170 C 290 135 268 115 230 115 Z M 230 145 C 248 145 254 158 254 175 L 254 195 C 245 205 232 210 218 210 C 198 210 188 200 188 185 C 188 160 205 145 230 145 Z"/></svg>';
     const cubic = Cubic(0.77, 0, 0.175, 1);
     final barAnim = TweenSequence<double>([
       TweenSequenceItem(tween: ConstantTween(0.0), weight: 10),
@@ -349,12 +347,26 @@ class _LoginScreenState extends State<LoginScreen>
                 animation: _pulse,
                 builder: (context, _) => Stack(
                   children: [
-                    Positioned.fill(
+                    Positioned(
+                      left: 100,
+                      top: 100,
+                      width: 200,
+                      height: 240,
                       child: Opacity(
                         opacity: letterOpacity.value,
                         child: Transform.scale(
                           scale: letterScale.value,
-                          child: SvgPicture.string(letterSvg),
+                          child: const Center(
+                            child: Text(
+                              'a',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 230,
+                                fontWeight: FontWeight.w800,
+                                height: 1.0,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
