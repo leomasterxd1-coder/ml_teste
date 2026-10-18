@@ -198,6 +198,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (escolha == null || !mounted) return;
     final qtds = (escolha['qtds'] as Map).cast<String, int>();
     final size = escolha['size'] as String;
+    final selecionados =
+        (escolha['selecionados'] as Map).cast<String, bool>();
+    final itensSel =
+        etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
+    if (itensSel.isEmpty) {
+      ToastUtils.show(context, 'Selecione ao menos um item');
+      return;
+    }
 
     showDialog<void>(
       context: context,
@@ -208,7 +216,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       ),
     );
     try {
-      final lista = await _carregarPapeletas(etiquetas, qtds, size);
+      final lista = await _carregarPapeletas(itensSel, qtds, size);
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       if (lista.isEmpty) {
@@ -238,6 +246,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final qtds = <String, int>{
       for (final it in itens) it.ean: it.quantity < 1 ? 1 : it.quantity,
     };
+    final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     var size = Constants.signSize1x1;
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -273,6 +282,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Row(
                               children: [
+                                Checkbox(
+                                  value: selecionados[it.ean] ?? true,
+                                  visualDensity: VisualDensity.compact,
+                                  onChanged: (v) => setSheet(() =>
+                                      selecionados[it.ean] = v ?? false),
+                                ),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -294,8 +309,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                     ],
                                   ),
                                 ),
-                                _qtdSelector(qtds[it.ean] ?? 1,
-                                    (v) => setSheet(() => qtds[it.ean] = v)),
+                                _qtdSelector(
+                                    qtds[it.ean] ?? 1,
+                                    (v) =>
+                                        setSheet(() => qtds[it.ean] = v),
+                                    enabled: selecionados[it.ean] ?? true),
                               ],
                             ),
                           ),
@@ -330,6 +348,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       onPressed: () => Navigator.pop(ctx, {
                         'qtds': qtds,
                         'size': size,
+                        'selecionados': selecionados,
                       }),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFC62828),
@@ -352,7 +371,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
-  Widget _qtdSelector(int value, ValueChanged<int> onChanged) {
+  Widget _qtdSelector(int value, ValueChanged<int> onChanged,
+      {bool enabled = true}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -361,14 +381,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           icon: const Icon(Icons.remove_circle_outline, size: 20),
-          onPressed: value > 1 ? () => onChanged(value - 1) : null,
+          onPressed: enabled && value > 1 ? () => onChanged(value - 1) : null,
         ),
         SizedBox(
           width: 24,
           child: Center(
             child: Text('$value',
-                style: const TextStyle(
-                    fontSize: 13, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: enabled ? null : Colors.grey)),
           ),
         ),
         IconButton(
@@ -376,7 +398,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           icon: const Icon(Icons.add_circle_outline, size: 20),
-          onPressed: value < 30 ? () => onChanged(value + 1) : null,
+          onPressed:
+              enabled && value < 30 ? () => onChanged(value + 1) : null,
         ),
       ],
     );
