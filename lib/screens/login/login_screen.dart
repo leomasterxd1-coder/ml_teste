@@ -337,21 +337,21 @@ class _LoginScreenState extends State<LoginScreen>
         opacity: _logoOpacity,
         child: SizedBox(
           width: 160,
-          height: 192,
+          height: 132,
           child: FittedBox(
             fit: BoxFit.contain,
             child: SizedBox(
               width: 400,
-              height: 480,
+              height: 330,
               child: AnimatedBuilder(
                 animation: _pulse,
                 builder: (context, _) => Stack(
                   children: [
                     Positioned(
                       left: 100,
-                      top: 100,
+                      top: 46,
                       width: 200,
-                      height: 240,
+                      height: 230,
                       child: Opacity(
                         opacity: letterOpacity.value,
                         child: Transform.scale(
