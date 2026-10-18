@@ -726,7 +726,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
           child: Row(
             children: [
               Expanded(
-                child: OutlinedButton(
+                child: OutlinedButton.icon(
                   onPressed: _limparLista,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD32F2F),
@@ -736,12 +736,13 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                     textStyle: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.bold),
                   ),
-                  child: const Text('LIMPAR LISTA'),
+                  icon: const Icon(Icons.cleaning_services_outlined, size: 18),
+                  label: const Text('LIMPAR LISTA'),
                 ),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: _isGerando ? null : _imprimirTodas,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFD32F2F),
@@ -751,7 +752,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                     textStyle: const TextStyle(
                         fontSize: 13, fontWeight: FontWeight.bold),
                   ),
-                  child: const Text('IMPRIMIR TODAS'),
+                  icon: const Icon(Icons.print, size: 18),
+                  label: const Text('IMPRIMIR TODAS'),
                 ),
               ),
             ],

@@ -592,7 +592,7 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                child: Row(
                  children: [
                    Expanded(
-                     child: OutlinedButton(
+                     child: OutlinedButton.icon(
                        onPressed: _limpando ? null : _limparLista,
                        style: OutlinedButton.styleFrom(
                          side: const BorderSide(color: primaryRed, width: 1.5),
@@ -601,7 +601,7 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                          ),
                          padding: const EdgeInsets.symmetric(vertical: 14),
                        ),
-                       child: _limpando
+                       icon: _limpando
                            ? const SizedBox(
                                width: 16,
                                height: 16,
@@ -610,19 +610,21 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                                  valueColor: AlwaysStoppedAnimation<Color>(primaryRed),
                                ),
                              )
-                           : const Text(
-                               'LIMPAR LISTA',
-                               style: TextStyle(
-                                 color: primaryRed,
-                                 fontWeight: FontWeight.bold,
-                                 fontSize: 12,
-                               ),
-                             ),
+                           : const Icon(Icons.cleaning_services_outlined,
+                               size: 18, color: primaryRed),
+                       label: const Text(
+                         'LIMPAR LISTA',
+                         style: TextStyle(
+                           color: primaryRed,
+                           fontWeight: FontWeight.bold,
+                           fontSize: 12,
+                         ),
+                       ),
                      ),
                    ),
                    const SizedBox(width: 12),
                    Expanded(
-                     child: ElevatedButton(
+                     child: ElevatedButton.icon(
                        onPressed: _imprimindo ? null : _imprimirTodas,
                        style: ElevatedButton.styleFrom(
                          backgroundColor: primaryRed,
@@ -632,7 +634,7 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                          padding: const EdgeInsets.symmetric(vertical: 14),
                          elevation: 0,
                        ),
-                       child: _imprimindo
+                       icon: _imprimindo
                            ? const SizedBox(
                                width: 16,
                                height: 16,
@@ -641,14 +643,16 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                ),
                              )
-                           : const Text(
-                               'IMPRIMIR TODAS',
-                               style: TextStyle(
-                                 color: Colors.white,
-                                 fontWeight: FontWeight.bold,
-                                 fontSize: 12,
-                               ),
-                             ),
+                           : const Icon(Icons.print,
+                               size: 18, color: Colors.white),
+                       label: const Text(
+                         'IMPRIMIR TODAS',
+                         style: TextStyle(
+                           color: Colors.white,
+                           fontWeight: FontWeight.bold,
+                           fontSize: 12,
+                         ),
+                       ),
                      ),
                    ),
                  ],
