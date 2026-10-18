@@ -296,12 +296,30 @@ class _LoginScreenState extends State<LoginScreen>
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
-        child: ScaleTransition(
-          scale: _pulseScale,
-          child: SvgPicture.asset(
-            'assets/icons/loja_anim.svg',
-            width: 110,
-            height: 102,
+        child: SizedBox(
+          width: 160,
+          height: 160,
+          child: AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, _) {
+              final t = Curves.easeInOut.transform(_pulse.value);
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/loja_anim.svg',
+                    fit: BoxFit.contain,
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    height: 160 * t,
+                    child: ColoredBox(color: AppColors.primary),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
