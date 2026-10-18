@@ -419,7 +419,7 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             Positioned.fill(
               child: Align(
-                alignment: const Alignment(0.35, 0.1),
+                alignment: const Alignment(0.75, 0.1),
                 child: Transform.scale(
                   scale: 5.0,
                   child: const Text(
