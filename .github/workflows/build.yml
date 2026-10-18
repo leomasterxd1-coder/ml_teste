@@ -43,19 +43,19 @@ jobs:
         run: flutter build apk --release --split-per-abi --target-platform android-arm64
 
       - name: Rename APK
-        run: cp build/app/outputs/flutter-apk/*arm64-v8a*.apk minhaloja-flutter-teste.apk && ls -la minhaloja-flutter-teste.apk
+        run: cp build/app/outputs/flutter-apk/*arm64-v8a*.apk minhaloja_release.apk && ls -la minhaloja_release.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: minhaloja-flutter-teste-apk
-          path: minhaloja-flutter-teste.apk
+          name: minhaloja_release
+          path: minhaloja_release.apk
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: minhaloja-flutter-teste.apk
+          files: minhaloja_release.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

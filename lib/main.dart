@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: 'Minha Loja Oficial',
+      title: 'ML Flutter',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       locale: const Locale('pt', 'BR'),
