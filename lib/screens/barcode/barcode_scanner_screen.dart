@@ -186,58 +186,38 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<void> _abrirPreviewPapeleta() async {
-    final api = _api;
-    if (api == null) return;
     final etiquetas = await ListaStore.instance.getEtiquetas();
+    if (!mounted) return;
     if (etiquetas.isEmpty) {
       ToastUtils.show(context, 'Nenhuma etiqueta adicionada');
       return;
     }
+    // O diálogo abre na hora (só usa a lista local); a busca dos PriceSign
+    // acontece depois, em paralelo, com indicador de carregamento.
+    final escolha = await _mostrarDialogoPapeleta(etiquetas);
+    if (escolha == null || !mounted) return;
+    final qtds = (escolha['qtds'] as Map).cast<String, int>();
+    final size = escolha['size'] as String;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
     try {
-      final lista = <PapeletaPrintingData>[];
-      final vistos = <String>{};
-      for (final et in etiquetas) {
-        for (final tipo in [Constants.tipoComum, Constants.tipoPromocional]) {
-          try {
-            final resp = await api.getPriceSignStandalone(_storeId, tipo,
-                ean: et.ean, startDate: _today);
-            for (final item in resp.items) {
-              final pd = item.printingData;
-              if (pd == null) continue;
-              if (!vistos.add(item.ean)) continue;
-              lista.add(pd.copyWith(quantity: 1, size: Constants.signSize1x1));
-            }
-          } catch (_) {}
-        }
-      }
+      final lista = await _carregarPapeletas(etiquetas, qtds, size);
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
       if (lista.isEmpty) {
         ToastUtils.show(context, 'Dados de papeleta não disponíveis');
         return;
       }
-      final tamanhos = ['1×1', '2×1', '4×1', '6×1'];
-      final sizes = [
-        Constants.signSize1x1,
-        Constants.signSize2x1,
-        Constants.signSize4x1,
-        Constants.signSize6x1,
-      ];
-      final escolha = await showDialog<String>(
-        context: context,
-        builder: (ctx) => SimpleDialog(
-          title: const Text('Tamanho da papeleta'),
-          children: [
-            for (var i = 0; i < tamanhos.length; i++)
-              SimpleDialogOption(
-                onPressed: () => Navigator.pop(ctx, sizes[i]),
-                child: Text(tamanhos[i]),
-              ),
-          ],
-        ),
-      );
-      if (escolha == null || !mounted) return;
       await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
         'items': lista,
-        'size': escolha,
+        'size': size,
         'mostrarCheckboxOverlay': true,
         'modoEditavel': false,
         'modoVencimentos': false,
@@ -247,8 +227,200 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       });
     } catch (e) {
       if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
       ToastUtils.showError(context, 'Erro: $e');
     }
+  }
+
+  Future<Map<String, dynamic>?> _mostrarDialogoPapeleta(
+      List<PriceTag> itens) {
+    // Quantidade inicial = quantas vezes o item foi escaneado.
+    final qtds = <String, int>{
+      for (final it in itens) it.ean: it.quantity < 1 ? 1 : it.quantity,
+    };
+    var size = Constants.signSize1x1;
+    return showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final maxH = MediaQuery.of(ctx).size.height * 0.45;
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('IMPRIMIR PAPELETA',
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text(
+                      'Escolha quantas vezes repetir cada item e o tamanho',
+                      style: TextStyle(fontSize: 12, color: Colors.black54)),
+                  const SizedBox(height: 12),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: maxH),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final it in itens)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          it.description.isEmpty
+                                              ? it.ean
+                                              : it.description,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600)),
+                                      Text(it.ean,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.black54)),
+                                    ],
+                                  ),
+                                ),
+                                _qtdSelector(qtds[it.ean] ?? 1,
+                                    (v) => setSheet(() => qtds[it.ean] = v)),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Tamanho',
+                      style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      for (final e in const {
+                        '1×1': Constants.signSize1x1,
+                        '2×1': Constants.signSize2x1,
+                        '4×1': Constants.signSize4x1,
+                        '6×1': Constants.signSize6x1,
+                      }.entries)
+                        ChoiceChip(
+                          label: Text(e.key),
+                          selected: size == e.value,
+                          onSelected: (_) => setSheet(() => size = e.value),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, {
+                        'qtds': qtds,
+                        'size': size,
+                      }),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC62828),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                      ),
+                      child: const Text('GERAR PREVIEW',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _qtdSelector(int value, ValueChanged<int> onChanged) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          icon: const Icon(Icons.remove_circle_outline, size: 20),
+          onPressed: value > 1 ? () => onChanged(value - 1) : null,
+        ),
+        SizedBox(
+          width: 24,
+          child: Center(
+            child: Text('$value',
+                style: const TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        IconButton(
+          visualDensity: VisualDensity.compact,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          icon: const Icon(Icons.add_circle_outline, size: 20),
+          onPressed: value < 30 ? () => onChanged(value + 1) : null,
+        ),
+      ],
+    );
+  }
+
+  Future<PapeletaStandaloneResponse?> _fetchPapeleta(
+      ApiService api, String ean, String tipo) async {
+    try {
+      return await api.getPriceSignStandalone(_storeId, tipo,
+          ean: ean, startDate: _today);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<List<PapeletaPrintingData>> _carregarPapeletas(
+      List<PriceTag> etiquetas, Map<String, int> qtds, String size) async {
+    final api = _api;
+    if (api == null) return const [];
+    final refs = <String>[];
+    final futures = <Future<PapeletaStandaloneResponse?>>[];
+    for (final et in etiquetas) {
+      for (final tipo in [Constants.tipoComum, Constants.tipoPromocional]) {
+        refs.add(et.ean);
+        futures.add(_fetchPapeleta(api, et.ean, tipo));
+      }
+    }
+    final respostas = await Future.wait(futures);
+    final vistos = <String>{};
+    final lista = <PapeletaPrintingData>[];
+    for (var i = 0; i < respostas.length; i++) {
+      final resp = respostas[i];
+      if (resp == null) continue;
+      final qtd = qtds[refs[i]] ?? 1;
+      for (final item in resp.items) {
+        final pd = item.printingData;
+        if (pd == null) continue;
+        if (!vistos.add(item.ean)) continue;
+        for (var c = 0; c < qtd; c++) {
+          lista.add(pd.copyWith(quantity: 1, size: size));
+        }
+      }
+    }
+    return lista;
   }
 
   void _onScaleStart(ScaleStartDetails details) {

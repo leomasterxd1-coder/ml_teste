@@ -2,7 +2,7 @@ name: minhaloja
 description: "Port fiel do app Android MLoja para Flutter."
 publish_to: 'none'
 
-version: 1.1.132+132
+version: 1.1.135+135
 
 environment:
   sdk: ^3.3.0
