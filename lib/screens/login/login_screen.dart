@@ -51,8 +51,8 @@ class _LoginScreenState extends State<LoginScreen>
     );
     _pulse = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+      duration: const Duration(milliseconds: 2600),
+    )..repeat();
     _pulseScale = Tween<double>(begin: 0.94, end: 1.06).animate(
       CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
     );
@@ -292,34 +292,106 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLogo() {
+    const letterSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480">'
+        '<path fill="#FFFFFF" d="M 230 115 C 180 115 150 145 150 185 C 150 220 175 235 210 235 C 228 235 242 228 250 218 L 250 240 C 250 258 238 266 215 266 C 190 266 170 255 158 245 L 142 272 C 160 288 188 300 220 300 C 265 300 290 278 290 230 L 290 170 C 290 135 268 115 230 115 Z M 230 145 C 248 145 254 158 254 175 L 254 195 C 245 205 232 210 218 210 C 198 210 188 200 188 185 C 188 160 205 145 230 145 Z"/></svg>';
+    const cubic = Cubic(0.77, 0, 0.175, 1);
+    final barAnim = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 10),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.0, end: 110.0)
+              .chain(CurveTween(curve: cubic)),
+          weight: 25),
+      TweenSequenceItem(tween: ConstantTween(110.0), weight: 20),
+      TweenSequenceItem(
+          tween: Tween(begin: 110.0, end: 0.0)
+              .chain(CurveTween(curve: cubic)),
+          weight: 25),
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 20),
+    ]).animate(_pulse);
+    final letterOpacity = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 25),
+      TweenSequenceItem(
+          tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: cubic)),
+          weight: 10),
+      TweenSequenceItem(tween: ConstantTween(0.0), weight: 20),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: cubic)),
+          weight: 10),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
+    ]).animate(_pulse);
+    final letterScale = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 25),
+      TweenSequenceItem(
+          tween: Tween(begin: 1.0, end: 0.95)
+              .chain(CurveTween(curve: cubic)),
+          weight: 10),
+      TweenSequenceItem(tween: ConstantTween(0.95), weight: 20),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.95, end: 1.0)
+              .chain(CurveTween(curve: cubic)),
+          weight: 10),
+      TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
+    ]).animate(_pulse);
+
     return ScaleTransition(
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
         child: SizedBox(
           width: 160,
-          height: 160,
-          child: AnimatedBuilder(
-            animation: _pulse,
-            builder: (context, _) {
-              final t = Curves.easeInOut.transform(_pulse.value);
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/loja_anim.svg',
-                    fit: BoxFit.contain,
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 0,
-                    height: 160 * t,
-                    child: ColoredBox(color: AppColors.primary),
-                  ),
-                ],
-              );
-            },
+          height: 192,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            child: SizedBox(
+              width: 400,
+              height: 480,
+              child: AnimatedBuilder(
+                animation: _pulse,
+                builder: (context, _) => Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: letterOpacity.value,
+                        child: Transform.scale(
+                          scale: letterScale.value,
+                          child: SvgPicture.string(letterSvg),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 90,
+                      top: 45,
+                      width: 220,
+                      height: 35,
+                      child: Transform.translate(
+                        offset: Offset(0, barAnim.value),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 90,
+                      top: 260,
+                      width: 220,
+                      height: 35,
+                      child: Transform.translate(
+                        offset: Offset(0, -barAnim.value),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
