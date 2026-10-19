@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../widgets/badge_acao.dart';
 import 'package:flutter/services.dart';
 import '../../models/models.dart';
@@ -24,6 +25,16 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
     with BuscarAnimMixin {
   final ApiService _api = ApiService(ApiClient.instance.getSlApiService());
   final ScrollController _scrollController = ScrollController();
+  bool _mostrarTopo = false;
+
+  void _subirAoTopo() {
+    if (!_scrollController.hasClients) return;
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOut,
+    );
+  }
 
   String _storeId = Constants.defaultStore;
 
@@ -522,11 +533,34 @@ class _EtiquetasScreenState extends State<EtiquetasScreen>
           Column(
             children: [
               Expanded(
-                child: _buildBody(),
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (n) {
+                    final mostrar = n.metrics.pixels > 30;
+                    if (mostrar != _mostrarTopo) {
+                      setState(() => _mostrarTopo = mostrar);
+                    }
+                    return false;
+                  },
+                  child: _buildBody(),
+                ),
               ),
               _buildBottomBar(),
             ],
           ),
+          if (_mostrarTopo)
+            Positioned(
+              right: 16,
+              bottom: 84,
+              child: FloatingActionButton(
+                backgroundColor: primaryRed,
+                onPressed: _subirAoTopo,
+                child: SvgPicture.asset(
+                  'assets/icons/ic_up_two.svg',
+                  width: 22,
+                  height: 22,
+                ),
+              ),
+            ),
           if (_menuOpen) _buildMenuOverlay(),
         ],
       ),
