@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/models/models.dart';
@@ -433,13 +433,18 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                   ),
                   const SizedBox(height: 4),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _botao('ANTERIOR', _anterior),
-                      const SizedBox(width: 6),
-                      _botao('AVANÇAR', _proximo),
-                      const SizedBox(width: 6),
-                      _botao(_sending ? 'ENVIANDO...' : 'ENVIAR', _enviar,
-                          filled: true),
+                      _badge('ANTERIOR',
+                          'assets/icons/ic_gondola_previous.svg', _anterior),
+                      const SizedBox(width: 12),
+                      _badge('AVANÇAR',
+                          'assets/icons/ic_gondola_next.svg', _proximo),
+                      const SizedBox(width: 12),
+                      _badge(
+                          _sending ? 'ENVIANDO...' : 'ENVIAR',
+                          'assets/icons/ic_gondola_send.svg',
+                          _sending ? null : _enviar),
                     ],
                   ),
                 ],
@@ -518,33 +523,30 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     return '';
   }
 
-  Widget _botao(String label, VoidCallback onPressed, {bool filled = false}) {
-    final style = filled
-        ? ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFD7193F),
-            foregroundColor: Colors.white,
-            minimumSize: const Size(0, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
-          )
-        : OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFF757575),
-            side: const BorderSide(color: Color(0xFFE0E0E0)),
-            minimumSize: const Size(0, 48),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8)),
-          );
-    final child = FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(label,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-    );
-    return Expanded(
-      child: filled
-          ? ElevatedButton(onPressed: _sending ? null : onPressed, style: style, child: child)
-          : OutlinedButton(onPressed: onPressed, style: style, child: child),
+  Widget _badge(String label, String icon, VoidCallback? onPressed) {
+    return Material(
+      color: const Color(0xFFC62828),
+      elevation: 6,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SvgPicture.asset(icon, width: 20, height: 20),
+              const SizedBox(height: 4),
+              Text(label,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

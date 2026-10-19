@@ -834,17 +834,14 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                                child: SwipeToTrashItem(
                                  key: Key('papeleta_${item.id}'),
                                  onDismissed: () => _delete(item),
-                                 child: ClipRRect(
-                                   borderRadius: BorderRadius.circular(16),
-                                   child: PapeletaCard(
-                                     item: item,
-                                     onImprimir: (q) => _imprimirItem(item, q),
-                                     onRemover: () => _delete(item),
-                                     onChangedQuantity: (q) {
-                                       item.quantity = q;
-                                       _persist();
-                                     },
-                                   ),
+                                 child: PapeletaCard(
+                                   item: item,
+                                   onImprimir: (q) => _imprimirItem(item, q),
+                                   onRemover: () => _delete(item),
+                                   onChangedQuantity: (q) {
+                                     item.quantity = q;
+                                     _persist();
+                                   },
                                  ),
                                ),
                              );
