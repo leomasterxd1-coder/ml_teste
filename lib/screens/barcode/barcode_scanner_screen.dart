@@ -65,21 +65,30 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       }
     }
     if (raw == null) return;
+    final codigo = _normalizar(raw);
 
     if (!widget.continuo) {
       if (_popped) return;
       _popped = true;
-      Navigator.pop(context, raw);
+      Navigator.pop(context, codigo);
       return;
     }
 
     final now = DateTime.now().millisecondsSinceEpoch;
     // Debounce: ignora o mesmo código por 3s e não processa em paralelo.
     if (_processing) return;
-    if (raw == _lastCode && now - _lastCodeTime < _debounceMs) return;
-    _lastCode = raw;
+    if (codigo == _lastCode && now - _lastCodeTime < _debounceMs) return;
+    _lastCode = codigo;
     _lastCodeTime = now;
-    _processar(raw);
+    _processar(codigo);
+  }
+
+  /// Códigos que iniciam com "0" (ex.: EAN-13 de UPC-A) — ignora o(s) zero(s)
+  /// inicial(is) e lê a partir do primeiro dígito diferente de zero.
+  String _normalizar(String raw) {
+    if (!raw.startsWith('0')) return raw;
+    final semZeros = raw.replaceFirst(RegExp(r'^0+'), '');
+    return semZeros.isEmpty ? raw : semZeros;
   }
 
   Future<void> _processar(String ean) async {
@@ -502,6 +511,55 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
+  Widget _botaoCameraBranco(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+              color: Color(0xFFD7193F),
+              fontSize: 14,
+              fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _digitarEanManual() async {
+    final ctrl = TextEditingController();
+    final ean = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Digitar EAN'),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Digite o EAN'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text),
+              child: const Text('OK')),
+        ],
+      ),
+    );
+    ctrl.dispose();
+    final codigo = _normalizar((ean ?? '').trim());
+    if (codigo.isEmpty) return;
+    _processar(codigo);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -599,16 +657,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _botaoCamera(
-                            'ENVIAR IMPRESSÃO', _escolherImpressoraEEnviar),
-                        const SizedBox(width: 8),
-                        _botaoCamera(
-                            'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
-                      ],
-                    ),
+                    _botaoCameraBranco('DIGITAR EAN', _digitarEanManual),
+                    const SizedBox(height: 8),
+                    _botaoCamera(
+                        'ENVIAR IMPRESSÃO', _escolherImpressoraEEnviar),
+                    const SizedBox(height: 8),
+                    _botaoCamera(
+                        'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
                   ],
                 ),
               ),
