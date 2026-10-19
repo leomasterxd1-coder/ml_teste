@@ -829,52 +829,35 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
           ),
         ],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _kRed,
-                    side: const BorderSide(color: _kRed),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: const Text('VOLTAR',
-                      style:
-                          TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _sending ? null : _imprimir,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _kRed,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(_sending ? 'ENVIANDO...' : 'IMPRIMIR',
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            height: 44,
+          Expanded(
             child: ElevatedButton(
               onPressed: _gerando ? null : _compartilharPdf,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _kDarkRed,
                 foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6)),
+                    borderRadius: BorderRadius.circular(8)),
               ),
-              child: Text(_gerando ? 'GERANDO...' : 'COMPARTILHAR PDF',
+              child: Text(_gerando ? 'GERANDO...' : 'ENVIAR PDF',
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _sending ? null : _imprimir,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kRed,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(_sending ? 'ENVIANDO...' : 'IMPRIMIR PAPELETA',
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.bold)),
             ),

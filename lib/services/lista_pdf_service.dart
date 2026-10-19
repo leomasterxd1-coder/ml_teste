@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:barcode/barcode.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -18,6 +19,11 @@ class ListaPdfService {
   /// Gera o PDF com os [itens]. Cada item usa a quantidade selecionada.
   static Future<Uint8List> gerarRelatorioEtiquetas(List<PriceTag> itens) async {
     final doc = pw.Document();
+    final logoBytes =
+        (await rootBundle.load('assets/icons/americanas_logo.png'))
+            .buffer
+            .asUint8List();
+    final logo = pw.MemoryImage(logoBytes);
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -26,8 +32,9 @@ class ListaPdfService {
           pw.Header(
             level: 0,
             child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: [
+                pw.Image(logo, width: 26, height: 26),
+                pw.SizedBox(width: 8),
                 pw.Text(
                   'Relatório de Etiquetas',
                   style: pw.TextStyle(
@@ -35,6 +42,7 @@ class ListaPdfService {
                     fontWeight: pw.FontWeight.bold,
                   ),
                 ),
+                pw.Spacer(),
                 pw.Text(
                   '${itens.length} ${itens.length == 1 ? 'item' : 'itens'}',
                   style: const pw.TextStyle(fontSize: 12),
