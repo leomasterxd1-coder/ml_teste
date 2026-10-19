@@ -497,15 +497,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: const Color(0xFFD7193F),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-              color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+              color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -515,16 +519,20 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
               color: Color(0xFFD7193F),
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.bold),
         ),
       ),
@@ -632,39 +640,63 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 bottom: 40,
                 left: 0,
                 right: 0,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Text(
-                          _added == 1
-                              ? '1 item adicionado'
-                              : '$_added itens adicionados',
-                          style: const TextStyle(
-                            color: Color(0xFFD7193F),
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(context).pop(),
+                              child: Container(
+                                alignment: Alignment.center,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  _added == 1
+                                      ? '1 item adicionado'
+                                      : '$_added itens adicionados',
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFFD7193F),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _botaoCameraBranco(
+                                'DIGITAR EAN', _digitarEanManual),
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    _botaoCameraBranco('DIGITAR EAN', _digitarEanManual),
-                    const SizedBox(height: 8),
-                    _botaoCamera(
-                        'ENVIAR IMPRESSÃO', _escolherImpressoraEEnviar),
-                    const SizedBox(height: 8),
-                    _botaoCamera(
-                        'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
-                  ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _botaoCamera('ENVIAR IMPRESSÃO',
+                                _escolherImpressoraEEnviar),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _botaoCamera('IMPRIMIR PAPELETA',
+                                _abrirPreviewPapeleta),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
