@@ -338,6 +338,31 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           label: Text(e.key),
                           selected: size == e.value,
                           onSelected: (_) => setSheet(() => size = e.value),
+                          showCheckmark: false,
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          selectedColor: const Color(0xFFD7193F),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20)),
+                          labelStyle: TextStyle(
+                            color: size == e.value
+                                ? Colors.white
+                                : const Color(0xFF334155),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                          avatar: size == e.value
+                              ? Container(
+                                  width: 18,
+                                  height: 18,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF9B0015),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.check,
+                                      size: 13, color: Colors.white),
+                                )
+                              : null,
                         ),
                     ],
                   ),

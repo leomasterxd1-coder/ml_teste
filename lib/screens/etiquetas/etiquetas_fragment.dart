@@ -756,20 +756,17 @@ if (_tags.isNotEmpty)
                                 child: SwipeToTrashItem(
                                   key: ValueKey(tag.id),
                                   onDismissed: () => _deleteTag(tag),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: EtiquetaCard(
-                                      tag: tag,
-                                      onImprimir: (q) {
-                                        tag.quantity = q;
-                                        _imprimirItem(tag);
-                                      },
-                                      onRemover: () => _deleteTag(tag),
-                                      onChangedQuantity: (q) {
-                                        tag.quantity = q;
-                                        _persist();
-                                      },
-                                    ),
+                                  child: EtiquetaCard(
+                                    tag: tag,
+                                    onImprimir: (q) {
+                                      tag.quantity = q;
+                                      _imprimirItem(tag);
+                                    },
+                                    onRemover: () => _deleteTag(tag),
+                                    onChangedQuantity: (q) {
+                                      tag.quantity = q;
+                                      _persist();
+                                    },
                                   ),
                                 ),
                               );
