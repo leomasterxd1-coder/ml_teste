@@ -659,7 +659,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   ),
                 ),
                 Positioned(
-                  top: vfRect.bottom + 24,
+                  top: vfRect.bottom + 8,
                   left: 0,
                   right: 0,
                   child: const Center(
@@ -673,7 +673,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   Positioned(
                     left: 16,
                     right: 16,
-                    bottom: 96,
+                    bottom: 32,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -732,7 +732,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   ),
                 Positioned(
                   left: (w - vfWidth) / 2,
-                  bottom: 32,
+                  bottom: widget.continuo ? 128 : 32,
                   child: SizedBox(
                     width: vfWidth,
                     height: 52,
