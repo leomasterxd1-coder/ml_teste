@@ -682,7 +682,7 @@ class _GondolaPreviewPainter extends CustomPainter {
     double ty(double y) => oy + y * scale;
 
     void draw(String text, double x, double y, double size, TextAlign align,
-        Color color) {
+        Color color, {bool centerY = false}) {
       final tp = TextPainter(
         text: TextSpan(
             text: text,
@@ -699,7 +699,8 @@ class _GondolaPreviewPainter extends CustomPainter {
               ? x - tp.width
               : x;
       final base = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      tp.paint(canvas, Offset(dx, y - base));
+      final dy = centerY ? y - tp.height / 2 : y - base;
+      tp.paint(canvas, Offset(dx, dy));
     }
 
     var valorCommaX = 0.0;
@@ -790,12 +791,12 @@ class _GondolaPreviewPainter extends CustomPainter {
       if (promoLinha1.isNotEmpty) {
         final tam = _ajustarTexto(promoLinha1, 54, 24, _boxMax);
         draw(promoLinha1, tx(_boxCx), ty(_boxCy), tam, TextAlign.center,
-            const Color(0xFFFFE600));
+            Colors.white, centerY: true);
       }
       if (promoLinha2.isNotEmpty) {
         final tam = _ajustarTexto(promoLinha2, 17, 10, _boxMax);
         draw(promoLinha2, tx(_boxCx), promoLinha2 == 'EM ATÉ' ? ty(2 * _boxCy - 252) : ty(252), tam, TextAlign.center,
-            const Color(0xFFFFE600));
+            Colors.white);
       }
     }
   }

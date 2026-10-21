@@ -77,12 +77,28 @@ class ListaPdfService {
                     _celula(t.description),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(4),
-                      child: pw.BarcodeWidget(
-                        barcode: _barcodePara(t.ean),
-                        data: t.ean,
+                      child: pw.SizedBox(
                         width: 175,
-                        height: 34,
-                        drawText: false,
+                        child: pw.Column(
+                          mainAxisSize: pw.MainAxisSize.min,
+                          children: [
+                            pw.Text(t.description,
+                                style: const pw.TextStyle(fontSize: 9),
+                                textAlign: pw.TextAlign.center),
+                            pw.SizedBox(height: 2),
+                            pw.BarcodeWidget(
+                              barcode: _barcodePara(t.ean),
+                              data: t.ean,
+                              width: 175,
+                              height: 34,
+                              drawText: false,
+                            ),
+                            pw.SizedBox(height: 2),
+                            pw.Text(t.ean,
+                                style: const pw.TextStyle(fontSize: 9),
+                                textAlign: pw.TextAlign.center),
+                          ],
+                        ),
                       ),
                     ),
                   ],
