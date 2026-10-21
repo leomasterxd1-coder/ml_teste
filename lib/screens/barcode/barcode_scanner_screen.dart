@@ -643,18 +643,22 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        const Center(
-                          child: Text(
-                            'Escanear código de barras',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
                       ],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: vfRect.top - 30,
+                  left: 0,
+                  right: 0,
+                  child: const Center(
+                    child: Text(
+                      'Escanear código de barras',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
