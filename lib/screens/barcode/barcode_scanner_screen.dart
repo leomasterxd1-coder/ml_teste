@@ -577,58 +577,44 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final larguraJanela = MediaQuery.of(context).size.width * 0.85;
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
         onScaleStart: _onScaleStart,
         onScaleUpdate: _onScaleUpdate,
-        child: Stack(
-          children: [
-            MobileScanner(
-              controller: _controller,
-              onDetect: _onDetect,
-              errorBuilder: (context, error, child) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (mounted) Navigator.pop(context);
-                });
-                return const Center(
-                  child: Text(
-                    'Não foi possível acessar a câmera',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                );
-              },
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios,
-                            color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final h = constraints.maxHeight;
+            final vfWidth = w * 0.85;
+            const vfHeight = 200.0;
+            final vfRect = Rect.fromLTWH((w - vfWidth) / 2,
+                (h - vfHeight) / 2 - 30, vfWidth, vfHeight);
+            return Stack(
+              children: [
+                MobileScanner(
+                  controller: _controller,
+                  onDetect: _onDetect,
+                  errorBuilder: (context, error, child) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) Navigator.pop(context);
+                    });
+                    return const Center(
+                      child: Text(
+                        'Não foi possível acessar a câmera',
+                        style: TextStyle(color: Colors.white),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Escanear código de barras',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const Spacer(),
-                  Center(
+                    );
+                  },
+                ),
+                CustomPaint(
+                  size: Size(w, h),
+                  painter: _DimHolePainter(vfRect, 16),
+                ),
+                Positioned.fromRect(
+                  rect: vfRect,
+                  child: IgnorePointer(
                     child: Container(
-                      width: larguraJanela,
-                      height: 200,
                       decoration: BoxDecoration(
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
@@ -636,128 +622,169 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'Centralize o código para escanear',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: const Icon(Icons.arrow_back_ios,
+                                  color: Colors.white),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        const Center(
+                          child: Text(
+                            'Escanear código de barras',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
-                  if (widget.continuo) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => Navigator.of(context).pop(),
-                                  child: Container(
-                                    alignment: Alignment.center,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                    child: Text(
-                                      _added == 1
-                                          ? '1 item adicionado'
-                                          : '$_added itens adicionados',
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Color(0xFFD7193F),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                ),
+                Positioned(
+                  top: vfRect.bottom + 24,
+                  left: 0,
+                  right: 0,
+                  child: const Center(
+                    child: Text(
+                      'Centralize o código para escanear',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ),
+                ),
+                if (widget.continuo)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom: 96,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => Navigator.of(context).pop(),
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Text(
+                                    _added == 1
+                                        ? '1 item adicionado'
+                                        : '$_added itens adicionados',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFFD7193F),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _botaoCameraBranco(
-                                    'DIGITAR EAN', _digitarEanManual),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _botaoCamera('ENVIAR IMPRESSÃO',
-                                    _escolherImpressoraEEnviar),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: _botaoCamera(
-                                    'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    child: SizedBox(
-                      width: larguraJanela,
-                      height: 52,
-                      child: OutlinedButton(
-                        onPressed: _toggleLanterna,
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                              color: Colors.white, width: 1.5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          backgroundColor:
-                              _torchOn ? Colors.white : Colors.transparent,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _botaoCameraBranco(
+                                  'DIGITAR EAN', _digitarEanManual),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          'Lanterna',
-                          style: TextStyle(
-                            color: _torchOn ? Colors.black : Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _botaoCamera('ENVIAR IMPRESSÃO',
+                                  _escolherImpressoraEEnviar),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _botaoCamera(
+                                  'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                Positioned(
+                  left: (w - vfWidth) / 2,
+                  bottom: 32,
+                  child: SizedBox(
+                    width: vfWidth,
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: _toggleLanterna,
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.white, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor:
+                            _torchOn ? Colors.white : Colors.transparent,
+                      ),
+                      child: Text(
+                        'Lanterna',
+                        style: TextStyle(
+                          color: _torchOn ? Colors.black : Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (_currentZoom > 1.0)
-              Positioned(
-                top: 100,
-                right: 16,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    '${_currentZoom.toStringAsFixed(1)}x',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold),
                   ),
                 ),
-              ),
-          ],
+                if (_currentZoom > 1.0)
+                  Positioned(
+                    top: 100,
+                    right: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${_currentZoom.toStringAsFixed(1)}x',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+
 
 
   @override
@@ -765,4 +792,23 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     _controller.dispose();
     super.dispose();
   }
+}
+
+class _DimHolePainter extends CustomPainter {
+  final Rect hole;
+  final double radius;
+  _DimHolePainter(this.hole, this.radius);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..fillType = PathFillType.evenOdd
+      ..addRect(Offset.zero & size)
+      ..addRRect(RRect.fromRectAndRadius(hole, Radius.circular(radius)));
+    canvas.drawPath(path, Paint()..color = const Color(0xB3000000));
+  }
+
+  @override
+  bool shouldRepaint(covariant _DimHolePainter old) =>
+      old.hole != hole || old.radius != radius;
 }
