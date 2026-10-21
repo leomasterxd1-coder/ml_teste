@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/lista_store.dart';
 import 'package:minhaloja/core/session_manager.dart';
-import 'package:minhaloja/core/theme.dart';
 import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
@@ -26,6 +25,7 @@ class BarcodeScannerScreen extends StatefulWidget {
 class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   late final MobileScannerController _controller;
   bool _popped = false;
+  bool _torchOn = false;
   double _scaleStart = 1.0;
   double _currentZoom = 1.0;
 
@@ -568,10 +568,18 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     _processar(codigo);
   }
 
+  Future<void> _toggleLanterna() async {
+    try {
+      await _controller.toggleTorch();
+      if (mounted) setState(() => _torchOn = !_torchOn);
+    } catch (_) {}
+  }
+
   @override
   Widget build(BuildContext context) {
+    final larguraJanela = MediaQuery.of(context).size.width * 0.85;
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: Colors.black,
       body: GestureDetector(
         onScaleStart: _onScaleStart,
         onScaleUpdate: _onScaleUpdate,
@@ -580,7 +588,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             MobileScanner(
               controller: _controller,
               onDetect: _onDetect,
-              errorBuilder: (context, error, child) {
+              errorBuilder: (context, error) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) Navigator.pop(context);
                 });
@@ -592,110 +600,156 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 );
               },
             ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.black54,
-                padding: const EdgeInsets.fromLTRB(16, 48, 16, 16),
-                child: Text(
-                  widget.continuo
-                      ? 'Escaneie os itens — volte para concluir'
-                      : 'Aproxime a câmera do código (use a pinça para zoom)',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios,
+                            color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Escanear código de barras',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                  Center(
+                    child: Container(
+                      width: larguraJanela,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Centralize o código para escanear',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                  const Spacer(),
+                  if (widget.continuo) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () => Navigator.of(context).pop(),
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: Text(
+                                      _added == 1
+                                          ? '1 item adicionado'
+                                          : '$_added itens adicionados',
+                                      textAlign: TextAlign.center,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Color(0xFFD7193F),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _botaoCameraBranco(
+                                    'DIGITAR EAN', _digitarEanManual),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _botaoCamera('ENVIAR IMPRESSÃO',
+                                    _escolherImpressoraEEnviar),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _botaoCamera(
+                                    'IMPRIMIR PAPELETA', _abrirPreviewPapeleta),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 32),
+                    child: SizedBox(
+                      width: larguraJanela,
+                      height: 52,
+                      child: OutlinedButton(
+                        onPressed: _toggleLanterna,
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                              color: Colors.white, width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor:
+                              _torchOn ? Colors.white : Colors.transparent,
+                        ),
+                        child: Text(
+                          'Lanterna',
+                          style: TextStyle(
+                            color: _torchOn ? Colors.black : Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (_currentZoom > 1.0)
               Positioned(
-                bottom: 120,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${_currentZoom.toStringAsFixed(1)}x',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold),
-                    ),
+                top: 100,
+                right: 16,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-              ),
-            if (widget.continuo)
-              Positioned(
-                bottom: 40,
-                left: 0,
-                right: 0,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).pop(),
-                              child: Container(
-                                alignment: Alignment.center,
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Text(
-                                  _added == 1
-                                      ? '1 item adicionado'
-                                      : '$_added itens adicionados',
-                                  textAlign: TextAlign.center,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Color(0xFFD7193F),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _botaoCameraBranco(
-                                'DIGITAR EAN', _digitarEanManual),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _botaoCamera('ENVIAR IMPRESSÃO',
-                                _escolherImpressoraEEnviar),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _botaoCamera('IMPRIMIR PAPELETA',
-                                _abrirPreviewPapeleta),
-                          ),
-                        ],
-                      ),
-                    ],
+                  child: Text(
+                    '${_currentZoom.toStringAsFixed(1)}x',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -704,6 +758,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       ),
     );
   }
+
 
   @override
   void dispose() {
