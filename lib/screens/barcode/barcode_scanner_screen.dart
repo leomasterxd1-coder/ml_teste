@@ -588,7 +588,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             MobileScanner(
               controller: _controller,
               onDetect: _onDetect,
-              errorBuilder: (context, error) {
+              errorBuilder: (context, error, child) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (mounted) Navigator.pop(context);
                 });
