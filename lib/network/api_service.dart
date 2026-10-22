@@ -211,6 +211,21 @@ class ApiService {
   Future<SessionLoginResponse> refreshToken(String token) =>
       _post('auth/refresh', query: {}, body: null,
           parser: (d) => SessionLoginResponse.fromJson(d));
+
+  /// Saldo (stock) do item via endpoint da quebra.
+  Future<double> getProductStock(String storeId,
+      {String? ean, String? sapCode}) async {
+    final query = <String, dynamic>{};
+    if (ean != null && ean.isNotEmpty) query['ean'] = ean;
+    if (sapCode != null && sapCode.isNotEmpty) query['sapCode'] = sapCode;
+    final data = await _get<dynamic>(
+      'web/product/store/$storeId',
+      query: query,
+      parser: (d) => d,
+    );
+    if (data is Map) return (data['stock'] as num?)?.toDouble() ?? 0;
+    return 0;
+  }
 }
 
 class PriceTagsResponse {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/models/models.dart';
+import 'package:minhaloja/network/api_client.dart';
+import 'package:minhaloja/network/api_service.dart';
 
 const Color _greenCheckbox = Color(0xFF1B5E20);
 const Color _red = Color(0xFFD32F2F);
@@ -78,10 +80,22 @@ class EtiquetaCard extends StatefulWidget {
 
 class _EtiquetaCardState extends State<EtiquetaCard> {
   late TextEditingController _qty;
+  double? _saldo;
   @override
   void initState() {
     super.initState();
     _qty = TextEditingController(text: widget.tag.quantity.toString());
+    _carregarSaldo();
+  }
+
+  Future<void> _carregarSaldo() async {
+    try {
+      final api = ApiService(ApiClient.instance.getSlApiService());
+      final store = ApiClient.instance.sessionManager.getUserStore() ??
+          Constants.defaultStore;
+      final s = await api.getProductStock(store, ean: widget.tag.ean);
+      if (mounted) setState(() => _saldo = s);
+    } catch (_) {}
   }
 
   @override
@@ -195,9 +209,25 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                     children: [
                       GestureDetector(
                         onTap: () => _copiarEan(context, widget.tag.ean),
-                        child: Text(
-                          'DEP: $deptNum | EAN: ${widget.tag.ean} / SAP: ${widget.tag.sap}',
-                          style: const TextStyle(fontSize: 10, color: _eanGray2),
+                        child: Text.rich(
+                          TextSpan(
+                            style: const TextStyle(
+                                fontSize: 10, color: _eanGray2),
+                            children: [
+                              TextSpan(
+                                  text:
+                                      'DEP: $deptNum | EAN: ${widget.tag.ean} / SAP: ${widget.tag.sap}'),
+                              if (_saldo != null)
+                                TextSpan(
+                                  text: ' | SALDO: ${_saldo!.toInt()}',
+                                  style: TextStyle(
+                                    color:
+                                        _saldo! < 0 ? _redBrand : _greenDark,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                       if (p.leveGanhe != null) ...[
@@ -320,10 +350,22 @@ class PapeletaCard extends StatefulWidget {
 
 class _PapeletaCardState extends State<PapeletaCard> {
   late TextEditingController _qty;
+  double? _saldo;
   @override
   void initState() {
     super.initState();
     _qty = TextEditingController(text: widget.item.quantity.toString());
+    _carregarSaldo();
+  }
+
+  Future<void> _carregarSaldo() async {
+    try {
+      final api = ApiService(ApiClient.instance.getSlApiService());
+      final store = ApiClient.instance.sessionManager.getUserStore() ??
+          Constants.defaultStore;
+      final s = await api.getProductStock(store, ean: widget.item.ean);
+      if (mounted) setState(() => _saldo = s);
+    } catch (_) {}
   }
 
   @override
@@ -439,9 +481,25 @@ class _PapeletaCardState extends State<PapeletaCard> {
                     children: [
                       GestureDetector(
                         onTap: () => _copiarEan(context, widget.item.ean),
-                        child: Text(
-                          'DEP: $deptNum | EAN: ${widget.item.ean} / SAP: ${widget.item.sap}',
-                          style: const TextStyle(fontSize: 10, color: _eanGray2),
+                        child: Text.rich(
+                          TextSpan(
+                            style: const TextStyle(
+                                fontSize: 10, color: _eanGray2),
+                            children: [
+                              TextSpan(
+                                  text:
+                                      'DEP: $deptNum | EAN: ${widget.item.ean} / SAP: ${widget.item.sap}'),
+                              if (_saldo != null)
+                                TextSpan(
+                                  text: ' | SALDO: ${_saldo!.toInt()}',
+                                  style: TextStyle(
+                                    color:
+                                        _saldo! < 0 ? _redBrand : _greenDark,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                       if (p.leveGanhe != null) ...[
