@@ -73,6 +73,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
 
   final _descController = TextEditingController();
   final _eanController = TextEditingController();
+  final _sapController = TextEditingController();
   final _precoController = TextEditingController();
   final _precoDeController = TextEditingController();
   final _precoPorController = TextEditingController();
@@ -116,6 +117,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
   void dispose() {
     _descController.dispose();
     _eanController.dispose();
+    _sapController.dispose();
     _precoController.dispose();
     _precoDeController.dispose();
     _precoPorController.dispose();
@@ -136,6 +138,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     final d = _d;
     _descController.text = d.description;
     _eanController.text = d.ean;
+    _sapController.text = d.codSap.isNotEmpty ? d.codSap : d.department;
     if (_ehLeveGanhe(d)) {
       _unitarioController.text = _fmt(d.price?.value ?? 0);
       _qtdController.text = '${d.takeAndWin?.qty ?? 1}';
@@ -168,7 +171,10 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     final eanEdit = _eanController.text.trim();
     PrintingData novo = d.copyWith(
         description: desc.isNotEmpty ? desc : d.description,
-        ean: eanEdit.isNotEmpty ? eanEdit : d.ean);
+        ean: eanEdit.isNotEmpty ? eanEdit : d.ean,
+        codSap: _sapController.text.trim().isNotEmpty
+            ? _sapController.text.trim()
+            : d.codSap);
     if (_ehLeveGanhe(d)) {
       final qty = int.tryParse(_qtdController.text) ?? d.takeAndWin?.qty ?? 1;
       final total =
@@ -367,9 +373,11 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                             painter: _GondolaPreviewPainter(
                               template: template,
                               modo: promocional ? 1 : 0,
-                              codigo: d.codSap.isNotEmpty
-                                  ? d.codSap
-                                  : d.department,
+                              codigo: _sapController.text.trim().isNotEmpty
+                                  ? _sapController.text.trim()
+                                  : (d.codSap.isNotEmpty
+                                      ? d.codSap
+                                      : d.department),
                               ean: _eanController.text.trim().isEmpty
                                   ? d.ean
                                   : _eanController.text.trim(),
@@ -398,6 +406,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                   _campo('DESCRIÇÃO', _descController),
                   _campo('EAN', _eanController,
                       keyboardType: TextInputType.number),
+                  _campo('SAP', _sapController),
                   if (!isLeve && !isParcelado && !isDepor)
                     _campo('PREÇO (R\$)', _precoController),
                   if (isLeve) ...[
@@ -687,6 +696,7 @@ class _GondolaPreviewPainter extends CustomPainter {
         text: TextSpan(
             text: text,
             style: TextStyle(
+                fontFamily: 'HelveticaNeueCondensed',
                 fontSize: px(size),
                 fontWeight: FontWeight.bold,
                 color: color)),
@@ -728,11 +738,12 @@ class _GondolaPreviewPainter extends CustomPainter {
 
     // Preço à vista (fora da caixa preta)
     if (valor.isNotEmpty) {
+      final ehDepor = cifrao.startsWith('De R\$');
+      final cifraoDraw = ehDepor ? cifrao.replaceFirst('De ', '') : cifrao;
       final maxTam = modo == 0 ? 85.0 : 54.0;
       final minTam = modo == 0 ? 40.0 : 26.0;
       final maxLargura = modo == 0 ? _comumMax : _leftMax;
-      final tam = _ajustarValor(cifrao, valor, maxTam, minTam, maxLargura);
-      final ehDepor = cifrao.startsWith('De R\$');
+      final tam = _ajustarValor(cifraoDraw, valor, maxTam, minTam, maxLargura);
       final baseline = modo == 0 ? 220.0 : (ehDepor ? _boxCy : 230.0);
       final centroX = modo == 0 ? _TW / 2 : _leftCx;
 
@@ -742,19 +753,18 @@ class _GondolaPreviewPainter extends CustomPainter {
         final parteInteira = valor.split(',').first.replaceAll('.', '');
         final maxValor = temMilhar
             ? 60.0
-            : (ehDepor || parteInteira.length >= 3 ? 75.0 : 110.0);
+            : (parteInteira.length >= 3 ? 75.0 : 110.0);
         final tamValor = _ajustarTexto(valor, maxValor, 50, 280);
         draw(valor, tx(345), ty(baseline), tamValor, TextAlign.right,
             const Color(0xFF000000));
         valorCommaX = _commaXFromRight(valor, tx(345), px(tamValor));
 
-        final maxCifrao =
-            (ehDepor && (temMilhar || parteInteira.length >= 3)) ? 30.0 : 45.0;
-        final tamCifrao = _ajustarTexto(cifrao, maxCifrao, 26, 100);
-        draw(cifrao, tx(20), ty(baseline), tamCifrao, TextAlign.left,
+        final maxCifrao = ehDepor ? 30.0 : 45.0;
+        final tamCifrao = _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
+        draw(cifraoDraw, tx(20), ty(baseline), tamCifrao, TextAlign.left,
             const Color(0xFF000000));
       } else {
-        final cw = _largura(cifrao, px(tam));
+        final cw = _largura(cifraoDraw, px(tam));
         final vw2 = _largura(valor, px(tam));
         final gap = px(6);
         final total = cw + gap + vw2;
