@@ -19,6 +19,8 @@ class AuthInterceptor extends Interceptor {
     options.headers['Accept-Language'] = 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7';
     options.headers['Platform-Version'] = 'minhaloja/4.0.5';
     options.headers['User-Store'] = 'minhaloja/$store';
+    options.headers['Origin'] = 'https://minhaloja.americanas.io';
+    options.headers['Referer'] = 'https://minhaloja.americanas.io/';
     super.onRequest(options, handler);
   }
 }
