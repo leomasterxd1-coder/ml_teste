@@ -7,6 +7,7 @@ import 'models/models.dart';
 import 'network/api_client.dart';
 import 'screens/login/login_screen.dart';
 import 'screens/login/login_webview_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'screens/home/main_screen.dart';
 import 'screens/etiquetas/etiquetas_screen.dart';
 import 'screens/etiquetas/gondola_editavel_screen.dart';
@@ -56,9 +57,9 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('pt', 'BR'),
       ],
-      initialRoute:
-          SessionManager.instance?.isLoggedIn() == true ? '/main' : '/login',
+      initialRoute: '/splash',
       routes: {
+        '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
         '/main': (context) => const MainScreen(),
         '/etiquetas': (context) => const EtiquetasScreen(),
