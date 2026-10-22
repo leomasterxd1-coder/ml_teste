@@ -93,7 +93,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
       final api = ApiService(ApiClient.instance.getSlApiService());
       final store = ApiClient.instance.sessionManager.getUserStore() ??
           Constants.defaultStore;
-      final s = await api.getProductStock(store, ean: widget.tag.ean);
+      final s = await api.getProductStock(store, ean: widget.tag.ean, sapCode: widget.tag.sap);
       if (mounted) setState(() => _saldo = s);
     } catch (_) {}
   }
@@ -363,7 +363,7 @@ class _PapeletaCardState extends State<PapeletaCard> {
       final api = ApiService(ApiClient.instance.getSlApiService());
       final store = ApiClient.instance.sessionManager.getUserStore() ??
           Constants.defaultStore;
-      final s = await api.getProductStock(store, ean: widget.item.ean);
+      final s = await api.getProductStock(store, ean: widget.item.ean, sapCode: widget.item.sap);
       if (mounted) setState(() => _saldo = s);
     } catch (_) {}
   }
