@@ -4,12 +4,10 @@ import 'auth_logo_animado.dart';
 /// Tela/widget de autenticação: logo do app sendo desenhado (branco),
 /// título e subtítulo.
 class AuthLoader extends StatelessWidget {
-  final String titulo;
   final String? subtitulo;
 
   const AuthLoader({
     super.key,
-    this.titulo = 'ML Flutter',
     this.subtitulo = 'Autenticando...',
   });
 
@@ -43,15 +41,6 @@ class AuthLoader extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              titulo,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 0.5,
-              ),
-            ),
             if (subtitulo != null) ...[
               const SizedBox(height: 8),
               Text(

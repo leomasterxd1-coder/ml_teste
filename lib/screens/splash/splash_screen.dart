@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Color(0xFFD7193F),
-      body: AuthLoader(titulo: 'ML Flutter', subtitulo: 'Autenticando...'),
+      body: AuthLoader(subtitulo: 'Autenticando...'),
     );
   }
 }
