@@ -7,6 +7,7 @@ import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
+import 'package:minhaloja/widgets/auth_logo_animado.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/log_helper.dart';
@@ -26,8 +27,6 @@ class _LoginScreenState extends State<LoginScreen>
   late final AnimationController _controller;
   late final Animation<double> _logoScale;
   late final Animation<double> _logoOpacity;
-  late final AnimationController _pulse;
-  late final Animation<double> _pulseScale;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
@@ -48,13 +47,6 @@ class _LoginScreenState extends State<LoginScreen>
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
-    );
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2600),
-    )..repeat();
-    _pulseScale = Tween<double>(begin: 0.94, end: 1.06).animate(
-      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
     );
     _logoScale = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(
@@ -292,120 +284,11 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Widget _buildLogo() {
-    const cubic = Cubic(0.77, 0, 0.175, 1);
-    final barAnim = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 10),
-      TweenSequenceItem(
-          tween: Tween(begin: 0.0, end: 110.0)
-              .chain(CurveTween(curve: cubic)),
-          weight: 25),
-      TweenSequenceItem(tween: ConstantTween(110.0), weight: 20),
-      TweenSequenceItem(
-          tween: Tween(begin: 110.0, end: 0.0)
-              .chain(CurveTween(curve: cubic)),
-          weight: 25),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 20),
-    ]).animate(_pulse);
-    final letterOpacity = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 25),
-      TweenSequenceItem(
-          tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: cubic)),
-          weight: 10),
-      TweenSequenceItem(tween: ConstantTween(0.0), weight: 20),
-      TweenSequenceItem(
-          tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: cubic)),
-          weight: 10),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
-    ]).animate(_pulse);
-    final letterScale = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 25),
-      TweenSequenceItem(
-          tween: Tween(begin: 1.0, end: 0.95)
-              .chain(CurveTween(curve: cubic)),
-          weight: 10),
-      TweenSequenceItem(tween: ConstantTween(0.95), weight: 20),
-      TweenSequenceItem(
-          tween: Tween(begin: 0.95, end: 1.0)
-              .chain(CurveTween(curve: cubic)),
-          weight: 10),
-      TweenSequenceItem(tween: ConstantTween(1.0), weight: 35),
-    ]).animate(_pulse);
-
     return ScaleTransition(
       scale: _logoScale,
       child: FadeTransition(
         opacity: _logoOpacity,
-        child: SizedBox(
-          width: 160,
-          height: 132,
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: SizedBox(
-              width: 400,
-              height: 330,
-              child: AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, _) => Stack(
-                  children: [
-                    Positioned(
-                      left: 100,
-                      top: 46,
-                      width: 200,
-                      height: 230,
-                      child: Opacity(
-                        opacity: letterOpacity.value,
-                        child: Transform.scale(
-                          scale: letterScale.value,
-                          child: const Center(
-                            child: Text(
-                              'a',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 230,
-                                fontWeight: FontWeight.w800,
-                                height: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 90,
-                      top: 45,
-                      width: 220,
-                      height: 35,
-                      child: Transform.translate(
-                        offset: Offset(0, barAnim.value),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      left: 90,
-                      top: 260,
-                      width: 220,
-                      height: 35,
-                      child: Transform.translate(
-                        offset: Offset(0, -barAnim.value),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        child: const AuthLogoAnimado(size: 150),
       ),
     );
   }
@@ -652,7 +535,6 @@ class _LoginScreenState extends State<LoginScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
-    _pulse.dispose();
     _emailController.dispose();
     _senhaController.dispose();
     super.dispose();

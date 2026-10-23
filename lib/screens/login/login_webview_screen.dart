@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:minhaloja/widgets/auth_logo_animado.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
@@ -230,21 +231,7 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 0.85, end: 1.1),
-              duration: const Duration(seconds: 1),
-              curve: Curves.easeInOut,
-              builder: (context, value, child) => Transform.scale(
-                scale: value,
-                child: child,
-              ),
-              child: Image.asset(
-                'assets/icons/logo_a_branco.png',
-                width: 140,
-                height: 140,
-                fit: BoxFit.contain,
-              ),
-            ),
+            const AuthLogoAnimado(size: 140),
             const SizedBox(height: 24),
             const Text(
               'Carregando credenciais...',
