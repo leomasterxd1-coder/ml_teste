@@ -232,6 +232,26 @@ class _LoginWebViewScreenState extends State<LoginWebViewScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const AuthLogoAnimado(size: 140),
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 3200),
+              builder: (context, v, child) => Opacity(
+                opacity: ((v - 0.85) / 0.15).clamp(0.0, 1.0),
+                child: child,
+              ),
+              child: const Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: Text(
+                  'minha loja',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             const Text(
               'Carregando credenciais...',

@@ -324,12 +324,20 @@ class _LoginScreenState extends State<LoginScreen>
                   children: [
                     _buildLogo(),
                     const SizedBox(height: 4),
-                    const Text(
-                      'minha loja',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 3200),
+                      builder: (context, v, child) => Opacity(
+                        opacity: ((v - 0.85) / 0.15).clamp(0.0, 1.0),
+                        child: child,
+                      ),
+                      child: const Text(
+                        'minha loja',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 6),
