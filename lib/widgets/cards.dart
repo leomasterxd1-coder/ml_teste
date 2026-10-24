@@ -138,7 +138,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
     if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
       return (
         leveGanhe: null,
-        deporValor: 'Por R\${_num(precoNormal)}|Por R\${_num(precoPromo)}|${qtdParc}x de R\${_num(valorParc)}',
+        deporValor: 'Por R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
         deporBadge: 'parcelado'
       );
     }
@@ -410,7 +410,7 @@ class _PapeletaCardState extends State<PapeletaCard> {
     if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
       return (
         leveGanhe: null,
-        deporValor: 'Por R\${_num(precoNormal)}|Por R\${_num(precoPromo)}|${qtdParc}x de R\${_num(valorParc)}',
+        deporValor: 'Por R\$${_num(precoNormal)}|Por R\$${_num(precoPromo)}|${qtdParc}x de R\$${_num(valorParc)}',
         deporBadge: 'parcelado'
       );
     }
