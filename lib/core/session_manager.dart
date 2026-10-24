@@ -11,6 +11,7 @@ class SessionManager {
   static const String _keyMsPassword = "MS_PASSWORD";
   static const String _keyPrinterIp = "PRINTER_IP";
   static const String _keyProfilePhoto = "PROFILE_PHOTO";
+  static const String _keyNickname = "PROFILE_NICKNAME";
   static const int tokenExpiryDays = 14;
   static const String defaultPrinterIp = "10.25.168.24";
   static const int printerPort = 9100;
@@ -139,6 +140,27 @@ class SessionManager {
   void clearProfilePhoto() {
     try {
       _prefs!.remove(_keyProfilePhoto);
+    } catch (_) {}
+  }
+
+  void saveNickname(String nickname) {
+    try {
+      _prefs!.setString(_keyNickname, nickname.trim());
+    } catch (_) {}
+  }
+
+  String? getNickname() {
+    try {
+      final v = _prefs!.getString(_keyNickname);
+      return (v == null || v.trim().isEmpty) ? null : v.trim();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void clearNickname() {
+    try {
+      _prefs!.remove(_keyNickname);
     } catch (_) {}
   }
 

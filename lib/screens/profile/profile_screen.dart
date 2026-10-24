@@ -24,7 +24,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _carregarFoto();
   }
 
-  String get _nome => _session.getUserName() ?? 'Usuário';
+  String get _nome {
+    final apelido = _session.getNickname();
+    if (apelido != null && apelido.isNotEmpty) return apelido;
+    return _session.getUserName() ?? 'Usuário';
+  }
   String get _email => _session.getUserEmail() ?? 'email@exemplo.com';
   String get _loja => _session.getUserStore();
 
@@ -117,6 +121,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('IP da impressora salvo: $ip')),
     );
+  }
+
+  Future<void> _editarApelido() async {
+    final ctrl = TextEditingController(text: _session.getNickname() ?? '');
+    final novo = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Apelido no perfil'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          maxLength: 24,
+          decoration: const InputDecoration(
+            hintText: 'Deixe vazio para usar o nome completo',
+            counterText: '',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    if (novo == null) {
+      ctrl.dispose();
+      return;
+    }
+    if (novo.isEmpty) {
+      _session.clearNickname();
+    } else {
+      _session.saveNickname(novo);
+    }
+    ctrl.dispose();
+    if (mounted) {
+      setState(() {});
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Apelido salvo')),
+      );
+    }
   }
 
   void _confirmarSaida() {
@@ -251,17 +300,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         children: [
                           // Nome
-                          Text(
-                            _nome,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: brandRed,
-                              height: 1.4,
+                          GestureDetector(
+                            onTap: _editarApelido,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    _nome,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w700,
+                                      color: brandRed,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const Icon(Icons.edit, size: 16, color: brandRed),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Toque no nome para definir um apelido',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 11, color: textSecondary),
+                          ),
+                          const SizedBox(height: 16),
 
                           // Email
                           Row(
