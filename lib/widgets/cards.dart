@@ -41,8 +41,8 @@ String _brl(double v) {
   return 'R\$ $grouped,$dec';
 }
 
-// Número pt-BR sem símbolo (ex: 63,33), espelha o "%.2f" do Kotlin.
-String _num(double v) => v.toStringAsFixed(2).replaceAll('.', ',');
+// Número pt-BR sem símbolo, com separador de milhar (ex: 1.234,56).
+String _num(double v) => _brl(v).replaceFirst('R\$ ', '');
 
 class _Badge extends StatelessWidget {
   final String text;
@@ -844,7 +844,7 @@ class _PriceTagCardState extends State<PriceTagCard> {
                             maxLines: 1,
                             softWrap: false,
                             style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
                       ),
@@ -1109,7 +1109,7 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                             maxLines: 1,
                             softWrap: false,
                             style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
                       ),

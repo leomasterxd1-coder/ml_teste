@@ -18,7 +18,7 @@ class ListaPdfService {
 
   /// Gera o PDF com os [itens]. Cada item usa a quantidade selecionada.
   static Future<Uint8List> gerarRelatorioEtiquetas(List<PriceTag> itens) async {
-    final doc = pw.Document();
+    final doc = pw.Document(theme: await _temaNativo());
     final logoBytes =
         (await rootBundle.load('assets/icons/americanas_logo.png'))
             .buffer
@@ -133,7 +133,7 @@ class ListaPdfService {
   /// Gera o PDF a partir de itens de papeletas (PriceSign).
   static Future<Uint8List> gerarRelatorioPapeletas(
       List<PriceSign> itens) async {
-    final doc = pw.Document();
+    final doc = pw.Document(theme: await _temaNativo());
     doc.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -217,6 +217,28 @@ class ListaPdfService {
       [XFile(arquivo.path, mimeType: 'application/pdf')],
       text: 'Relatório de Papeletas',
     );
+  }
+
+  /// Usa a fonte nativa do Android (Roboto) no PDF, com fallback para a
+  /// fonte padrão do pacote quando o arquivo do sistema não estiver disponível.
+  static Future<pw.ThemeData> _temaNativo() async {
+    final regular =
+        await _carregarFonteNativa('/system/fonts/Roboto-Regular.ttf');
+    if (regular == null) return pw.ThemeData.base();
+    final bold =
+        await _carregarFonteNativa('/system/fonts/Roboto-Bold.ttf') ?? regular;
+    return pw.ThemeData.withFont(base: regular, bold: bold);
+  }
+
+  static Future<pw.Font?> _carregarFonteNativa(String caminho) async {
+    try {
+      final arquivo = File(caminho);
+      if (!await arquivo.exists()) return null;
+      final bytes = await arquivo.readAsBytes();
+      return pw.Font.ttf(bytes.buffer.asByteData());
+    } catch (_) {
+      return null;
+    }
   }
 
   static pw.Widget _celula(String texto, {bool header = false}) => pw.Padding(

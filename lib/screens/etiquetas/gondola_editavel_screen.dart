@@ -10,8 +10,6 @@ import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/toast_utils.dart';
 
-/// Fonte condensada do rótulo (Helvetica Neue Lt Std 67 Medium Condensed).
-
 String _fmt(double v) {
   final s = v.toStringAsFixed(2);
   final parts = s.split('.');
@@ -387,6 +385,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
                               cifrao: _cifrao(d),
                               valor: _valor(d),
                               unidade: 'R\$/PCE ${_fmt(d.unitValue)}',
+                              promoLinha0: _promoLinha0(d),
                               promoLinha1: _promoLinha1(d),
                               promoLinha2: _promoLinha2(d),
                             ),
@@ -493,6 +492,11 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     return _fmt(v > 0 ? v : (d.price?.value ?? 0));
   }
 
+  String _promoLinha0(PrintingData d) {
+    if (_ehDeporParcelado(d) || _ehParcelado(d)) return 'EM ATÉ';
+    return '';
+  }
+
   String _promoLinha1(PrintingData d) {
     if (_ehLeveGanhe(d)) {
       final qty = int.tryParse(_qtdController.text) ?? d.takeAndWin?.qty ?? 1;
@@ -527,7 +531,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       return 'NA PROMOÇÃO A UND SAIRÁ POR R\$ ${_fmt(unit)}';
     }
     if (_ehParcelado(d)) {
-      return 'EM ATÉ';
+      return 'SEM JUROS';
     }
     return '';
   }
@@ -602,6 +606,7 @@ class _GondolaPreviewPainter extends CustomPainter {
   final String cifrao;
   final String valor;
   final String unidade;
+  final String promoLinha0;
   final String promoLinha1;
   final String promoLinha2;
 
@@ -614,6 +619,7 @@ class _GondolaPreviewPainter extends CustomPainter {
     required this.cifrao,
     required this.valor,
     required this.unidade,
+    required this.promoLinha0,
     required this.promoLinha1,
     required this.promoLinha2,
   });
@@ -626,11 +632,8 @@ class _GondolaPreviewPainter extends CustomPainter {
   static const double _boxCy = 208;
   static const double _boxCx = (_boxLeft + _boxRight) / 2;
   static const double _leftCx = _boxLeft / 2;
-  static const double _leftMax = 330;
-  static const double _comumMax = 700;
   static const double _boxMax = 325;
 
-  
   double _largura(String text, double size) => (TextPainter(
           text: TextSpan(
               text: text,
@@ -639,30 +642,11 @@ class _GondolaPreviewPainter extends CustomPainter {
         ..layout())
       .width;
 
-  /// Posição X da vírgula de um número alinhado à direita em [rightX].
-  double _commaXFromRight(String texto, double rightX, double size) {
-    final i = texto.lastIndexOf(',');
-    if (i < 0) return rightX - _largura(texto, size) / 2;
-    return rightX - _largura(texto.substring(i), size);
-  }
-
   double _ajustarTexto(
       String texto, double maxTam, double minTam, double maxLargura) {
     var tam = maxTam;
     while (tam > minTam) {
       if (_largura(texto, tam) <= maxLargura) return tam;
-      tam -= 1;
-    }
-    return tam;
-  }
-
-  double _ajustarValor(String cifrao, String valor, double maxTam,
-      double minTam, double maxLargura) {
-    var tam = maxTam;
-    const gap = 6.0;
-    while (tam > minTam) {
-      final w = _largura(cifrao, tam) + gap + _largura(valor, tam);
-      if (w <= maxLargura) return tam;
       tam -= 1;
     }
     return tam;
@@ -691,12 +675,11 @@ class _GondolaPreviewPainter extends CustomPainter {
     double ty(double y) => oy + y * scale;
 
     void draw(String text, double x, double y, double size, TextAlign align,
-        Color color, {bool centerY = false}) {
+        Color color) {
       final tp = TextPainter(
         text: TextSpan(
             text: text,
             style: TextStyle(
-                fontFamily: 'HelveticaNeueCondensed',
                 fontSize: px(size),
                 fontWeight: FontWeight.bold,
                 color: color)),
@@ -709,11 +692,37 @@ class _GondolaPreviewPainter extends CustomPainter {
               ? x - tp.width
               : x;
       final base = tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      final dy = centerY ? y - tp.height / 2 : y - base;
-      tp.paint(canvas, Offset(dx, dy));
+      tp.paint(canvas, Offset(dx, y - base));
     }
 
-    var valorCommaX = 0.0;
+    double drawEscalado(String text, double x, double y, double size,
+        TextAlign align, Color color, double maxLargura) {
+      final tp = TextPainter(
+        text: TextSpan(
+          text: text,
+          style: TextStyle(
+              fontSize: px(size),
+              fontWeight: FontWeight.bold,
+              color: color),
+        ),
+        textAlign: align,
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final base =
+          tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+      final sx = tp.width > maxLargura ? maxLargura / tp.width : 1.0;
+      final left = align == TextAlign.right
+          ? -tp.width
+          : (align == TextAlign.center ? -tp.width / 2 : 0.0);
+      canvas.save();
+      canvas.translate(x, y - base);
+      canvas.scale(sx, 1.0);
+      tp.paint(canvas, Offset(left, 0));
+      canvas.restore();
+      return tp.width * sx;
+    }
+
+    var larguraValorPx = 0.0;
 
     // Código lateral (SAP) na vertical (promocional: mais ao topo).
     if (codigo.isNotEmpty) {
@@ -736,77 +745,72 @@ class _GondolaPreviewPainter extends CustomPainter {
           const Color(0xFF000000));
     }
 
+    var comumValorW = 0.0;
+    var comumCifraoX = _TW / 2;
+
     // Preço à vista (fora da caixa preta)
     if (valor.isNotEmpty) {
       final ehDepor = cifrao.startsWith('De R\$');
       final cifraoDraw = ehDepor ? cifrao.replaceFirst('De ', '') : cifrao;
-      final maxTam = modo == 0 ? 85.0 : 54.0;
-      final minTam = modo == 0 ? 40.0 : 26.0;
-      final maxLargura = modo == 0 ? _comumMax : _leftMax;
-      final tam = _ajustarValor(cifraoDraw, valor, maxTam, minTam, maxLargura);
-      final baseline = modo == 0 ? 220.0 : (ehDepor ? _boxCy : 230.0);
-      final centroX = modo == 0 ? _TW / 2 : _leftCx;
+      final tam = modo == 0 ? 110.0 : 54.0;
+      final baseline = modo == 0 ? 240.0 : (ehDepor ? _boxCy : 230.0);
+      final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
-        // R$ perto do SAP (esquerda) e valor grande quase na caixa (direita).
-        final temMilhar = valor.contains('.');
-        final parteInteira = valor.split(',').first.replaceAll('.', '');
-        final maxValor = temMilhar
-            ? 60.0
-            : (parteInteira.length >= 3 ? 75.0 : 110.0);
-        final tamValor = _ajustarTexto(valor, maxValor, 50, 280);
-        draw(valor, tx(345), ty(baseline), tamValor, TextAlign.right,
-            const Color(0xFF000000));
-        valorCommaX = _commaXFromRight(valor, tx(345), px(tamValor));
-
+        larguraValorPx = drawEscalado(valor, tx(345), ty(baseline), 110.0,
+            TextAlign.right, const Color(0xFF000000), px(240));
         final maxCifrao = ehDepor ? 30.0 : 45.0;
         final tamCifrao = _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
         draw(cifraoDraw, tx(20), ty(baseline), tamCifrao, TextAlign.left,
             const Color(0xFF000000));
       } else {
-        final cw = _largura(cifraoDraw, px(tam));
-        final vw2 = _largura(valor, px(tam));
-        final gap = px(6);
-        final total = cw + gap + vw2;
-        final startX = tx(centroX) - total / 2;
-        draw(cifrao, startX, ty(baseline), tam, TextAlign.left,
+        final cifraoW = _largura(cifraoDraw, px(tam)) / scale;
+        final valorWpx = drawEscalado(valor, tx(_TW - 30), ty(baseline), tam,
+            TextAlign.right, const Color(0xFF000000), px(240));
+        final valorW = valorWpx / scale;
+        final valorLeft = (_TW - 30) - valorW;
+        final cifraoCenterMax = valorLeft - 10 - cifraoW / 2;
+        final cifraoX = cifraoCenterMax < centroX ? cifraoCenterMax : centroX;
+        draw(cifraoDraw, tx(cifraoX), ty(baseline), tam, TextAlign.center,
             const Color(0xFF000000));
-        draw(valor, startX + cw + gap, ty(baseline), tam, TextAlign.left,
-            const Color(0xFF000000));
+        comumValorW = valorW;
+        comumCifraoX = cifraoX;
       }
     }
 
     // R$/PCE + valor unitário (promocional: separados)
     if (unidade.isNotEmpty) {
+      final numero = unidade.split('R\$/PCE ').last.trim();
       if (modo == 1) {
-        final idx = unidade.indexOf('R\$/PCE ');
-        final numero = idx >= 0 ? unidade.substring(idx + 8).trim() : unidade;
-        draw('R\$/PCE', tx(30), ty(262), 15, TextAlign.left,
+        draw('R\$/PCE', tx(20), ty(290), 15, TextAlign.left,
             const Color(0xFF000000));
-        // Alinha a vírgula do valor unitário com a vírgula do valor acima.
-        final uAp = numero.contains(',')
-            ? numero.substring(numero.lastIndexOf(','))
-            : numero;
-        final uRight = valorCommaX + _largura(uAp, px(15));
-        draw('R\$' + numero, uRight, ty(262), 15, TextAlign.right,
-            const Color(0xFF000000));
+        draw('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000));
       } else {
-        draw(unidade, tx(_TW / 2), ty(252), 15, TextAlign.center,
+        draw('R\$/PCE', tx(comumCifraoX), ty(290), 15, TextAlign.center,
             const Color(0xFF000000));
+        draw('R\$' + numero, tx(_TW - 30) - comumValorW / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000));
       }
     }
 
     // Caixa preta (promocional)
     if (modo == 1) {
+      final ehParc = promoLinha0 == 'EM ATÉ';
+      if (promoLinha0.isNotEmpty) {
+        final t0 = _ajustarTexto(promoLinha0, 17, 10, _boxMax);
+        draw(promoLinha0, tx(_boxCx), ty(_boxCy - 44), t0, TextAlign.center,
+            Colors.white);
+      }
       if (promoLinha1.isNotEmpty) {
-        final tam = _ajustarTexto(promoLinha1, 54, 24, _boxMax);
-        draw(promoLinha1, tx(_boxCx), ty(_boxCy), tam, TextAlign.center,
-            Colors.white, centerY: true);
+        drawEscalado(promoLinha1, tx(_boxCx),
+            ty(ehParc ? _boxCy + 22 : _boxCy + 12), 75.0, TextAlign.center,
+            Colors.white, px(310));
       }
       if (promoLinha2.isNotEmpty) {
-        final tam = _ajustarTexto(promoLinha2, 17, 10, _boxMax);
-        draw(promoLinha2, tx(_boxCx), promoLinha2 == 'EM ATÉ' ? ty(2 * _boxCy - 252) : ty(252), tam, TextAlign.center,
-            Colors.white);
+        final t2 = _ajustarTexto(promoLinha2, 17, 10, _boxMax);
+        draw(promoLinha2, tx(_boxCx), ty(ehParc ? 268 : 252), t2,
+            TextAlign.center, Colors.white);
       }
     }
   }
@@ -816,6 +820,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       old.template != template ||
       old.descricao != descricao ||
       old.valor != valor ||
+      old.promoLinha0 != promoLinha0 ||
       old.promoLinha1 != promoLinha1 ||
       old.promoLinha2 != promoLinha2 ||
       old.unidade != unidade ||
