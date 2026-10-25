@@ -753,7 +753,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       final ehDepor = cifrao.startsWith('De R\$');
       final cifraoDraw = ehDepor ? cifrao.replaceFirst('De ', '') : cifrao;
       final tam = modo == 0 ? 110.0 : 54.0;
-      final baseline = modo == 0 ? 240.0 : (ehDepor ? _boxCy : 230.0);
+      final baseline = modo == 0 ? 240.0 : (ehDepor ? 220.0 : 230.0);
       final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
@@ -761,7 +761,13 @@ class _GondolaPreviewPainter extends CustomPainter {
             TextAlign.right, const Color(0xFF000000), px(240));
         final maxCifrao = ehDepor ? 30.0 : 45.0;
         final tamCifrao = _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
-        draw(cifraoDraw, tx(20), ty(baseline), tamCifrao, TextAlign.left,
+        var cifraoX = 20.0;
+        if (ehDepor) {
+          final valorW = larguraValorPx / scale;
+          final cifraoW = _largura(cifraoDraw, px(tamCifrao)) / scale;
+          cifraoX = 345 - valorW - 8 - cifraoW;
+        }
+        draw(cifraoDraw, tx(cifraoX), ty(baseline), tamCifrao, TextAlign.left,
             const Color(0xFF000000));
       } else {
         final cifraoW = _largura(cifraoDraw, px(tam)) / scale;
