@@ -828,8 +828,16 @@ class _GondolaPreviewPainter extends CustomPainter {
         }
         final maxCifrao = ehDepor ? 30.0 : 45.0;
         final tamCifrao = _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
-        draw(cifraoDraw, tx(20), ty(baseline), tamCifrao, TextAlign.left,
-            const Color(0xFF000000));
+        if (ehDepor) {
+          // "De" em cima e "R$" embaixo (o valor permanece igual).
+          draw('De', tx(20), ty(baseline - tamCifrao), tamCifrao,
+              TextAlign.left, const Color(0xFF000000));
+          draw('R\$', tx(20), ty(baseline), tamCifrao, TextAlign.left,
+              const Color(0xFF000000));
+        } else {
+          draw(cifraoDraw, tx(20), ty(baseline), tamCifrao, TextAlign.left,
+              const Color(0xFF000000));
+        }
       } else {
         final cifraoW = _largura(cifraoDraw, px(tam)) / scale;
         double valorW;
@@ -888,7 +896,9 @@ class _GondolaPreviewPainter extends CustomPainter {
           final baseBox = _boxCy + 38;
           drawValor(porValor, tx(direita), ty(baseBox), 110.0,
               TextAlign.right, const Color(0xFFFFFFFF), px(valorMaxW));
-          draw('Por R\$', tx(esquerda), ty(baseBox), rotuloTam,
+          draw('Por', tx(esquerda), ty(baseBox - rotuloTam), rotuloTam,
+              TextAlign.left, const Color(0xFFFFFFFF));
+          draw('R\$', tx(esquerda), ty(baseBox), rotuloTam,
               TextAlign.left, const Color(0xFFFFFFFF));
         }
       } else if (promoLinha1.isNotEmpty) {
