@@ -711,7 +711,8 @@ class _GondolaPreviewPainter extends CustomPainter {
 
     /// Desenha mantendo a altura e comprimindo só a largura se passar de [maxLargura].
     double drawEscalado(String text, double x, double y, double size,
-        TextAlign align, Color color, double maxLargura) {
+        TextAlign align, Color color, double maxLargura,
+        {double sy = 1.0}) {
       final tp = TextPainter(
         text: TextSpan(
           text: text,
@@ -732,7 +733,7 @@ class _GondolaPreviewPainter extends CustomPainter {
           : (align == TextAlign.center ? -tp.width / 2 : 0.0);
       canvas.save();
       canvas.translate(x, y - base);
-      canvas.scale(sx, 1.0);
+      canvas.scale(sx, sy);
       tp.paint(canvas, Offset(left, 0));
       canvas.restore();
       return tp.width * sx;
@@ -740,7 +741,8 @@ class _GondolaPreviewPainter extends CustomPainter {
 
     /// Igual ao drawEscalado, mas desenha a vírgula com 97% do tamanho.
     double drawValor(String text, double x, double y, double size,
-        TextAlign align, Color color, double maxLargura) {
+        TextAlign align, Color color, double maxLargura,
+        {double sy = 1.0}) {
       final base = TextStyle(
           fontFamily: 'HelveticaNeueCondensed',
           fontSize: px(size),
@@ -769,7 +771,7 @@ class _GondolaPreviewPainter extends CustomPainter {
           : (align == TextAlign.center ? -tp.width / 2 : 0.0);
       canvas.save();
       canvas.translate(x, y - baseY);
-      canvas.scale(sx, 1.0);
+      canvas.scale(sx, sy);
       tp.paint(canvas, Offset(left, 0));
       canvas.restore();
       return tp.width * sx;
@@ -842,31 +844,27 @@ class _GondolaPreviewPainter extends CustomPainter {
     if (valor.isNotEmpty) {
       final cifraoDraw = cifrao;
       final tam = modo == 0 ? 110.0 : 54.0;
-      final baseline =
-          modo == 0 ? 240.0 : (ehDepor ? _boxCy + 38 : 230.0);
+      final baseline = modo == 0
+          ? 240.0
+          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 272.0 : 230.0));
       final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
         if (leveGanhe) {
-          // Cifrão do mesmo tamanho do valor; cifrão e valor encolhem juntos
-          // se não couberem, mantendo a altura 110.
+          // R$ e valor na horizontal, esticados só na vertical (1.7x) para
+          // ficarem com a altura da parte preta.
           final cifraoW = _largura(cifraoDraw, px(110)) / scale;
-          final valorW = _largura(valor, px(110)) / scale;
-          const gap = 8.0;
-          const disponivel = 325.0; // tx(345) - tx(20)
-          final soma = cifraoW + valorW;
-          final s = (soma + gap) > disponivel
-              ? (disponivel - gap) / soma
-              : 1.0;
+          final maxValor = 345.0 - (20.0 + cifraoW + 8.0);
           if (barcode) {
             _desenharBarcode(canvas, tx(_boxLeft + 10), ty(_boxCy - 45), 300.0);
             larguraValorPx = px(300);
           } else {
             larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
-                TextAlign.right, const Color(0xFF000000), px(valorW * s));
+                TextAlign.right, const Color(0xFF000000), px(maxValor),
+                sy: 1.7);
           }
           drawEscalado(cifraoDraw, tx(20), ty(baseline), 110.0,
-              TextAlign.left, const Color(0xFF000000), px(cifraoW * s));
+              TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.7);
         } else {
           if (barcode) {
             _desenharBarcode(canvas, tx(_boxLeft + 10), ty(_boxCy - 45), 300.0);
