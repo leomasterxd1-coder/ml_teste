@@ -826,8 +826,11 @@ class _GondolaPreviewPainter extends CustomPainter {
               TextAlign.right, const Color(0xFF000000),
               px(leveGanhe ? 275.0 : valorMaxW));
         }
-        final maxCifrao = ehDepor ? 35.0 : 45.0;
-        final tamCifrao = _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
+        const maxCifrao = 45.0;
+        // No De/Por o rótulo é desenhado em duas linhas ("De"/"R$"); usar 45
+        // direto evita o ajuste de largura do texto inteiro reduzir à toa.
+        final tamCifrao =
+            ehDepor ? 45.0 : _ajustarTexto(cifraoDraw, maxCifrao, 26, 100);
         if (ehDepor) {
           // "De" em cima e "R$" embaixo (o valor permanece igual).
           draw('De', tx(20), ty(baseline - tamCifrao), tamCifrao,
@@ -890,7 +893,7 @@ class _GondolaPreviewPainter extends CustomPainter {
         // "Por R$" no mesmo tamanho do "De R$" e valor no mesmo tamanho do
         // valor do lado amarelo (mesma fonte e mesma largura máxima).
         if (porValor.isNotEmpty) {
-          const rotuloTam = 35.0;
+          const rotuloTam = 45.0;
           final esquerda = _boxLeft + 12;
           final direita = _boxRight - 10;
           final baseBox = _boxCy + 38;
