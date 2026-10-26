@@ -742,7 +742,7 @@ class _GondolaPreviewPainter extends CustomPainter {
     /// Igual ao drawEscalado, mas desenha a vírgula com 97% do tamanho.
     double drawValor(String text, double x, double y, double size,
         TextAlign align, Color color, double maxLargura,
-        {double sy = 1.0}) {
+        {double sy = 1.0, double commaScale = 1.0}) {
       final base = TextStyle(
           fontFamily: 'HelveticaNeueCondensed',
           fontSize: px(size),
@@ -753,7 +753,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       if (partes.length == 2) {
         spans.add(TextSpan(text: partes[0], style: base));
         spans.add(TextSpan(
-            text: ',', style: base.copyWith(fontSize: px(size) * 0.85)));
+            text: ',', style: base.copyWith(fontSize: px(size) * commaScale)));
         spans.add(TextSpan(text: partes[1], style: base));
       } else {
         spans.add(TextSpan(text: text, style: base));
@@ -861,7 +861,7 @@ class _GondolaPreviewPainter extends CustomPainter {
           } else {
             larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
                 TextAlign.right, const Color(0xFF000000), px(maxValor),
-                sy: 1.5);
+                sy: 1.5, commaScale: 0.7);
           }
           drawEscalado(cifraoDraw, tx(20), ty(baseline), 110.0,
               TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.5);
@@ -918,14 +918,14 @@ class _GondolaPreviewPainter extends CustomPainter {
         final numero = unidade.split('R\$/PCE ').last.trim();
         draw('R\$/PCE', tx(20), ty(290), 15, TextAlign.left,
             const Color(0xFF000000));
-        drawValor('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
-            TextAlign.center, const Color(0xFF000000), px(400));
+        draw('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000));
       } else {
         final numero = unidade.split('R\$/PCE ').last.trim();
         draw('R\$/PCE', tx(comumCifraoX), ty(290), 15, TextAlign.center,
             const Color(0xFF000000));
-        drawValor('R\$' + numero, tx(_TW - 30) - comumValorW / 2, ty(290), 15,
-            TextAlign.center, const Color(0xFF000000), px(400));
+        draw('R\$' + numero, tx(_TW - 30) - comumValorW / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000));
       }
     }
 
