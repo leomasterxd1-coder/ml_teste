@@ -73,6 +73,7 @@ class MyApp extends StatelessWidget {
           return GondolaEditavelScreen(
             items: (args?['items'] as List?)?.cast<PrintingData>() ?? [],
             printerId: args?['printerId'] as String? ?? 'ZEBRA_1',
+            barcode: args?['barcode'] as bool? ?? false,
           );
         },
         '/barcode': (context) => const BarcodeScannerScreen(),

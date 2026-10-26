@@ -331,7 +331,8 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
     await _sendToPrinter();
   }
 
-  Future<void> _abrirEdicao(List<PriceTag> selected) async {
+  Future<void> _abrirEdicao(List<PriceTag> selected,
+      {bool barcode = false}) async {
     final lista = <PrintingData>[];
     for (final t in selected) {
       final pd = t.printingData;
@@ -349,7 +350,11 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
         ? Constants.printerZebra1
         : Constants.printerZebra2;
     await Navigator.pushNamed(context, '/gondola_editavel',
-        arguments: {'items': lista, 'printerId': printerId});
+        arguments: {
+          'items': lista,
+          'printerId': printerId,
+          'barcode': barcode,
+        });
   }
 
   Future<void> _imprimirTodas() async {
