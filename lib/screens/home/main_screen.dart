@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
-import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_fragment.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_fragment.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_screen.dart';
@@ -96,9 +95,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
     ).then((confirmado) {
       if (confirmado == true) {
-        _session.clearAll();
-        LogHelper.d('Main: logout efetuado');
-        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+        SystemNavigator.pop();
       }
     });
   }
@@ -108,8 +105,17 @@ class _MainScreenState extends State<MainScreen> {
       setState(() => _menuOpen = false);
       return false;
     }
-    // Fecha o app sem deslogar (mantém a sessão ativa).
-    SystemNavigator.pop();
+    // Nas demais abas, o voltar retorna para a tela inicial (Etiquetas).
+    if (_currentBody != 0 || _sectionTitle != null) {
+      setState(() {
+        _currentBody = 0;
+        _sectionTitle = null;
+        _sectionIcon = null;
+      });
+      return false;
+    }
+    // Somente na tela inicial pergunta se deseja sair do app.
+    _confirmarSaida();
     return false;
   }
 
@@ -268,8 +274,12 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _onWillPop();
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6F8),
         resizeToAvoidBottomInset: false,
