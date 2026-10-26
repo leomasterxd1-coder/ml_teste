@@ -846,7 +846,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       final tam = modo == 0 ? 110.0 : 54.0;
       final baseline = modo == 0
           ? 240.0
-          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 240.0 : 230.0));
+          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 225.0 : 230.0));
       final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
