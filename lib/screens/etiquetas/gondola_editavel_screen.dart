@@ -846,7 +846,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       final tam = modo == 0 ? 110.0 : 54.0;
       final baseline = modo == 0
           ? 240.0
-          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 272.0 : 230.0));
+          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 250.0 : 230.0));
       final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
@@ -861,10 +861,10 @@ class _GondolaPreviewPainter extends CustomPainter {
           } else {
             larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
                 TextAlign.right, const Color(0xFF000000), px(maxValor),
-                sy: 1.7);
+                sy: 1.5);
           }
           drawEscalado(cifraoDraw, tx(20), ty(baseline), 110.0,
-              TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.7);
+              TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.5);
         } else {
           if (barcode) {
             _desenharBarcode(canvas, tx(_boxLeft + 10), ty(_boxCy - 45), 300.0);
