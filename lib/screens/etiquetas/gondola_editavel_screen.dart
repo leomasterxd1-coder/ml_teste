@@ -918,14 +918,14 @@ class _GondolaPreviewPainter extends CustomPainter {
         final numero = unidade.split('R\$/PCE ').last.trim();
         draw('R\$/PCE', tx(20), ty(290), 15, TextAlign.left,
             const Color(0xFF000000));
-        draw('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
-            TextAlign.center, const Color(0xFF000000));
+        drawValor('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000), px(400));
       } else {
         final numero = unidade.split('R\$/PCE ').last.trim();
         draw('R\$/PCE', tx(comumCifraoX), ty(290), 15, TextAlign.center,
             const Color(0xFF000000));
-        draw('R\$' + numero, tx(_TW - 30) - comumValorW / 2, ty(290), 15,
-            TextAlign.center, const Color(0xFF000000));
+        drawValor('R\$' + numero, tx(_TW - 30) - comumValorW / 2, ty(290), 15,
+            TextAlign.center, const Color(0xFF000000), px(400));
       }
     }
 
