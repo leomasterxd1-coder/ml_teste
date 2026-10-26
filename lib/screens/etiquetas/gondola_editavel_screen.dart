@@ -753,7 +753,7 @@ class _GondolaPreviewPainter extends CustomPainter {
       if (partes.length == 2) {
         spans.add(TextSpan(text: partes[0], style: base));
         spans.add(TextSpan(
-            text: ',', style: base.copyWith(fontSize: px(size) * 0.90)));
+            text: ',', style: base.copyWith(fontSize: px(size) * 0.85)));
         spans.add(TextSpan(text: partes[1], style: base));
       } else {
         spans.add(TextSpan(text: text, style: base));
