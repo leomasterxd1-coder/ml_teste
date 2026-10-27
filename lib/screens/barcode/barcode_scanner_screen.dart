@@ -270,34 +270,85 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
+  String _valorEtiqueta(PriceTag item) {
+    final pd = item.printingData;
+    final tipo = _tipoEtiqueta(item);
+    String brl(double value) =>
+        'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+
+    final precoNormal = pd?.price?.value ?? 0;
+    final precoPromo = pd?.promotionalPrice?.value ?? 0;
+    final take = pd?.takeAndWin;
+    final inst = pd?.installments;
+
+    if (tipo == 'Leve e Ganhe' &&
+        take != null &&
+        take.qty > 0 &&
+        take.totalValue > 0) {
+      final total = (pd?.template == Constants.signTemplateLeveGanheCada &&
+              precoPromo > 0)
+          ? precoPromo
+          : take.totalValue;
+      return 'Leve ${take.qty} por ${brl(total)}';
+    }
+    if (tipo == 'Parcelado' &&
+        inst != null &&
+        inst.installmentQuantity > 0) {
+      final parcela = inst.installmentValue > 0
+          ? inst.installmentValue
+          : (pd?.displayPrice ?? 0);
+      final base = precoNormal > 0 ? '${brl(precoNormal)} | ' : '';
+      return '$base${inst.installmentQuantity}x de ${brl(parcela)}';
+    }
+    if (tipo == 'De/Por' && precoPromo > 0) {
+      return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)}';
+    }
+    if (precoNormal > 0) return brl(precoNormal);
+    if (precoPromo > 0) return brl(precoPromo);
+    final raw = item.price.trim();
+    if (raw.isEmpty) return 'R\$ --';
+    if (raw.toUpperCase().startsWith('R\$')) return raw;
+    return 'R\$ $raw';
+  }
+
   String _tipoEtiqueta(PriceTag item) {
     final pd = item.printingData;
     final template = (pd?.template ?? '').toLowerCase();
     final movement = item.movement.toLowerCase();
-    final parcelado = template.contains('parcelad') ||
-        movement.contains('parcelad') ||
-        (pd?.installments?.installmentQuantity ?? 0) > 0;
-    if (parcelado) return 'Parcelado';
-    final leve = template.contains('leve') ||
-        movement.contains('leve') ||
-        pd?.takeAndWin != null ||
-        (pd?.takeAndWinQuantity ?? 0) > 0;
-    if (leve) return 'Leve e Ganhe';
-    final depor = template.contains('de/por') ||
+    final take = pd?.takeAndWin;
+    final inst = pd?.installments;
+    final precoNormal = pd?.price?.value ?? 0;
+    final precoPromo = pd?.promotionalPrice?.value ?? 0;
+    if ((inst != null && inst.installmentQuantity > 0) ||
+        template.contains('parcelad') ||
+        movement.contains('parcelad')) {
+      return 'Parcelado';
+    }
+    if ((take != null && take.qty > 0 && take.totalValue > 0) ||
+        (pd?.takeAndWinQuantity ?? 0) > 0 ||
+        template.contains('leve') ||
+        movement.contains('leve')) {
+      return 'Leve e Ganhe';
+    }
+    if ((precoPromo > 0 && (precoNormal <= 0 || precoPromo < precoNormal)) ||
+        template.contains('de/por') ||
         template.contains('de_por') ||
         template.contains('depor') ||
         template.contains('por_de') ||
         movement.contains('de/por') ||
-        movement.contains('depor');
-    if (depor) return 'De/Por';
+        movement.contains('depor') ||
+        movement.contains('promocional')) {
+      return 'De/Por';
+    }
     return 'Normal';
   }
 
   Color _tipoCor(String tipo) {
-    if (tipo == 'Leve e Ganhe') return const Color(0xFFD97706);
-    if (tipo == 'De/Por') return const Color(0xFFD7193F);
-    if (tipo == 'Parcelado') return const Color(0xFF7C3AED);
-    return const Color(0xFF475569);
+    if (tipo == 'Leve e Ganhe') return const Color(0xFF2E7D32);
+    if (tipo == 'De/Por' || tipo == 'Parcelado') {
+      return const Color(0xFFFF9800);
+    }
+    return const Color(0xFF9E9E9E);
   }
 
   Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(
@@ -335,6 +386,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     };
     final tipos = <String, String>{
       for (final it in itens) it.ean: _tipoEtiqueta(it),
+    };
+    final valores = <String, String>{
+      for (final it in itens) it.ean: _valorEtiqueta(it),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     var size = Constants.signSize1x1;
@@ -399,21 +453,60 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                               color: Colors.black54)),
                                       const SizedBox(height: 2),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                        width: double.infinity,
+                                        height: 28,
+                                        padding: const EdgeInsets.only(left: 10),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFF1F5F9),
+                                          color: const Color(0xFF4CAF50),
                                           borderRadius:
-                                              BorderRadius.circular(4),
+                                              BorderRadius.circular(12),
                                         ),
-                                        child: Text(
-                                          tipos[it.ean] ?? 'Normal',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: _tipoCor(
-                                                tipos[it.ean] ?? 'Normal'),
-                                          ),
+                                        child: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                valores[it.ean] ?? '',
+                                                maxLines: 1,
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Container(
+                                              height: 28,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    const BorderRadius.horizontal(
+                                                        right:
+                                                            Radius.circular(
+                                                                12)),
+                                                border: Border.all(
+                                                    color: const Color(
+                                                        0xFF4CAF50)),
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                (tipos[it.ean] ?? 'Normal')
+                                                    .toUpperCase(),
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _tipoCor(
+                                                      tipos[it.ean] ??
+                                                          'Normal'),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
