@@ -276,7 +276,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     setState(() => _sending = true);
     try {
       // Impressão: 1200 → 600 → 300 (igual MLoja).
-      const dpis = [1200, 600, 300];
+      const dpis = [600];
       List<Uint8List>? pages;
       for (final dpi in dpis) {
         try {
@@ -289,6 +289,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
             validades: _validades(),
             semOverlay: _semOverlay,
             previewScale: 1.0,
+            jpegPreview: true,
             targetCanvasW: a4Canvas[0],
             targetCanvasH: a4Canvas[1],
           );
@@ -327,7 +328,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       // Compõe as páginas (N papeletas no tamanho escolhido, distribuídas na
       // grade do tamanho) e gera o PDF — mesmo pipeline do socket.
       List<Uint8List>? pages;
-      for (final dpi in const [600, 300]) {
+      for (final dpi in const [600]) {
         try {
           final a4 = _a4CanvasDimensions(dpi);
           pages = await buildCompositePages(
@@ -338,6 +339,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
             validades: _validades(),
             semOverlay: _semOverlay,
             previewScale: 1.0,
+            jpegPreview: true,
             targetCanvasW: a4[0],
             targetCanvasH: a4[1],
           );
