@@ -270,6 +270,36 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
+  String _tipoEtiqueta(PriceTag item) {
+    final pd = item.printingData;
+    final template = (pd?.template ?? '').toLowerCase();
+    final movement = item.movement.toLowerCase();
+    final parcelado = template.contains('parcelad') ||
+        movement.contains('parcelad') ||
+        (pd?.installments?.installmentQuantity ?? 0) > 0;
+    if (parcelado) return 'Parcelado';
+    final leve = template.contains('leve') ||
+        movement.contains('leve') ||
+        pd?.takeAndWin != null ||
+        (pd?.takeAndWinQuantity ?? 0) > 0;
+    if (leve) return 'Leve e Ganhe';
+    final depor = template.contains('de/por') ||
+        template.contains('de_por') ||
+        template.contains('depor') ||
+        template.contains('por_de') ||
+        movement.contains('de/por') ||
+        movement.contains('depor');
+    if (depor) return 'De/Por';
+    return 'Normal';
+  }
+
+  Color _tipoCor(String tipo) {
+    if (tipo == 'Leve e Ganhe') return const Color(0xFFD97706);
+    if (tipo == 'De/Por') return const Color(0xFFD7193F);
+    if (tipo == 'Parcelado') return const Color(0xFF7C3AED);
+    return const Color(0xFF475569);
+  }
+
   Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(
       List<PriceTag> itens) {
     return _mostrarDialogoSelecao(
@@ -287,7 +317,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       itens,
       titulo: 'IMPRIMIR PAPELETA',
       subtitulo: 'Escolha quais itens, a quantidade e o tamanho',
-      confirmar: 'GERAR PREVIEW',
+      confirmar: 'VISUALIZAR PAPELETA',
       mostrarTamanho: true,
     );
   }
@@ -302,6 +332,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final qtds = <String, int>{
       for (final it in itens)
         it.ean: it.quantity < 1 ? 1 : it.quantity.clamp(1, 999).toInt(),
+    };
+    final tipos = <String, String>{
+      for (final it in itens) it.ean: _tipoEtiqueta(it),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     var size = Constants.signSize1x1;
@@ -364,6 +397,25 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                           style: const TextStyle(
                                               fontSize: 11,
                                               color: Colors.black54)),
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          tipos[it.ean] ?? 'Normal',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: _tipoCor(
+                                                tipos[it.ean] ?? 'Normal'),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
