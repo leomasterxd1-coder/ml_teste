@@ -861,7 +861,7 @@ class _GondolaPreviewPainter extends CustomPainter {
           } else {
             larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
                 TextAlign.right, const Color(0xFF000000), px(maxValor),
-                sy: 1.5, commaScale: 0.7);
+                sy: 1.5, commaScale: 0.6);
           }
           drawEscalado(cifraoDraw, tx(20), ty(baseline), 110.0,
               TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.5);
