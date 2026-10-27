@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/lista_store.dart';
 import 'package:minhaloja/core/session_manager.dart';
@@ -136,7 +137,30 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<void> _escolherImpressoraEEnviar() async {
-    final escolha = await showDialog<String>(
+    final etiquetas = await ListaStore.instance.getEtiquetas();
+    if (!mounted) return;
+    if (etiquetas.isEmpty) {
+      ToastUtils.show(context, 'Nenhuma etiqueta adicionada');
+      return;
+    }
+    final escolha = await _mostrarDialogoEtiquetas(etiquetas);
+    if (escolha == null || !mounted) return;
+    final qtds = (escolha['qtds'] as Map).cast<String, int>();
+    final selecionados =
+        (escolha['selecionados'] as Map).cast<String, bool>();
+    final itensSel =
+        etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
+    if (itensSel.isEmpty) {
+      ToastUtils.show(context, 'Selecione ao menos uma etiqueta');
+      return;
+    }
+    final printerId = await _escolherImpressora();
+    if (printerId == null || !mounted) return;
+    await _enviarImpressao(printerId, itensSel, qtds);
+  }
+
+  Future<String?> _escolherImpressora() {
+    return showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
         title: const Text('Enviar impressão'),
@@ -152,18 +176,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         ],
       ),
     );
-    if (escolha == null || !mounted) return;
-    await _enviarImpressao(escolha);
   }
 
-  Future<void> _enviarImpressao(String printerId) async {
+  Future<void> _enviarImpressao(String printerId, List<PriceTag> etiquetas,
+      Map<String, int> qtds) async {
     final api = _api;
     if (api == null) return;
-    final etiquetas = await ListaStore.instance.getEtiquetas();
-    if (etiquetas.isEmpty) {
-      ToastUtils.show(context, 'Nenhuma etiqueta adicionada');
-      return;
-    }
     final lista = <PrintingData>[];
     for (final item in etiquetas) {
       final pd = item.printingData;
@@ -171,7 +189,10 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       final template = pd.takeAndWin != null
           ? Constants.signTemplateModelo
           : Constants.templateNormalizado(pd.template);
-      lista.add(pd.copyWith(quantity: 1, template: template));
+      final qtd = (qtds[item.ean] ?? item.quantity).clamp(1, 999).toInt();
+      for (var i = 0; i < qtd; i++) {
+        lista.add(pd.copyWith(quantity: 1, template: template));
+      }
     }
     if (lista.isEmpty) {
       ToastUtils.show(context, 'Dados de impressão não disponíveis');
@@ -249,11 +270,38 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
+  Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(
+      List<PriceTag> itens) {
+    return _mostrarDialogoSelecao(
+      itens,
+      titulo: 'ENVIAR ETIQUETAS',
+      subtitulo: 'Escolha quais etiquetas enviar e a quantidade de cada uma',
+      confirmar: 'ENVIAR',
+      mostrarTamanho: false,
+    );
+  }
+
   Future<Map<String, dynamic>?> _mostrarDialogoPapeleta(
       List<PriceTag> itens) {
-    // Quantidade inicial = quantas vezes o item foi escaneado.
+    return _mostrarDialogoSelecao(
+      itens,
+      titulo: 'IMPRIMIR PAPELETA',
+      subtitulo: 'Escolha quais itens, a quantidade e o tamanho',
+      confirmar: 'GERAR PREVIEW',
+      mostrarTamanho: true,
+    );
+  }
+
+  Future<Map<String, dynamic>?> _mostrarDialogoSelecao(
+      List<PriceTag> itens, {
+    required String titulo,
+    required String subtitulo,
+    required String confirmar,
+    required bool mostrarTamanho,
+  }) {
     final qtds = <String, int>{
-      for (final it in itens) it.ean: it.quantity < 1 ? 1 : it.quantity,
+      for (final it in itens)
+        it.ean: it.quantity < 1 ? 1 : it.quantity.clamp(1, 999).toInt(),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     var size = Constants.signSize1x1;
@@ -265,21 +313,22 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheet) {
-          final maxH = MediaQuery.of(ctx).size.height * 0.45;
+          final keyboard = MediaQuery.of(ctx).viewInsets.bottom;
+          final maxH = MediaQuery.of(ctx).size.height * 0.30;
           return SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboard),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('IMPRIMIR PAPELETA',
-                      style: TextStyle(
+                  Text(titulo,
+                      style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  const Text(
-                      'Escolha quantas vezes repetir cada item e o tamanho',
-                      style: TextStyle(fontSize: 12, color: Colors.black54)),
+                  Text(subtitulo,
+                      style: const TextStyle(
+                          fontSize: 12, color: Colors.black54)),
                   const SizedBox(height: 12),
                   ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: maxH),
@@ -318,72 +367,82 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                     ],
                                   ),
                                 ),
-                                _qtdSelector(
-                                    qtds[it.ean] ?? 1,
-                                    (v) =>
-                                        setSheet(() => qtds[it.ean] = v),
-                                    enabled: selecionados[it.ean] ?? true),
+                                _QtdInput(
+                                  key: ValueKey(it.ean),
+                                  initialValue: qtds[it.ean] ?? 1,
+                                  enabled: selecionados[it.ean] ?? true,
+                                  onChanged: (v) =>
+                                      setSheet(() => qtds[it.ean] = v),
+                                ),
                               ],
                             ),
                           ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Tamanho',
-                      style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      for (final e in const {
-                        '1×1': Constants.signSize1x1,
-                        '2×1': Constants.signSize2x1,
-                        '4×1': Constants.signSize4x1,
-                        '6×1': Constants.signSize6x1,
-                      }.entries)
-                        ChoiceChip(
-                          label: Text(e.key),
-                          selected: size == e.value,
-                          onSelected: (_) => setSheet(() => size = e.value),
-                          showCheckmark: false,
-                          backgroundColor: const Color(0xFFF1F5F9),
-                          selectedColor: const Color(0xFFD7193F),
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20)),
-                          labelStyle: TextStyle(
-                            color: size == e.value
-                                ? Colors.white
-                                : const Color(0xFF334155),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
+                  if (mostrarTamanho) ...[
+                    const SizedBox(height: 8),
+                    const Text('Tamanho',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        for (final e in const {
+                          '1×1': Constants.signSize1x1,
+                          '2×1': Constants.signSize2x1,
+                          '4×1': Constants.signSize4x1,
+                          '6×1': Constants.signSize6x1,
+                        }.entries)
+                          ChoiceChip(
+                            label: Text(e.key),
+                            selected: size == e.value,
+                            onSelected: (_) => setSheet(() => size = e.value),
+                            showCheckmark: false,
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            selectedColor: const Color(0xFFD7193F),
+                            side: BorderSide.none,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20)),
+                            labelStyle: TextStyle(
+                              color: size == e.value
+                                  ? Colors.white
+                                  : const Color(0xFF334155),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                            avatar: size == e.value
+                                ? Container(
+                                    width: 18,
+                                    height: 18,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFF9B0015),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.check,
+                                        size: 13, color: Colors.white),
+                                  )
+                                : null,
                           ),
-                          avatar: size == e.value
-                              ? Container(
-                                  width: 18,
-                                  height: 18,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFF9B0015),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.check,
-                                      size: 13, color: Colors.white),
-                                )
-                              : null,
-                        ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pop(ctx, {
-                        'qtds': qtds,
-                        'size': size,
-                        'selecionados': selecionados,
-                      }),
+                      onPressed: () {
+                        final sane = <String, int>{
+                          for (final e in qtds.entries)
+                            e.key: e.value.clamp(1, 999).toInt(),
+                        };
+                        Navigator.pop(ctx, {
+                          'qtds': sane,
+                          'size': size,
+                          'selecionados': selecionados,
+                        });
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFC62828),
                         foregroundColor: Colors.white,
@@ -392,8 +451,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             borderRadius: BorderRadius.circular(8)),
                         elevation: 0,
                       ),
-                      child: const Text('GERAR PREVIEW',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: Text(confirmar,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -402,40 +461,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           );
         },
       ),
-    );
-  }
-
-  Widget _qtdSelector(int value, ValueChanged<int> onChanged,
-      {bool enabled = true}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          icon: const Icon(Icons.remove_circle_outline, size: 20),
-          onPressed: enabled && value > 1 ? () => onChanged(value - 1) : null,
-        ),
-        SizedBox(
-          width: 24,
-          child: Center(
-            child: Text('$value',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: enabled ? null : Colors.grey)),
-          ),
-        ),
-        IconButton(
-          visualDensity: VisualDensity.compact,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          icon: const Icon(Icons.add_circle_outline, size: 20),
-          onPressed:
-              enabled && value < 30 ? () => onChanged(value + 1) : null,
-        ),
-      ],
     );
   }
 
@@ -795,6 +820,87 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+}
+
+class _QtdInput extends StatefulWidget {
+  final int initialValue;
+  final bool enabled;
+  final ValueChanged<int> onChanged;
+
+  const _QtdInput({
+    super.key,
+    required this.initialValue,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  @override
+  State<_QtdInput> createState() => _QtdInputState();
+}
+
+class _QtdInputState extends State<_QtdInput> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.initialValue}');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _commit() {
+    final parsed = int.tryParse(_controller.text) ?? 1;
+    final value = parsed.clamp(1, 999).toInt();
+    if (_controller.text != '$value') {
+      _controller.text = '$value';
+      _controller.selection =
+          TextSelection.collapsed(offset: _controller.text.length);
+    }
+    widget.onChanged(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 52,
+      child: TextField(
+        controller: _controller,
+        enabled: widget.enabled,
+        keyboardType: TextInputType.number,
+        textAlign: TextAlign.center,
+        textAlignVertical: TextAlignVertical.center,
+        maxLength: 3,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        decoration: InputDecoration(
+          isDense: true,
+          counterText: '',
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+          ),
+        ),
+        onChanged: (v) {
+          final n = int.tryParse(v);
+          if (n != null && n > 0) widget.onChanged(n.clamp(1, 999).toInt());
+        },
+        onEditingComplete: _commit,
+        onSubmitted: (_) => _commit(),
+        onTapOutside: (_) {
+          _commit();
+          FocusScope.of(context).unfocus();
+        },
+      ),
+    );
   }
 }
 
