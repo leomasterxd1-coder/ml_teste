@@ -648,7 +648,7 @@ void _drawEletroContent(
     height: 1.0,
     letterSpacing: -2,
   );
-  _paintCentered(canvas, instTp, cx, top + h * 0.46);
+  _paintCentered(canvas, instTp, cx, top + h * 0.49);
 
   final subTp = _fitEletroText(
     text: 'sem juros',
@@ -658,9 +658,9 @@ void _drawEletroContent(
     color: dark,
     maxLines: 1,
   );
-  _paintCentered(canvas, subTp, cx, top + h * 0.515);
+  _paintCentered(canvas, subTp, cx, top + h * 0.545);
 
-  final dividerY = top + h * 0.575;
+  final dividerY = top + h * 0.61;
   canvas.drawLine(
     Offset(left + w * 0.13, dividerY),
     Offset(left + w * 0.87, dividerY),
@@ -719,7 +719,7 @@ void _drawEletroContent(
     maxWidth: contentW,
     startSize: w * 0.06,
   );
-  _paintCentered(canvas, cashTp, cx, top + h * 0.64);
+  _paintCentered(canvas, cashTp, cx, top + h * 0.68);
 
   final parts = oferta.split('|');
   final inicio = parts.isNotEmpty && parts[0].trim().isNotEmpty
