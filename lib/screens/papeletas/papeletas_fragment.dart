@@ -333,7 +333,11 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       return;
     }
     if (_usarEletro) {
-      await _openPreview([_eletroData(signData)], itemToRemove: item);
+      final qtdEletro = qty < 1 ? 1 : qty;
+      await _openPreview(
+        List.generate(qtdEletro, (_) => _eletroData(signData)),
+        itemToRemove: item,
+      );
       return;
     }
     final tamanhoAtual = _size;
@@ -383,7 +387,11 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       final lista = <PapeletaPrintingData>[];
       for (final item in _items) {
         final d = item.printingData;
-        if (d != null) lista.add(_eletroData(d));
+        if (d == null) continue;
+        final qtd = item.quantity < 1 ? 1 : item.quantity;
+        for (var i = 0; i < qtd; i++) {
+          lista.add(_eletroData(d));
+        }
       }
       if (lista.isEmpty) {
         ToastUtils.show(context, 'Dados de impressão não disponíveis');
