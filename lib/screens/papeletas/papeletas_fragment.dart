@@ -678,6 +678,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                                 if (v == 'Promocional Editável') _tipo = 'Promocional';
                                 if (v == 'Normal Editável') _tipo = 'Normal';
                                 if (v == 'Eletro da semana' &&
+                                    _size != '1×1' &&
                                     _size != '2×1' &&
                                     _size != '4×1') {
                                   _size = '4×1';
@@ -720,7 +721,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                             label: 'TAMANHO',
                             value: _size,
                             items: _usarEletro
-                                ? const ['2×1', '4×1']
+                                ? const ['1×1', '2×1', '4×1']
                                 : const ['1×1', '2×1', '4×1', '6×1'],
                             onChanged: (v) {
                               if (v == null) return;

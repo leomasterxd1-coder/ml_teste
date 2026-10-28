@@ -116,7 +116,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       _modoVencimentos = false;
       _semOverlay = false;
       _mostrarOverlay = false;
-      if (_size != '2X1' && _size != '4X1') _size = '4X1';
+      if (_size != '1X1' && _size != '2X1' && _size != '4X1') _size = '4X1';
     }
     _ctrls = _items.map((d) => _ItemCtrls(d)).toList();
     _enviarApi = !_modoVencimentos && _items.every(_isComum) && !_isEletro;

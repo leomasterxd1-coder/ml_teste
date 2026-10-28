@@ -638,27 +638,43 @@ void _drawEletroContent(
   _paintCentered(canvas, titleTp, cx, top + h * 0.315);
 
   final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
-  final instTp = _fitEletroText(
-    text: '${qty}x ${_eletroMoney(d.installmentPrice ?? 0)}',
-    maxWidth: contentW,
-    startSize: w * 0.16,
-    weight: FontWeight.w900,
-    color: dark,
-    maxLines: 1,
-    height: 1.0,
-    letterSpacing: -2,
-  );
-  _paintCentered(canvas, instTp, cx, top + h * 0.49);
-
+  final gap = w * 0.035;
+  var instSize = w * 0.15;
+  late TextPainter priceTp;
+  late TextPainter qtyTp;
+  while (true) {
+    priceTp = _eletroPainter(
+      _eletroMoney(d.installmentPrice ?? 0),
+      instSize,
+      FontWeight.w900,
+      dark,
+    );
+    qtyTp = _eletroPainter('${qty}x', instSize, FontWeight.w900, dark);
+    final total = priceTp.width + gap + qtyTp.width;
+    if (total <= contentW * 0.95 || instSize <= 8) break;
+    instSize -= 1;
+  }
   final subTp = _fitEletroText(
     text: 'sem juros',
-    maxWidth: contentW,
-    startSize: w * 0.05,
+    maxWidth: qtyTp.width,
+    startSize: instSize * 0.35,
     weight: FontWeight.w700,
     color: dark,
     maxLines: 1,
   );
-  _paintCentered(canvas, subTp, cx, top + h * 0.545);
+  final groupW = priceTp.width + gap + qtyTp.width;
+  final priceX = cx - groupW / 2;
+  final qtyX = priceX + priceTp.width + gap;
+  final instY = top + h * 0.49;
+  priceTp.paint(canvas, Offset(priceX, instY - priceTp.height / 2));
+  qtyTp.paint(canvas, Offset(qtyX, instY - qtyTp.height / 2));
+  subTp.paint(
+    canvas,
+    Offset(
+      qtyX + (qtyTp.width - subTp.width) / 2,
+      top + h * 0.545 - subTp.height / 2,
+    ),
+  );
 
   final dividerY = top + h * 0.61;
   canvas.drawLine(
@@ -741,6 +757,30 @@ void _drawEletroContent(
 
 String _eletroMoney(double value) =>
     'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+
+TextPainter _eletroPainter(
+  String text,
+  double size,
+  FontWeight weight,
+  Color color,
+) {
+  return TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(
+        fontFamily: 'SFProDisplay',
+        fontSize: size,
+        fontWeight: weight,
+        color: color,
+        height: 1.0,
+        letterSpacing: -2,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+    ellipsis: '…',
+  )..layout();
+}
 
 TextPainter _fitEletroText({
   required String text,
