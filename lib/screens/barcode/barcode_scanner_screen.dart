@@ -479,20 +479,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Flexible(
-                                              child: FittedBox(
-                                                fit: BoxFit.scaleDown,
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  valores[it.ean] ?? '',
-                                                  maxLines: 1,
-                                                  softWrap: false,
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 10,
-                                                  ),
-                                                ),
+                                            Text(
+                                              valores[it.ean] ?? '',
+                                              maxLines: 1,
+                                              softWrap: false,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 10,
                                               ),
                                             ),
                                             const SizedBox(width: 4),
