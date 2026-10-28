@@ -166,9 +166,9 @@ class _MainScreenState extends State<MainScreen> {
               width: 45,
               height: 45,
               decoration: BoxDecoration(
-                color: const Color(0xFFDA1C2E),
+                color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withOpacity(0.25), width: 0.75),
+                border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
               ),
               alignment: Alignment.center,
               child: _fotoPerfilPath != null && File(_fotoPerfilPath!).existsSync()
@@ -183,7 +183,8 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                       ),
                     )
-                  : const Icon(Icons.person, size: 22, color: Colors.white),
+                  : const Icon(Icons.person,
+                      size: 22, color: Color(0xFFD81B3A)),
             ),
           ),
         ],

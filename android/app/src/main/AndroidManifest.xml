@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:label="ML Flutter"
+        android:label="Minha Loja | Precificação"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Impeller desligado: crashes nativos de GPU com texturas grandes
