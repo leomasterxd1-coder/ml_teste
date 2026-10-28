@@ -433,6 +433,26 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       style: const TextStyle(
                           fontSize: 12, color: Colors.black54)),
                   const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Checkbox(
+                        visualDensity: VisualDensity.compact,
+                        value: selecionados.values.every((v) => v),
+                        onChanged: (v) {
+                          final marcar = v ?? false;
+                          setSheet(() {
+                            for (final it in itens) {
+                              selecionados[it.ean] = marcar;
+                            }
+                          });
+                        },
+                      ),
+                      const Text('Selecionar todos',
+                          style: TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
                   ConstrainedBox(
                     constraints: BoxConstraints(maxHeight: maxH),
                     child: ListView(
@@ -441,105 +461,111 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         for (final it in itens)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Checkbox(
-                                  value: selecionados[it.ean] ?? true,
-                                  visualDensity: VisualDensity.compact,
-                                  onChanged: (v) => setSheet(() =>
-                                      selecionados[it.ean] = v ?? false),
-                                ),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          it.description.isEmpty
-                                              ? it.ean
-                                              : it.description,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w600)),
-                                      Text(it.ean,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.black54)),
-                                      const SizedBox(height: 2),
-                                      Container(
-                                        height: 24,
-                                        padding: const EdgeInsets.only(left: 10),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF4CAF50),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              valores[it.ean] ?? '',
+                                Row(
+                                  children: [
+                                    Checkbox(
+                                      value: selecionados[it.ean] ?? true,
+                                      visualDensity: VisualDensity.compact,
+                                      onChanged: (v) => setSheet(() =>
+                                          selecionados[it.ean] = v ?? false),
+                                    ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              it.description.isEmpty
+                                                  ? it.ean
+                                                  : it.description,
                                               maxLines: 1,
-                                              softWrap: false,
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 10,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Container(
-                                              height: 24,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.horizontal(
-                                                        right:
-                                                            Radius.circular(
-                                                                12)),
-                                                border: const Border(
-                                                  top: BorderSide(
-                                                      color: Color(0xFF4CAF50),
-                                                      width: 1.5),
-                                                  right: BorderSide(
-                                                      color: Color(0xFF4CAF50),
-                                                      width: 1.5),
-                                                  bottom: BorderSide(
-                                                      color: Color(0xFF4CAF50),
-                                                      width: 1.5),
-                                                ),
-                                              ),
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                (tipos[it.ean] ?? 'Normal')
-                                                    .toUpperCase(),
-                                                style: TextStyle(
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: _tipoCor(
-                                                      tipos[it.ean] ??
-                                                          'Normal'),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                                  fontSize: 12,
+                                                  fontWeight:
+                                                      FontWeight.w600)),
+                                          Text(it.ean,
+                                              style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.black54)),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    _QtdInput(
+                                      key: ValueKey(it.ean),
+                                      initialValue: qtds[it.ean] ?? 1,
+                                      enabled: selecionados[it.ean] ?? true,
+                                      onChanged: (v) =>
+                                          setSheet(() => qtds[it.ean] = v),
+                                    ),
+                                  ],
                                 ),
-                                _QtdInput(
-                                  key: ValueKey(it.ean),
-                                  initialValue: qtds[it.ean] ?? 1,
-                                  enabled: selecionados[it.ean] ?? true,
-                                  onChanged: (v) =>
-                                      setSheet(() => qtds[it.ean] = v),
+                                const SizedBox(height: 4),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 40),
+                                  child: Container(
+                                    height: 24,
+                                    padding: const EdgeInsets.only(left: 10),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF4CAF50),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          valores[it.ean] ?? '',
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          height: 24,
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                const BorderRadius.horizontal(
+                                                    right:
+                                                        Radius.circular(12)),
+                                            border: const Border(
+                                              top: BorderSide(
+                                                  color: Color(0xFF4CAF50),
+                                                  width: 1.5),
+                                              right: BorderSide(
+                                                  color: Color(0xFF4CAF50),
+                                                  width: 1.5),
+                                              bottom: BorderSide(
+                                                  color: Color(0xFF4CAF50),
+                                                  width: 1.5),
+                                            ),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            (tipos[it.ean] ?? 'Normal')
+                                                .toUpperCase(),
+                                            style: TextStyle(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                              color: _tipoCor(
+                                                  tipos[it.ean] ?? 'Normal'),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -1035,7 +1061,7 @@ class _QtdInputState extends State<_QtdInput> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 52,
+      width: 44,
       child: TextField(
         controller: _controller,
         enabled: widget.enabled,
@@ -1044,12 +1070,12 @@ class _QtdInputState extends State<_QtdInput> {
         textAlignVertical: TextAlignVertical.center,
         maxLength: 3,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           isDense: true,
           counterText: '',
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+              const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(6)),
           disabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
