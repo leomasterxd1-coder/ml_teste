@@ -111,14 +111,37 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     if (_items.isEmpty) {
       _items = [];
     }
+    if (_isEletro) {
+      _modoEditavel = true;
+      _modoVencimentos = false;
+      _semOverlay = false;
+      _mostrarOverlay = false;
+      if (_size != '2X1' && _size != '4X1') _size = '4X1';
+    }
     _ctrls = _items.map((d) => _ItemCtrls(d)).toList();
-    _enviarApi = !_modoVencimentos && _items.every(_isComum);
+    _enviarApi = !_modoVencimentos && _items.every(_isComum) && !_isEletro;
   }
 
   PapeletaPrintingData _currentData(int i) {
     if (!_modoEditavel) return _items[i];
     final c = _ctrls[i];
     final d = _items[i];
+    if (_isEletro) {
+      return PapeletaPrintingData(
+        template: Constants.signTemplateEletroSemana,
+        productName: c.name.text.trim(),
+        price: _d(c.price.text, d.price),
+        promotionPrice: _dOrNull(c.promo.text),
+        installmentQuantity: _iOrNull(c.instQty.text),
+        installmentPrice: _dOrNull(c.instPrice.text),
+        codSap: d.codSap,
+        ean: c.ean.text,
+        referenceDate: d.referenceDate,
+        size: _size,
+        quantity: 1,
+        unit: d.unit,
+      );
+    }
     return d.copyWith(
       productName: c.name.text,
       price: _d(c.price.text, d.price),
@@ -146,6 +169,22 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     final hasTW = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
     if (hasPromo || hasTW) return false;
     return true;
+  }
+
+  bool get _isEletro =>
+      _items.isNotEmpty &&
+      _items.every((d) => d.template == Constants.signTemplateEletroSemana);
+
+  List<String> _ofertas() {
+    final out = <String>[];
+    for (final c in _ctrls) {
+      final oferta =
+          '${c.ofertaInicio.text.trim()}|${c.ofertaFim.text.trim()}';
+      for (var i = 0; i < _copias; i++) {
+        out.add(oferta);
+      }
+    }
+    return out;
   }
 
   int get _copias {
@@ -198,6 +237,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         size: _size,
         modoVencimentos: _modoVencimentos,
         validades: _validades(),
+        ofertas: _ofertas(),
         semOverlay: _semOverlay,
         previewScale: 1.0,
         // Diagnóstico concluído: crash era na textura de exibição; preview
@@ -287,6 +327,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
             size: _size,
             modoVencimentos: _modoVencimentos,
             validades: _validades(),
+        ofertas: _ofertas(),
             semOverlay: _semOverlay,
             previewScale: 1.0,
             jpegPreview: true,
@@ -337,6 +378,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
             size: _size,
             modoVencimentos: _modoVencimentos,
             validades: _validades(),
+        ofertas: _ofertas(),
             semOverlay: _semOverlay,
             previewScale: 1.0,
             jpegPreview: true,
@@ -388,9 +430,11 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     return await doc.save();
   }
 
-  String get _titulo => _modoVencimentos
-      ? 'PAPELETA DE VENCIMENTOS'
-      : 'PAPELETA ${_size.toUpperCase()}';
+  String get _titulo {
+    if (_isEletro) return 'PAPELETA ELETRO DA SEMANA';
+    if (_modoVencimentos) return 'PAPELETA DE VENCIMENTOS';
+    return 'PAPELETA ${_size.toUpperCase()}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -692,7 +736,8 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     final hasTake = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
     final hasInst = d.installmentQuantity != null && d.installmentQuantity! > 0;
     final ehComum = !hasPromo && !hasTake && !hasInst;
-    final tipoLabel = ehComum ? 'Normal' : 'Promocional';
+    final tipoLabel =
+        _isEletro ? 'Eletro da semana' : (ehComum ? 'Normal' : 'Promocional');
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
@@ -739,14 +784,18 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     final ehComum = !hasPromo && !hasTake && !hasInst;
 
     Widget field(String label, TextEditingController ctrl,
-        {TextInputType kb = TextInputType.text}) {
+        {TextInputType kb = TextInputType.text,
+        List<TextInputFormatter>? formatters,
+        String? hint}) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: TextField(
           controller: ctrl,
           keyboardType: kb,
+          inputFormatters: formatters,
           decoration: InputDecoration(
             labelText: label,
+            hintText: hint,
             isDense: true,
             filled: true,
             fillColor: Colors.white,
@@ -755,6 +804,58 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
                 borderSide: const BorderSide(color: AppColors.cardBorder)),
           ),
         ),
+      );
+    }
+
+    if (_isEletro) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          field('Descrição', c.name),
+          Row(
+            children: [
+              Expanded(
+                child: field('Parcelas (ex.: 10x)', c.instQty,
+                    kb: TextInputType.number),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: field('Valor da parcela (R\$)', c.instPrice,
+                    kb: const TextInputType.numberWithOptions(decimal: true)),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: field('De (R\$)', c.price,
+                    kb: const TextInputType.numberWithOptions(decimal: true)),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: field('Por (R\$)', c.promo,
+                    kb: const TextInputType.numberWithOptions(decimal: true)),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: field('Oferta início', c.ofertaInicio,
+                    kb: TextInputType.number,
+                    formatters: [_ValidadeMask()],
+                    hint: 'DD/MM/AAAA'),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: field('Oferta fim', c.ofertaFim,
+                    kb: TextInputType.number,
+                    formatters: [_ValidadeMask()],
+                    hint: 'DD/MM/AAAA'),
+              ),
+            ],
+          ),
+        ],
       );
     }
 
@@ -880,6 +981,8 @@ class _ItemCtrls {
   final TextEditingController instPrice = TextEditingController();
   final TextEditingController ean = TextEditingController();
   final TextEditingController validade = TextEditingController();
+  final TextEditingController ofertaInicio = TextEditingController();
+  final TextEditingController ofertaFim = TextEditingController();
 
   _ItemCtrls(PapeletaPrintingData d) {
     name.text = d.productName;
@@ -902,6 +1005,8 @@ class _ItemCtrls {
     instPrice.dispose();
     ean.dispose();
     validade.dispose();
+    ofertaInicio.dispose();
+    ofertaFim.dispose();
   }
 }
 

@@ -221,6 +221,7 @@ Future<List<Uint8List>> buildCompositePages({
   required String size,
   required bool modoVencimentos,
   required List<String> validades,
+  List<String> ofertas = const [],
   bool semOverlay = false,
   double previewScale = 1.0,
   bool jpegPreview = false,
@@ -249,6 +250,22 @@ Future<List<Uint8List>> buildCompositePages({
       cols = 2;
       rows = 2;
       break;
+  }
+
+  final isEletro = items.isNotEmpty &&
+      items.every((d) => d.template == Constants.signTemplateEletroSemana);
+  if (isEletro) {
+    return _buildEletroPages(
+      items: items,
+      cols: cols,
+      rows: rows,
+      ofertas: ofertas,
+      previewScale: previewScale,
+      jpegPreview: jpegPreview,
+      displayMaxDim: displayMaxDim,
+      targetCanvasW: targetCanvasW,
+      targetCanvasH: targetCanvasH,
+    );
   }
 
   final overlayData =
@@ -486,6 +503,305 @@ Future<List<Uint8List>> buildCompositePages({
     out.add(img.encodePng(base));
   }
   return out;
+}
+
+Future<List<Uint8List>> _buildEletroPages({
+  required List<PapeletaPrintingData> items,
+  required int cols,
+  required int rows,
+  required List<String> ofertas,
+  required double previewScale,
+  required bool jpegPreview,
+  required int displayMaxDim,
+  int? targetCanvasW,
+  int? targetCanvasH,
+}) async {
+  final isLandscape = cols > rows;
+  final gridCap = cols * rows;
+  final total = items.length;
+  final isMulti = total > 1;
+  final effTargetW = isMulti && targetCanvasW != null
+      ? (targetCanvasW * 0.5).round()
+      : targetCanvasW;
+  final effTargetH = isMulti && targetCanvasH != null
+      ? (targetCanvasH * 0.5).round()
+      : targetCanvasH;
+  final pageCount = total == 0 ? 1 : (total / gridCap).ceil();
+  final ovW0 = effTargetW ?? (isLandscape ? 1200 : 850);
+  final ovH0 = effTargetH ?? (isLandscape ? 850 : 1200);
+  final rawScale = (effTargetW != null || effTargetH != null)
+      ? 1.0
+      : (previewScale > 0 ? previewScale.clamp(0.1, 4.0) : 1.0);
+  final scale = isMulti ? (rawScale > 2.0 ? 2.0 : rawScale) : rawScale;
+  final pageW = (ovW0 * scale).round().clamp(1, 100000);
+  final pageH = (ovH0 * scale).round().clamp(1, 100000);
+  final cellW = (pageW / cols).floor();
+  final cellH = (pageH / rows).floor();
+
+  final overlayData = await rootBundle.load(Constants.eletroSemanaOverlay);
+  final overlay = await decodeImageFromList(overlayData.buffer.asUint8List());
+  final out = <Uint8List>[];
+  try {
+    for (var p = 0; p < pageCount; p++) {
+      final recorder = ui.PictureRecorder();
+      final canvas = ui.Canvas(
+        recorder,
+        Rect.fromLTWH(0, 0, pageW.toDouble(), pageH.toDouble()),
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, pageW.toDouble(), pageH.toDouble()),
+        ui.Paint()..color = Colors.white,
+      );
+      for (var idx = p * gridCap;
+          idx < total && idx < (p + 1) * gridCap;
+          idx++) {
+        final local = idx % gridCap;
+        final col = local % cols;
+        final row = local ~/ cols;
+        final left = col * cellW;
+        final top = row * cellH;
+        canvas.drawImageRect(
+          overlay,
+          Rect.fromLTWH(
+              0, 0, overlay.width.toDouble(), overlay.height.toDouble()),
+          Rect.fromLTWH(left.toDouble(), top.toDouble(), cellW.toDouble(),
+              cellH.toDouble()),
+          ui.Paint(),
+        );
+        _drawEletroContent(
+          canvas,
+          items[idx],
+          ofertas.length > idx ? ofertas[idx] : '',
+          left,
+          top,
+          cellW,
+          cellH,
+        );
+      }
+      final picture = recorder.endRecording();
+      final uiImage = await picture.toImage(pageW, pageH);
+      final byteData =
+          await uiImage.toByteData(format: ui.ImageByteFormat.png);
+      uiImage.dispose();
+      if (byteData == null) continue;
+      var image = img.decodeImage(byteData.buffer.asUint8List());
+      if (image == null) continue;
+      if (displayMaxDim > 0) {
+        final maxDim = image.width > image.height ? image.width : image.height;
+        if (maxDim > displayMaxDim) {
+          final factor = displayMaxDim / maxDim;
+          image = img.copyResize(
+            image,
+            width: (image.width * factor).round(),
+            height: (image.height * factor).round(),
+            interpolation: img.Interpolation.cubic,
+          );
+        }
+      }
+      out.add(jpegPreview
+          ? img.encodeJpg(image, quality: 88)
+          : img.encodePng(image));
+    }
+  } finally {
+    overlay.dispose();
+  }
+  return out;
+}
+
+void _drawEletroContent(
+  ui.Canvas canvas,
+  PapeletaPrintingData d,
+  String oferta,
+  int left,
+  int top,
+  int w,
+  int h,
+) {
+  final cx = left + w / 2;
+  final contentW = w * 0.80;
+  const dark = Color(0xFF262729);
+  const titleColor = Color(0xFF313335);
+
+  final title = d.productName.trim().isEmpty
+      ? 'PRODUTO'
+      : d.productName.trim().toUpperCase();
+  final titleTp = _fitEletroText(
+    text: title,
+    maxWidth: contentW,
+    startSize: w * 0.095,
+    weight: FontWeight.w800,
+    color: titleColor,
+    maxLines: 3,
+    height: 1.05,
+    letterSpacing: -0.5,
+  );
+  _paintCentered(canvas, titleTp, cx, top + h * 0.315);
+
+  final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
+  final instTp = _fitEletroText(
+    text: '${qty}x ${_eletroMoney(d.installmentPrice ?? 0)}',
+    maxWidth: contentW,
+    startSize: w * 0.16,
+    weight: FontWeight.w900,
+    color: dark,
+    maxLines: 1,
+    height: 1.0,
+    letterSpacing: -2,
+  );
+  _paintCentered(canvas, instTp, cx, top + h * 0.46);
+
+  final subTp = _fitEletroText(
+    text: 'sem juros',
+    maxWidth: contentW,
+    startSize: w * 0.05,
+    weight: FontWeight.w700,
+    color: dark,
+    maxLines: 1,
+  );
+  _paintCentered(canvas, subTp, cx, top + h * 0.515);
+
+  final dividerY = top + h * 0.575;
+  canvas.drawLine(
+    Offset(left + w * 0.13, dividerY),
+    Offset(left + w * 0.87, dividerY),
+    ui.Paint()
+      ..color = const Color(0xFF5B5C5E)
+      ..strokeWidth = w * 0.002,
+  );
+
+  final de = d.price > 0 ? _eletroMoney(d.price) : '--';
+  final por = (d.promotionPrice ?? 0) > 0
+      ? _eletroMoney(d.promotionPrice!)
+      : '--';
+  final cashTp = _fitEletroRich(
+    build: (size) => TextSpan(
+      children: [
+        TextSpan(
+          text: 'de: ',
+          style: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: size,
+            fontWeight: FontWeight.w800,
+            color: dark,
+          ),
+        ),
+        TextSpan(
+          text: de,
+          style: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: size,
+            fontWeight: FontWeight.w700,
+            color: dark,
+            decoration: TextDecoration.lineThrough,
+            decorationThickness: 2,
+          ),
+        ),
+        TextSpan(
+          text: '  por: ',
+          style: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: size,
+            fontWeight: FontWeight.w800,
+            color: dark,
+          ),
+        ),
+        TextSpan(
+          text: por,
+          style: TextStyle(
+            fontFamily: 'SFProDisplay',
+            fontSize: size,
+            fontWeight: FontWeight.w900,
+            color: dark,
+          ),
+        ),
+      ],
+    ),
+    maxWidth: contentW,
+    startSize: w * 0.06,
+  );
+  _paintCentered(canvas, cashTp, cx, top + h * 0.64);
+
+  final parts = oferta.split('|');
+  final inicio = parts.isNotEmpty && parts[0].trim().isNotEmpty
+      ? parts[0].trim()
+      : '--/--/----';
+  final fim = parts.length > 1 && parts[1].trim().isNotEmpty
+      ? parts[1].trim()
+      : '--/--/----';
+  final validadeTp = _fitEletroText(
+    text: '*Oferta válida de $inicio até $fim',
+    maxWidth: contentW,
+    startSize: w * 0.03,
+    weight: FontWeight.w600,
+    color: const Color(0xFF4A4B4D),
+    maxLines: 1,
+  );
+  _paintCentered(canvas, validadeTp, cx, top + h * 0.84);
+}
+
+String _eletroMoney(double value) =>
+    'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+
+TextPainter _fitEletroText({
+  required String text,
+  required double maxWidth,
+  required double startSize,
+  required FontWeight weight,
+  required Color color,
+  int maxLines = 1,
+  double height = 1.0,
+  double letterSpacing = 0,
+}) {
+  var size = startSize;
+  late TextPainter tp;
+  while (true) {
+    tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontFamily: 'SFProDisplay',
+          fontSize: size,
+          fontWeight: weight,
+          color: color,
+          height: height,
+          letterSpacing: letterSpacing,
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+      maxLines: maxLines,
+      ellipsis: '…',
+    )..layout(maxWidth: maxWidth);
+    if (!tp.didExceedMaxLines || size <= 6) break;
+    size -= 1;
+  }
+  return tp;
+}
+
+TextPainter _fitEletroRich({
+  required TextSpan Function(double size) build,
+  required double maxWidth,
+  required double startSize,
+  int maxLines = 1,
+}) {
+  var size = startSize;
+  late TextPainter tp;
+  while (true) {
+    tp = TextPainter(
+      text: build(size),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+      maxLines: maxLines,
+      ellipsis: '…',
+    )..layout(maxWidth: maxWidth);
+    if (!tp.didExceedMaxLines || size <= 6) break;
+    size -= 1;
+  }
+  return tp;
+}
+
+void _paintCentered(ui.Canvas canvas, TextPainter tp, double cx, double cy) {
+  tp.paint(canvas, Offset(cx - tp.width / 2, cy - tp.height / 2));
 }
 
 /// Pinta um retângulo branco na célula (esconde o overlay, p/ itens comuns).

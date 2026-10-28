@@ -116,13 +116,16 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   bool get _usarComumEditavel => _modelo == 'Normal Editável';
   bool get _usarComumSimples => _modelo == 'Normal';
   bool get _usarVencimentos => _modelo == 'Vencimentos';
+  bool get _usarEletro => _modelo == 'Eletro da semana';
   bool get _isModoEditavel =>
-      _modelo == 'Promocional Editável' || _modelo == 'Normal Editável';
-  // Misto/Comum/Promocional Editável/Comum Editável/Vencimentos abrem preview
-  // (o modo Promocional simples foi removido).
+      _modelo == 'Promocional Editável' ||
+      _modelo == 'Normal Editável' ||
+      _usarEletro;
+  // Misto/Comum/Promocional Editável/Comum Editável/Vencimentos/Eletro abrem
+  // preview (o modo Promocional simples foi removido).
   bool get _abrePreview =>
       _usarMisto || _usarComumSimples || _usarModeloEditavel ||
-      _usarComumEditavel || _usarVencimentos;
+      _usarComumEditavel || _usarVencimentos || _usarEletro;
 
   static String _templatePorMovimento(String? movement) {
     final m = (movement ?? '').toLowerCase();
@@ -168,6 +171,19 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     final hasTW = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
     if (hasInst && !hasPromo && !hasTW) return (d.price) > 149.99;
     return true;
+  }
+
+  PapeletaPrintingData _eletroData(PapeletaPrintingData d) {
+    final qtd = (d.installmentQuantity ?? 0) > 0
+        ? d.installmentQuantity!
+        : 10;
+    return d.copyWith(
+      template: Constants.signTemplateEletroSemana,
+      quantity: 1,
+      size: _size,
+      installmentQuantity: qtd,
+      installmentPrice: d.installmentPrice ?? 0.0,
+    );
   }
 
   // ---- Busca avulsa (ambos os tipos, comportamento "Misto") ----
@@ -316,6 +332,10 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       ToastUtils.show(context, 'Dados de impressão não disponíveis');
       return;
     }
+    if (_usarEletro) {
+      await _openPreview([_eletroData(signData)], itemToRemove: item);
+      return;
+    }
     final tamanhoAtual = _size;
 
     // Promocional Editável em item comum → bloquear (fiel ao MLoja).
@@ -357,6 +377,19 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     if (_isGerando) return;
     if (_items.isEmpty) {
       ToastUtils.show(context, 'Nenhuma papeleta para imprimir');
+      return;
+    }
+    if (_usarEletro) {
+      final lista = <PapeletaPrintingData>[];
+      for (final item in _items) {
+        final d = item.printingData;
+        if (d != null) lista.add(_eletroData(d));
+      }
+      if (lista.isEmpty) {
+        ToastUtils.show(context, 'Dados de impressão não disponíveis');
+        return;
+      }
+      await _openPreview(lista, clearAll: true);
       return;
     }
     setState(() => _isGerando = true);
@@ -435,8 +468,10 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
       ToastUtils.show(context, 'Dados de impressão não disponíveis');
       return;
     }
-    final modoEditavel =
-        _usarModeloEditavel || _usarComumEditavel || _usarVencimentos;
+    final modoEditavel = _usarModeloEditavel ||
+        _usarComumEditavel ||
+        _usarVencimentos ||
+        _usarEletro;
     final modoVencimentos = _usarVencimentos;
     final semOverlay = false;
     final apiSemOverlay =
@@ -452,7 +487,12 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
           'semOverlay': semOverlay,
           'apiSemOverlay': apiSemOverlay,
           'hideGerarPreview': hideGerarPreview,
-          'title': modoVencimentos ? 'PAPELETA DE VENCIMENTOS' : null,
+          'mostrarCheckboxOverlay': !_usarEletro,
+          'title': _usarEletro
+              ? 'PAPELETA ELETRO DA SEMANA'
+              : modoVencimentos
+                  ? 'PAPELETA DE VENCIMENTOS'
+                  : null,
         });
     if (!mounted) return;
     if (result == true) {
@@ -620,7 +660,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                               'Promocional Editável',
                               'Normal',
                               'Normal Editável',
-                              'Vencimentos'
+                              'Vencimentos',
+                              'Eletro da semana',
                             ],
                             onChanged: (v) {
                               if (v == null) return;
@@ -628,6 +669,11 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                                 _modelo = v;
                                 if (v == 'Promocional Editável') _tipo = 'Promocional';
                                 if (v == 'Normal Editável') _tipo = 'Normal';
+                                if (v == 'Eletro da semana' &&
+                                    _size != '2×1' &&
+                                    _size != '4×1') {
+                                  _size = '4×1';
+                                }
                               });
                             },
                           ),
@@ -665,7 +711,9 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                             icon: Icons.aspect_ratio,
                             label: 'TAMANHO',
                             value: _size,
-                            items: const ['1×1', '2×1', '4×1', '6×1'],
+                            items: _usarEletro
+                                ? const ['2×1', '4×1']
+                                : const ['1×1', '2×1', '4×1', '6×1'],
                             onChanged: (v) {
                               if (v == null) return;
                               setState(() => _size = v);

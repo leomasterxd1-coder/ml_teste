@@ -37,6 +37,8 @@ class Constants {
   static const String signTemplateLeveGanheTotal = "leve_ganhe_total";
   static const String signTemplateNormal = "Normal";
   static const String signTemplateCodigoBarras = "codigo_barras";
+  static const String signTemplateEletroSemana = "eletro_semana";
+  static const String eletroSemanaOverlay = "assets/overlays/semana.png";
 
   static String? templateNormalizado(String? template) {
     if (template == signTemplateLeveGanheCada) return signTemplateModelo;

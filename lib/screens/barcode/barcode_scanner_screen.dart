@@ -186,9 +186,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     for (final item in etiquetas) {
       final pd = item.printingData;
       if (pd == null) continue;
-      final template = pd.takeAndWin != null
+      final movement = item.movement.toLowerCase();
+      final templateOriginal = Constants.templateNormalizado(pd.template);
+      final template = (pd.template?.toLowerCase().contains('leve') ?? false) ||
+              movement.contains('leve') ||
+              movement.contains('ganhe')
           ? Constants.signTemplateModelo
-          : Constants.templateNormalizado(pd.template);
+          : movement.contains('de/por')
+              ? (templateOriginal ?? Constants.signTemplateDepor)
+              : movement.contains('parcelado')
+                  ? (templateOriginal ?? Constants.signTemplateDeporParcelado)
+                  : templateOriginal;
       final qtd = (qtds[item.ean] ?? item.quantity).clamp(1, 999).toInt();
       for (var i = 0; i < qtd; i++) {
         lista.add(pd.copyWith(quantity: 1, template: template));
@@ -289,7 +297,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               precoPromo > 0)
           ? precoPromo
           : take.totalValue;
-      return 'Leve ${take.qty} por ${brl(total)}';
+      final normalPart = precoNormal > 0 ? ' | ${brl(precoNormal)}' : '';
+      return 'Leve ${take.qty} por ${brl(total)}$normalPart';
     }
     if (tipo == 'Parcelado' &&
         inst != null &&
@@ -297,8 +306,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       final parcela = inst.installmentValue > 0
           ? inst.installmentValue
           : (pd?.displayPrice ?? 0);
-      final base = precoNormal > 0 ? '${brl(precoNormal)} | ' : '';
-      return '$base${inst.installmentQuantity}x de ${brl(parcela)}';
+      if (precoPromo > 0 && precoPromo < precoNormal) {
+        return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)} | '
+            '${inst.installmentQuantity}x de ${brl(parcela)}';
+      }
+      final base = precoNormal > 0 ? brl(precoNormal) : item.price.trim();
+      return '$base | ${inst.installmentQuantity}x de ${brl(parcela)}';
     }
     if (tipo == 'De/Por' && precoPromo > 0) {
       return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)}';
@@ -315,31 +328,34 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final pd = item.printingData;
     final template = (pd?.template ?? '').toLowerCase();
     final movement = item.movement.toLowerCase();
-    final take = pd?.takeAndWin;
     final inst = pd?.installments;
     final precoNormal = pd?.price?.value ?? 0;
     final precoPromo = pd?.promotionalPrice?.value ?? 0;
-    if ((inst != null && inst.installmentQuantity > 0) ||
+    final parcelado = (inst != null && inst.installmentQuantity > 0) ||
         template.contains('parcelad') ||
-        movement.contains('parcelad')) {
-      return 'Parcelado';
-    }
-    if ((take != null && take.qty > 0 && take.totalValue > 0) ||
-        (pd?.takeAndWinQuantity ?? 0) > 0 ||
-        template.contains('leve') ||
-        movement.contains('leve')) {
-      return 'Leve e Ganhe';
-    }
-    if ((precoPromo > 0 && (precoNormal <= 0 || precoPromo < precoNormal)) ||
+        movement.contains('parcelad');
+    final depor = (precoPromo > 0 &&
+            (precoNormal <= 0 || precoPromo < precoNormal)) ||
         template.contains('de/por') ||
         template.contains('de_por') ||
         template.contains('depor') ||
         template.contains('por_de') ||
         movement.contains('de/por') ||
         movement.contains('depor') ||
-        movement.contains('promocional')) {
-      return 'De/Por';
+        movement.contains('promocional');
+    if (template.contains('leve') ||
+        template.contains('ganhe') ||
+        movement.contains('leve') ||
+        movement.contains('ganhe')) {
+      return 'Leve e Ganhe';
     }
+    if (parcelado &&
+        precoPromo > 0 &&
+        (precoNormal <= 0 || precoPromo < precoNormal)) {
+      return 'Parcelado';
+    }
+    if (depor) return 'De/Por';
+    if (parcelado) return 'Parcelado';
     return 'Normal';
   }
 
@@ -453,8 +469,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                               color: Colors.black54)),
                                       const SizedBox(height: 2),
                                       Container(
-                                        width: double.infinity,
-                                        height: 28,
+                                        height: 24,
                                         padding: const EdgeInsets.only(left: 10),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFF4CAF50),
@@ -462,23 +477,27 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                               BorderRadius.circular(12),
                                         ),
                                         child: Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Expanded(
-                                              child: Text(
-                                                valores[it.ean] ?? '',
-                                                maxLines: 1,
-                                                overflow:
-                                                    TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
+                                            Flexible(
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                alignment: Alignment.centerLeft,
+                                                child: Text(
+                                                  valores[it.ean] ?? '',
+                                                  maxLines: 1,
+                                                  softWrap: false,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 10,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(width: 6),
+                                            const SizedBox(width: 4),
                                             Container(
-                                              height: 28,
+                                              height: 24,
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                       horizontal: 8),
@@ -489,16 +508,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                                         right:
                                                             Radius.circular(
                                                                 12)),
-                                                border: Border.all(
-                                                    color: const Color(
-                                                        0xFF4CAF50)),
+                                                border: const Border(
+                                                  top: BorderSide(
+                                                      color: Color(0xFF4CAF50),
+                                                      width: 1.5),
+                                                  right: BorderSide(
+                                                      color: Color(0xFF4CAF50),
+                                                      width: 1.5),
+                                                  bottom: BorderSide(
+                                                      color: Color(0xFF4CAF50),
+                                                      width: 1.5),
+                                                ),
                                               ),
                                               alignment: Alignment.center,
                                               child: Text(
                                                 (tipos[it.ean] ?? 'Normal')
                                                     .toUpperCase(),
                                                 style: TextStyle(
-                                                  fontSize: 10,
+                                                  fontSize: 9,
                                                   fontWeight: FontWeight.bold,
                                                   color: _tipoCor(
                                                       tipos[it.ean] ??
