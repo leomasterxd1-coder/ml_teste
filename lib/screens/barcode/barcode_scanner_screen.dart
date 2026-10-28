@@ -407,6 +407,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       for (final it in itens) it.ean: _valorEtiqueta(it),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
+    String? filtroTipo;
     var size = Constants.signSize1x1;
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -418,6 +419,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         builder: (ctx, setSheet) {
           final keyboard = MediaQuery.of(ctx).viewInsets.bottom;
           final maxH = MediaQuery.of(ctx).size.height * 0.30;
+          final itensVisiveis = filtroTipo == null
+              ? itens
+              : itens
+                  .where((it) =>
+                      (tipos[it.ean] ?? 'Normal') == filtroTipo)
+                  .toList();
           return SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboard),
@@ -437,11 +444,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     children: [
                       Checkbox(
                         visualDensity: VisualDensity.compact,
-                        value: selecionados.values.every((v) => v),
+                        value: itensVisiveis.isNotEmpty &&
+                            itensVisiveis.every(
+                                (it) => selecionados[it.ean] ?? true),
                         onChanged: (v) {
                           final marcar = v ?? false;
                           setSheet(() {
-                            for (final it in itens) {
+                            for (final it in itensVisiveis) {
                               selecionados[it.ean] = marcar;
                             }
                           });
@@ -450,6 +459,33 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       const Text('Selecionar todos',
                           style: TextStyle(
                               fontSize: 12, fontWeight: FontWeight.w600)),
+                      const Spacer(),
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String?>(
+                          value: filtroTipo,
+                          isDense: true,
+                          icon: const Icon(Icons.filter_list, size: 18),
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF334155)),
+                          items: <DropdownMenuItem<String?>>[
+                            const DropdownMenuItem<String?>(
+                                value: null, child: Text('Todos')),
+                            for (final tipo in const [
+                              'Normal',
+                              'Leve e Ganhe',
+                              'De/Por',
+                              'Parcelado'
+                            ])
+                              DropdownMenuItem<String?>(
+                                  value: tipo,
+                                  child: Text(tipo,
+                                      style:
+                                          const TextStyle(fontSize: 12))),
+                          ],
+                          onChanged: (v) =>
+                              setSheet(() => filtroTipo = v),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -458,8 +494,20 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     child: ListView(
                       shrinkWrap: true,
                       children: [
-                        for (final it in itens)
-                          Padding(
+                        if (itensVisiveis.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Center(
+                              child: Text(
+                                'Nenhum item deste tipo',
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.black54),
+                              ),
+                            ),
+                          )
+                        else
+                          for (final it in itensVisiveis)
+                            Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
