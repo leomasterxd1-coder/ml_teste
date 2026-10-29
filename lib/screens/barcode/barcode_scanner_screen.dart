@@ -739,7 +739,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         if (pd == null) continue;
         if (!vistos.add(item.ean)) continue;
         for (var c = 0; c < qtd; c++) {
-          lista.add(pd.copyWith(quantity: 1, size: size));
+          lista.add(ajustarDadosLeveGanhe(pd).copyWith(quantity: 1, size: size));
         }
       }
     }

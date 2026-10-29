@@ -8,6 +8,7 @@ import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/toast_utils.dart';
+import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
 import 'package:minhaloja/utils/buscar_anim.dart';
@@ -134,22 +135,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     return Constants.signTemplateModeloEditavel;
   }
 
-  PapeletaPrintingData _ajustarDadosLeveGanhe(PapeletaPrintingData d) {
-    if (d.template != Constants.signTemplateLeveGanheCada) return d;
-    final total = Constants.totalLeveGanhe(
-        d.promotionPrice, d.takeAndWinPrice, d.takeAndWinQuantity);
-    final qty = d.takeAndWinQuantity ?? 0;
-    final unitario = (d.takeAndWinPrice != null && d.takeAndWinPrice! > 0)
-        ? d.takeAndWinPrice!
-        : (qty > 0 ? total / qty : total);
-    return d.copyWith(
-      template: Constants.signTemplateLeveGanheTotal,
-      promotionPrice: unitario,
-      takeAndWinPrice: total,
-      installmentPrice: null,
-      installmentQuantity: null,
-    );
-  }
+  PapeletaPrintingData _ajustarDadosLeveGanhe(PapeletaPrintingData d) =>
+      ajustarDadosLeveGanhe(d);
 
   bool _isItemComum(PriceSign item) {
     final d = item.printingData;
