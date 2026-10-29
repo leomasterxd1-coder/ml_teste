@@ -663,11 +663,11 @@ void _drawEletroContent(
     maxLines: 1,
   );
   final groupW = priceTp.width + gap + qtyTp.width;
-  final priceX = cx - groupW / 2;
-  final qtyX = priceX + priceTp.width + gap;
+  final qtyX = cx - groupW / 2;
+  final priceX = qtyX + qtyTp.width + gap;
   final instY = top + h * 0.49;
-  priceTp.paint(canvas, Offset(priceX, instY - priceTp.height / 2));
   qtyTp.paint(canvas, Offset(qtyX, instY - qtyTp.height / 2));
+  priceTp.paint(canvas, Offset(priceX, instY - priceTp.height / 2));
   subTp.paint(
     canvas,
     Offset(
