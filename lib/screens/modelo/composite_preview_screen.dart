@@ -619,6 +619,7 @@ void _drawEletroContent(
 ) {
   final cx = left + w / 2;
   final contentW = w * 0.80;
+  final yTop = top + h * 0.02;
   const dark = Color(0xFF262729);
   const titleColor = Color(0xFF313335);
 
@@ -635,7 +636,7 @@ void _drawEletroContent(
     height: 1.05,
     letterSpacing: -0.5,
   );
-  _paintCentered(canvas, titleTp, cx, top + h * 0.315);
+  _paintCentered(canvas, titleTp, cx, yTop + h * 0.315);
 
   final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
   final gap = w * 0.035;
@@ -665,18 +666,18 @@ void _drawEletroContent(
   final groupW = priceTp.width + gap + qtyTp.width;
   final qtyX = cx - groupW / 2;
   final priceX = qtyX + qtyTp.width + gap;
-  final instY = top + h * 0.49;
+  final instY = yTop + h * 0.49;
   qtyTp.paint(canvas, Offset(qtyX, instY - qtyTp.height / 2));
   priceTp.paint(canvas, Offset(priceX, instY - priceTp.height / 2));
   subTp.paint(
     canvas,
     Offset(
       qtyX + (qtyTp.width - subTp.width) / 2,
-      top + h * 0.545 - subTp.height / 2,
+      yTop + h * 0.545 - subTp.height / 2,
     ),
   );
 
-  final dividerY = top + h * 0.61;
+  final dividerY = yTop + h * 0.61;
   canvas.drawLine(
     Offset(left + w * 0.13, dividerY),
     Offset(left + w * 0.87, dividerY),
@@ -735,7 +736,7 @@ void _drawEletroContent(
     maxWidth: contentW,
     startSize: w * 0.06,
   );
-  _paintCentered(canvas, cashTp, cx, top + h * 0.68);
+  _paintCentered(canvas, cashTp, cx, yTop + h * 0.68);
 
   final parts = oferta.split('|');
   final inicio = parts.isNotEmpty && parts[0].trim().isNotEmpty
@@ -752,7 +753,7 @@ void _drawEletroContent(
     color: const Color(0xFF4A4B4D),
     maxLines: 1,
   );
-  _paintCentered(canvas, validadeTp, cx, top + h * 0.84);
+  _paintCentered(canvas, validadeTp, cx, yTop + h * 0.84);
 }
 
 String _eletroMoney(double value) =>

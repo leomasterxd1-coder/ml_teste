@@ -786,17 +786,21 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     Widget field(String label, TextEditingController ctrl,
         {TextInputType kb = TextInputType.text,
         List<TextInputFormatter>? formatters,
-        String? hint}) {
+        String? hint,
+        double? fontSize}) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: TextField(
           controller: ctrl,
           keyboardType: kb,
           inputFormatters: formatters,
+          style: fontSize == null ? null : TextStyle(fontSize: fontSize),
           decoration: InputDecoration(
             labelText: label,
             hintText: hint,
             isDense: true,
+            labelStyle: fontSize == null ? null : TextStyle(fontSize: fontSize),
+            hintStyle: fontSize == null ? null : TextStyle(fontSize: fontSize),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -811,7 +815,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          field('Descrição', c.name),
+          field('Descrição', c.name, fontSize: 12),
           Row(
             children: [
               Expanded(
