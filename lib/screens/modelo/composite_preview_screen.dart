@@ -629,7 +629,7 @@ void _drawEletroContent(
   final titleTp = _fitEletroText(
     text: title,
     maxWidth: contentW,
-    startSize: w * 0.095,
+    startSize: w * 0.088,
     weight: FontWeight.w700,
     color: titleColor,
     maxLines: 3,
