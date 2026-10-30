@@ -60,3 +60,9 @@ flutter:
           weight: 400
         - asset: assets/fonts/SFProDisplay-Bold.otf
           weight: 700
+    - family: HelveticaEletro
+      fonts:
+        - asset: assets/fonts/helvetica.ttf
+          weight: 400
+        - asset: assets/fonts/helvetica_bold.ttf
+          weight: 700

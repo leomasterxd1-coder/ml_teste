@@ -696,7 +696,7 @@ void _drawEletroContent(
         TextSpan(
           text: 'de: ',
           style: TextStyle(
-            fontFamily: 'SFProDisplay',
+            fontFamily: 'HelveticaEletro',
             fontSize: size,
             fontWeight: FontWeight.w800,
             color: dark,
@@ -705,7 +705,7 @@ void _drawEletroContent(
         TextSpan(
           text: de,
           style: TextStyle(
-            fontFamily: 'SFProDisplay',
+            fontFamily: 'HelveticaEletro',
             fontSize: size,
             fontWeight: FontWeight.w700,
             color: dark,
@@ -716,7 +716,7 @@ void _drawEletroContent(
         TextSpan(
           text: '  por: ',
           style: TextStyle(
-            fontFamily: 'SFProDisplay',
+            fontFamily: 'HelveticaEletro',
             fontSize: size,
             fontWeight: FontWeight.w800,
             color: dark,
@@ -725,7 +725,7 @@ void _drawEletroContent(
         TextSpan(
           text: por,
           style: TextStyle(
-            fontFamily: 'SFProDisplay',
+            fontFamily: 'HelveticaEletro',
             fontSize: size,
             fontWeight: FontWeight.w900,
             color: dark,
@@ -769,7 +769,7 @@ TextPainter _eletroPainter(
     text: TextSpan(
       text: text,
       style: TextStyle(
-        fontFamily: 'SFProDisplay',
+        fontFamily: 'HelveticaEletro',
         fontSize: size,
         fontWeight: weight,
         color: color,
@@ -800,7 +800,7 @@ TextPainter _fitEletroText({
       text: TextSpan(
         text: text,
         style: TextStyle(
-          fontFamily: 'SFProDisplay',
+          fontFamily: 'HelveticaEletro',
           fontSize: size,
           fontWeight: weight,
           color: color,
