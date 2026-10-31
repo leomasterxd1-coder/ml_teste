@@ -560,7 +560,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                     padding: const EdgeInsets.only(left: 10),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF4CAF50),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -584,9 +584,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                           decoration: BoxDecoration(
                                             color: Colors.white,
                                             borderRadius:
-                                                const BorderRadius.horizontal(
-                                                    right:
-                                                        Radius.circular(12)),
+                                                const BorderRadius.horizontal(right: Radius.circular(6)),
                                             border: const Border(
                                               top: BorderSide(
                                                   color: Color(0xFF4CAF50),
