@@ -635,6 +635,7 @@ void _drawEletroContent(
     maxLines: 3,
     height: 1.0,
     letterSpacing: 0,
+    maxHeight: h * 0.14,
   );
   _paintCentered(canvas, titleTp, cx, yTop + h * 0.315);
 
@@ -792,6 +793,7 @@ TextPainter _fitEletroText({
   int maxLines = 1,
   double height = 1.0,
   double letterSpacing = 0,
+  double? maxHeight,
 }) {
   var size = startSize;
   late TextPainter tp;
@@ -813,7 +815,9 @@ TextPainter _fitEletroText({
       maxLines: maxLines,
       ellipsis: '…',
     )..layout(maxWidth: maxWidth);
-    if (!tp.didExceedMaxLines || size <= 6) break;
+    if ((!tp.didExceedMaxLines &&
+            (maxHeight == null || tp.height <= maxHeight)) ||
+        size <= 6) break;
     size -= 1;
   }
   return tp;

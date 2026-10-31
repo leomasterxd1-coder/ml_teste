@@ -457,42 +457,36 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         bottom: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Text(
-                        _titulo,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: _kRed,
-                          letterSpacing: 0.5,
+            Expanded(
+              child: _KeyboardInsetPadding(
+                descontar: _bottomBarH,
+                child: SingleChildScrollView(
+                  controller: _scrollCtrl,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            _titulo,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: _kRed,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  _buildPreviewCard(previewH),
-                ],
-              ),
-            ),
-            if (_modoEditavel)
-              Expanded(
-                child: _KeyboardInsetPadding(
-                  descontar: _bottomBarH,
-                  child: SingleChildScrollView(
-                    controller: _scrollCtrl,
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: _buildEditarItens(),
+                      _buildPreviewCard(previewH),
+                      if (_modoEditavel) _buildEditarItens(),
+                    ],
                   ),
                 ),
-              )
-            else
-              const Spacer(),
+              ),
+            ),
             _buildBottomBar(),
           ],
         ),
