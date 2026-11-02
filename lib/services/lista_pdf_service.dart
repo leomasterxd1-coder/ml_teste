@@ -53,19 +53,16 @@ class ListaPdfService {
           pw.SizedBox(height: 12),
           pw.Table(
             border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+            defaultVerticalAlignment: pw.TableCellVerticalAlignment.middle,
             columnWidths: {
-              0: const pw.FixedColumnWidth(44),
-              1: const pw.FixedColumnWidth(120),
-              2: const pw.FlexColumnWidth(),
-              3: const pw.FixedColumnWidth(190),
+              0: const pw.FixedColumnWidth(70),
+              1: const pw.FlexColumnWidth(),
             },
             children: [
               pw.TableRow(
                 decoration: const pw.BoxDecoration(color: PdfColors.red700),
                 children: [
-                  _celula('Qtd', header: true),
-                  _celula('COD EAN', header: true),
-                  _celula('DESCRIÇÃO', header: true),
+                  _celula('Quantidade', header: true),
                   _celula('CÓDIGO DE BARRAS', header: true),
                 ],
               ),
@@ -73,30 +70,38 @@ class ListaPdfService {
                 pw.TableRow(
                   children: [
                     _celula(t.quantity.toString()),
-                    _celula(t.ean),
-                    _celula(t.description),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(4),
                       child: pw.SizedBox(
-                        width: 175,
+                        width: 300,
                         child: pw.Column(
                           mainAxisSize: pw.MainAxisSize.min,
                           children: [
-                            pw.Text(t.description,
-                                style: const pw.TextStyle(fontSize: 9),
-                                textAlign: pw.TextAlign.center),
+                            pw.Text(
+                              t.description,
+                              style: pw.TextStyle(
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                              textAlign: pw.TextAlign.center,
+                            ),
                             pw.SizedBox(height: 2),
                             pw.BarcodeWidget(
                               barcode: _barcodePara(t.ean),
                               data: t.ean,
-                              width: 175,
-                              height: 34,
+                              width: 280,
+                              height: 36,
                               drawText: false,
                             ),
-                            pw.SizedBox(height: 2),
-                            pw.Text(t.ean,
-                                style: const pw.TextStyle(fontSize: 9),
-                                textAlign: pw.TextAlign.center),
+                            pw.SizedBox(height: 4),
+                            pw.Text(
+                              t.ean.split('').join(' '),
+                              style: pw.TextStyle(
+                                fontSize: 14,
+                                fontWeight: pw.FontWeight.bold,
+                              ),
+                              textAlign: pw.TextAlign.center,
+                            ),
                           ],
                         ),
                       ),

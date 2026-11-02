@@ -277,6 +277,10 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
       await _abrirEdicao(selected);
       return;
     }
+    if (_modo == 'Código de barras') {
+      await ListaPdfService.compartilharRelatorioEtiquetas(selected);
+      return;
+    }
     final printingDataList = <PrintingData>[];
     for (final t in selected) {
       final pd = t.printingData;
@@ -327,6 +331,10 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
   }
 
   Future<void> _imprimirItem(PriceTag tag) async {
+    if (_modo == 'Código de barras') {
+      await ListaPdfService.compartilharRelatorioEtiquetas([tag]);
+      return;
+    }
     setState(() => tag.checkbox = true);
     await _sendToPrinter();
   }
@@ -531,7 +539,7 @@ class _EtiquetasFragmentState extends State<EtiquetasFragment>
                               icon: Icons.tune,
                               label: 'MODO',
                               value: _modo,
-                              items: ['Normal', 'Edição'],
+                              items: ['Normal', 'Edição', 'Código de barras'],
                               onChanged: (val) => setState(() => _modo = val!),
                             ),
                           ),
