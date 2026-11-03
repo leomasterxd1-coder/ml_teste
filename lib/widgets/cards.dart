@@ -4,6 +4,7 @@ import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
+import 'product_image_dialog.dart';
 
 const Color _greenCheckbox = Color(0xFF1B5E20);
 const Color _red = Color(0xFFD32F2F);
@@ -184,11 +185,18 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                 _qtyBox(_qty, (v) => widget.onChangedQuantity(v)),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(widget.tag.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF212121))),
+                  child: GestureDetector(
+                    onTap: () => mostrarImagemProduto(
+                      context,
+                      ean: widget.tag.ean,
+                      descricao: widget.tag.description,
+                    ),
+                    child: Text(widget.tag.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF212121))),
+                  ),
                 ),
                 IconButton(
                   onPressed: () => widget.onImprimir(int.tryParse(_qty.text) ?? 1),
