@@ -708,7 +708,7 @@ void _drawEletroContent(
     Offset(left + w * 0.87, dividerY),
     ui.Paint()
       ..color = const Color(0xFF5B5C5E)
-      ..strokeWidth = w * 0.002,
+      ..strokeWidth = w * 0.0032,
   );
 
   final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
