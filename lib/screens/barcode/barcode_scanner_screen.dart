@@ -236,6 +236,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (escolha == null || !mounted) return;
     final qtds = (escolha['qtds'] as Map).cast<String, int>();
     final size = escolha['size'] as String;
+    final modalidade =
+        escolha['modalidade'] as String? ?? 'Misto Editável';
     final selecionados =
         (escolha['selecionados'] as Map).cast<String, bool>();
     final itensSel =
@@ -254,21 +256,27 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       ),
     );
     try {
-      final lista = await _carregarPapeletas(itensSel, qtds, size);
+      final lista =
+          await _carregarPapeletas(itensSel, qtds, size, modalidade);
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       if (lista.isEmpty) {
         ToastUtils.show(context, 'Dados de papeleta não disponíveis');
         return;
       }
+      final eletro = modalidade == 'Eletro da Semana';
+      final editavel = modalidade == 'Misto Editável' ||
+          modalidade == 'Vencimentos' ||
+          eletro;
+      final vencimentos = modalidade == 'Vencimentos';
       await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
         'items': lista,
         'size': size,
-        'mostrarCheckboxOverlay': true,
-        'modoEditavel': false,
-        'modoVencimentos': false,
+        'mostrarCheckboxOverlay': !eletro,
+        'modoEditavel': editavel,
+        'modoVencimentos': vencimentos,
         'semOverlay': false,
-        'apiSemOverlay': true,
+        'apiSemOverlay': !eletro,
         'hideGerarPreview': false,
       });
     } catch (e) {
@@ -409,6 +417,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     String? filtroTipo;
     var size = Constants.signSize1x1;
+    var modalidade = 'Misto Editável';
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
@@ -621,6 +630,39 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   ),
                   if (mostrarTamanho) ...[
                     const SizedBox(height: 8),
+                    const Text('Modalidade',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: modalidade,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'Misto Editável',
+                            child: Text('Misto Editável')),
+                        DropdownMenuItem(
+                            value: 'Promocional',
+                            child: Text('Promocional')),
+                        DropdownMenuItem(
+                            value: 'Normal', child: Text('Normal')),
+                        DropdownMenuItem(
+                            value: 'Vencimentos',
+                            child: Text('Vencimentos')),
+                        DropdownMenuItem(
+                            value: 'Eletro da Semana',
+                            child: Text('Eletro da Semana')),
+                      ],
+                      onChanged: (v) => setSheet(
+                          () => modalidade = v ?? modalidade),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     const Text('Tamanho',
                         style: TextStyle(
                             fontSize: 12, fontWeight: FontWeight.w600)),
@@ -679,6 +721,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         Navigator.pop(ctx, {
                           'qtds': sane,
                           'size': size,
+                          'modalidade': modalidade,
                           'selecionados': selecionados,
                         });
                       },
@@ -714,14 +757,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<List<PapeletaPrintingData>> _carregarPapeletas(
-      List<PriceTag> etiquetas, Map<String, int> qtds, String size) async {
+      List<PriceTag> etiquetas,
+      Map<String, int> qtds,
+      String size,
+      String modalidade) async {
     final api = _api;
     if (api == null) return const [];
+    final tipos = modalidade == 'Promocional'
+        ? [Constants.tipoPromocional]
+        : modalidade == 'Normal'
+            ? [Constants.tipoComum]
+            : [Constants.tipoComum, Constants.tipoPromocional];
     final refs = <String>[];
+    final tiposRef = <String>[];
     final futures = <Future<PapeletaStandaloneResponse?>>[];
     for (final et in etiquetas) {
-      for (final tipo in [Constants.tipoComum, Constants.tipoPromocional]) {
+      for (final tipo in tipos) {
         refs.add(et.ean);
+        tiposRef.add(tipo);
         futures.add(_fetchPapeleta(api, et.ean, tipo));
       }
     }
@@ -735,9 +788,23 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       for (final item in resp.items) {
         final pd = item.printingData;
         if (pd == null) continue;
-        if (!vistos.add(item.ean)) continue;
+        if (!vistos.add('${item.ean}_${tiposRef[i]}')) continue;
+        final dados = ajustarDadosLeveGanhe(pd);
+        final qtdEletro = (dados.installmentQuantity ?? 0) > 0
+            ? dados.installmentQuantity!
+            : 10;
         for (var c = 0; c < qtd; c++) {
-          lista.add(ajustarDadosLeveGanhe(pd).copyWith(quantity: 1, size: size));
+          if (modalidade == 'Eletro da Semana') {
+            lista.add(dados.copyWith(
+              template: Constants.signTemplateEletroSemana,
+              quantity: 1,
+              size: size,
+              installmentQuantity: qtdEletro,
+              installmentPrice: dados.installmentPrice ?? 0.0,
+            ));
+          } else {
+            lista.add(dados.copyWith(quantity: 1, size: size));
+          }
         }
       }
     }
