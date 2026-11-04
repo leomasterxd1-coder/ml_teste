@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 class ProductImageResult {
@@ -57,6 +59,20 @@ class ProductImageService {
       return ProductImageResult(googleShopping, 'Google Shopping');
     }
     return null;
+  }
+
+  static Future<Uint8List?> baixarBytes(String url) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        url,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      final data = response.data;
+      if (data == null) return null;
+      return Uint8List.fromList(data);
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<String?> _americanas(String ean, String store) async {

@@ -253,6 +253,81 @@ class MainActivity : FlutterActivity() {
                             }
                         }.start()
                     }
+                    "saveImageToDownloads" -> {
+                        val fileName = call.argument<String>("fileName")
+                            ?: "imagem.jpg"
+                        val bytes = call.argument<ByteArray>("bytes")
+                        val mime = call.argument<String>("mime")
+                            ?: "image/jpeg"
+                        val subfolder = call.argument<String>("subfolder")
+                            ?: "Imagem do produto"
+                        if (bytes == null) {
+                            result.error("BAD_ARGS", "bytes null", null)
+                            return@setMethodCallHandler
+                        }
+                        Thread {
+                            try {
+                                var savedUri: android.net.Uri? = null
+                                if (android.os.Build.VERSION.SDK_INT >=
+                                    android.os.Build.VERSION_CODES.Q
+                                ) {
+                                    val values = android.content.ContentValues().apply {
+                                        put(
+                                            android.provider.MediaStore.MediaColumns.DISPLAY_NAME,
+                                            fileName
+                                        )
+                                        put(
+                                            android.provider.MediaStore.MediaColumns.MIME_TYPE,
+                                            mime
+                                        )
+                                        put(
+                                            android.provider.MediaStore.MediaColumns.RELATIVE_PATH,
+                                            android.os.Environment.DIRECTORY_DOWNLOADS +
+                                                "/" + subfolder
+                                        )
+                                        put(
+                                            android.provider.MediaStore.MediaColumns.IS_PENDING,
+                                            1
+                                        )
+                                    }
+                                    val uri = contentResolver.insert(
+                                        android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                                        values
+                                    ) ?: throw IllegalStateException("MediaStore insert failed")
+                                    contentResolver.openOutputStream(uri)?.use {
+                                        it.write(bytes)
+                                    } ?: throw IllegalStateException("MediaStore write failed")
+                                    values.clear()
+                                    values.put(
+                                        android.provider.MediaStore.MediaColumns.IS_PENDING,
+                                        0
+                                    )
+                                    contentResolver.update(uri, values, null, null)
+                                    savedUri = uri
+                                } else {
+                                    @Suppress("DEPRECATION")
+                                    val dl = android.os.Environment
+                                        .getExternalStoragePublicDirectory(
+                                            android.os.Environment.DIRECTORY_DOWNLOADS
+                                        )
+                                    val dir = File(dl, subfolder)
+                                    dir.mkdirs()
+                                    val f = File(dir, fileName)
+                                    f.writeBytes(bytes)
+                                    savedUri = androidx.core.content.FileProvider.getUriForFile(
+                                        this@MainActivity,
+                                        "${packageName}.fileprovider",
+                                        f
+                                    )
+                                }
+                                runOnUiThread { result.success(savedUri?.toString()) }
+                            } catch (t: Throwable) {
+                                runOnUiThread {
+                                    result.error("SAVE_FAIL", t.message, null)
+                                }
+                            }
+                        }.start()
+                    }
                     "saveToDownloadsAndOpen" -> {
                         val fileName = call.argument<String>("fileName") ?: "arquivo.pdf"
                         val bytes = call.argument<ByteArray>("bytes")

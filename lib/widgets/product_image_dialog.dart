@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,6 +32,7 @@ class _ProdutoImagemDialog extends StatefulWidget {
 class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
   String? _url;
   String? _fonte;
+  Uint8List? _bytes;
   bool _carregando = true;
 
   @override
@@ -40,18 +43,65 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
 
   Future<void> _carregar() async {
     ProductImageResult? resultado;
+    Uint8List? bytes;
     try {
       final session = await SessionManager.getInstance();
       final store = session.getUserStore();
       resultado = await ProductImageService.buscarImagem(
         widget.ean, store, descricao: widget.descricao);
+      if (resultado != null) {
+        bytes = await ProductImageService.baixarBytes(resultado.url);
+      }
     } catch (_) {}
     if (!mounted) return;
     setState(() {
       _url = resultado?.url;
       _fonte = resultado?.fonte;
+      _bytes = bytes;
       _carregando = false;
     });
+  }
+
+  String _extensao() {
+    final url = (_url ?? '').toLowerCase();
+    if (url.contains('.png')) return 'png';
+    if (url.contains('.webp')) return 'webp';
+    return 'jpg';
+  }
+
+  Future<void> _salvarImagem() async {
+    final bytes = _bytes;
+    if (bytes == null) return;
+    final ext = _extensao();
+    final mime = ext == 'jpg' ? 'image/jpeg' : 'image/$ext';
+    try {
+      await const MethodChannel('minhaloja/pdf').invokeMethod<String>(
+        'saveImageToDownloads',
+        {
+          'fileName': '${widget.ean}.$ext',
+          'mime': mime,
+          'bytes': bytes,
+          'subfolder': 'Imagem do produto',
+        },
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Imagem salva em Download/Imagem do produto'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível salvar a imagem'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -114,12 +164,12 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
                 height: 260,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (_url == null)
+            else if (_bytes == null)
               const SizedBox(
                 height: 180,
                 child: Center(
                   child: Text(
-                    'Imagem não encontrada',
+                    'Não foi possível carregar a imagem',
                     style: TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
                   ),
                 ),
@@ -130,28 +180,22 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
                   maxHeight: 360,
                   minHeight: 120,
                 ),
-                child: Image.network(
-                  _url!,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return const SizedBox(
-                      height: 260,
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  },
-                  errorBuilder: (context, error, stack) => const SizedBox(
-                    height: 180,
-                    child: Center(
-                      child: Text(
-                        'Não foi possível carregar a imagem',
-                        style:
-                            TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                      ),
-                    ),
+                child: GestureDetector(
+                  onTap: _salvarImagem,
+                  child: Image.memory(
+                    _bytes!,
+                    fit: BoxFit.contain,
                   ),
                 ),
               ),
+            if (_bytes != null) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'Toque na imagem para salvar em Download/Imagem do produto',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+              ),
+            ],
             if (_fonte != null) ...[
               const SizedBox(height: 8),
               Text(
