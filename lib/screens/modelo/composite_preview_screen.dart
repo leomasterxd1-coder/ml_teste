@@ -730,7 +730,7 @@ void _drawEletroContent(
     color: dark,
     maxLines: 1,
   );
-  _paintCentered(canvas, instTp, cx, yTop + h * 0.715);
+  _paintCentered(canvas, instTp, cx, yTop + h * 0.735);
 
   final parts = oferta.split('|');
   final inicio = parts.isNotEmpty && parts[0].trim().isNotEmpty
