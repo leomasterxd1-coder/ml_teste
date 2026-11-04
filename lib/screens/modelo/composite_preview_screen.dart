@@ -703,9 +703,10 @@ void _drawEletroContent(
   _paintCentered(canvas, porTp, cx, yTop + h * 0.535);
 
   final dividerY = yTop + h * 0.585;
+  final dividerW = porTp.maxIntrinsicWidth;
   canvas.drawLine(
-    Offset(left + w * 0.13, dividerY),
-    Offset(left + w * 0.87, dividerY),
+    Offset(cx - dividerW / 2, dividerY),
+    Offset(cx + dividerW / 2, dividerY),
     ui.Paint()
       ..color = const Color(0xFF5B5C5E)
       ..strokeWidth = w * 0.0032,
