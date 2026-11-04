@@ -637,61 +637,14 @@ void _drawEletroContent(
     letterSpacing: 0,
     maxHeight: h * 0.14,
   );
-  _paintCentered(canvas, titleTp, cx, yTop + h * 0.315);
-
-  final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
-  final gap = w * 0.035;
-  var instSize = w * 0.15;
-  late TextPainter priceTp;
-  late TextPainter qtyTp;
-  while (true) {
-    priceTp = _eletroPainter(
-      _eletroMoney(d.installmentPrice ?? 0),
-      instSize,
-      FontWeight.w700,
-      dark,
-    );
-    qtyTp = _eletroPainter('${qty}x', instSize, FontWeight.w700, dark);
-    final total = priceTp.width + gap + qtyTp.width;
-    if (total <= contentW * 0.95 || instSize <= 8) break;
-    instSize -= 1;
-  }
-  final subTp = _fitEletroText(
-    text: 'sem juros',
-    maxWidth: qtyTp.width,
-    startSize: instSize * 0.35,
-    weight: FontWeight.w700,
-    color: dark,
-    maxLines: 1,
-  );
-  final groupW = priceTp.width + gap + qtyTp.width;
-  final qtyX = cx - groupW / 2;
-  final priceX = qtyX + qtyTp.width + gap;
-  final instY = yTop + h * 0.49;
-  qtyTp.paint(canvas, Offset(qtyX, instY - qtyTp.height / 2));
-  priceTp.paint(canvas, Offset(priceX, instY - priceTp.height / 2));
-  subTp.paint(
-    canvas,
-    Offset(
-      qtyX + (qtyTp.width - subTp.width) / 2,
-      yTop + h * 0.545 - subTp.height / 2,
-    ),
-  );
-
-  final dividerY = yTop + h * 0.61;
-  canvas.drawLine(
-    Offset(left + w * 0.13, dividerY),
-    Offset(left + w * 0.87, dividerY),
-    ui.Paint()
-      ..color = const Color(0xFF5B5C5E)
-      ..strokeWidth = w * 0.002,
-  );
+  _paintCentered(canvas, titleTp, cx, yTop + h * 0.32);
 
   final de = d.price > 0 ? _eletroMoney(d.price) : '--';
   final por = (d.promotionPrice ?? 0) > 0
       ? _eletroMoney(d.promotionPrice!)
       : '--';
-  final cashTp = _fitEletroRich(
+
+  final deTp = _fitEletroRich(
     build: (size) => TextSpan(
       children: [
         TextSpan(
@@ -714,8 +667,18 @@ void _drawEletroContent(
             decorationThickness: 2,
           ),
         ),
+      ],
+    ),
+    maxWidth: contentW,
+    startSize: w * 0.06,
+  );
+  _paintCentered(canvas, deTp, cx, yTop + h * 0.46);
+
+  final porTp = _fitEletroRich(
+    build: (size) => TextSpan(
+      children: [
         TextSpan(
-          text: '  por: ',
+          text: 'por: ',
           style: TextStyle(
             fontFamily: 'HelveticaEletro',
             fontSize: size,
@@ -735,9 +698,39 @@ void _drawEletroContent(
       ],
     ),
     maxWidth: contentW,
-    startSize: w * 0.06,
+    startSize: w * 0.075,
   );
-  _paintCentered(canvas, cashTp, cx, yTop + h * 0.68);
+  _paintCentered(canvas, porTp, cx, yTop + h * 0.535);
+
+  final dividerY = yTop + h * 0.585;
+  canvas.drawLine(
+    Offset(left + w * 0.13, dividerY),
+    Offset(left + w * 0.87, dividerY),
+    ui.Paint()
+      ..color = const Color(0xFF5B5C5E)
+      ..strokeWidth = w * 0.002,
+  );
+
+  final qty = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
+  final qtyTp = _fitEletroText(
+    text: '${qty}x sem juros',
+    maxWidth: contentW,
+    startSize: w * 0.075,
+    weight: FontWeight.w800,
+    color: dark,
+    maxLines: 1,
+  );
+  _paintCentered(canvas, qtyTp, cx, yTop + h * 0.64);
+
+  final instTp = _fitEletroText(
+    text: _eletroMoney(d.installmentPrice ?? 0),
+    maxWidth: contentW,
+    startSize: w * 0.17,
+    weight: FontWeight.w900,
+    color: dark,
+    maxLines: 1,
+  );
+  _paintCentered(canvas, instTp, cx, yTop + h * 0.715);
 
   final parts = oferta.split('|');
   final inicio = parts.isNotEmpty && parts[0].trim().isNotEmpty
@@ -754,7 +747,8 @@ void _drawEletroContent(
     color: const Color(0xFF4A4B4D),
     maxLines: 1,
   );
-  _paintCentered(canvas, validadeTp, cx, yTop + h * 0.84);
+  _paintCentered(canvas, validadeTp, cx, yTop + h * 0.855);
+
 }
 
 String _eletroMoney(double value) =>
