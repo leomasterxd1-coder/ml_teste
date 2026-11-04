@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/session_manager.dart';
 import '../services/product_image_service.dart';
@@ -78,7 +79,34 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD32F2F),
+              ),
+            ),
+            const SizedBox(height: 2),
+            GestureDetector(
+              onTap: () async {
+                await Clipboard.setData(ClipboardData(text: widget.ean));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('EAN copiado: ${widget.ean}'),
+                      duration: const Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'EAN: ${widget.ean} (toque para copiar)',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFF64748B),
+                ),
+              ),
             ),
             const SizedBox(height: 12),
             if (_carregando)
