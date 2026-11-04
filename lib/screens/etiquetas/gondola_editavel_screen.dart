@@ -272,6 +272,8 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       ToastUtils.show(context, 'Selecione ao menos uma etiqueta');
       return;
     }
+    final printerId = await _escolherImpressora();
+    if (printerId == null || !mounted) return;
     final lista = selecionados.map((i) => _items[i]).toList();
     setState(() => _sending = true);
     try {
@@ -280,7 +282,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
       await ApiService(ApiClient.instance.getSlApiService())
           .sendPriceTagsToPrinter(
         storeId,
-        widget.printerId,
+        printerId,
         Constants.tagGondola,
         SendPriceTagsRequest(products: lista),
       );
@@ -292,6 +294,25 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  Future<String?> _escolherImpressora() {
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Escolher impressora'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, Constants.printerZebra1),
+            child: const Text('Zebra 1'),
+          ),
+          SimpleDialogOption(
+            onPressed: () => Navigator.pop(ctx, Constants.printerZebra2),
+            child: const Text('Zebra 2'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _anterior() {
