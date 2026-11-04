@@ -411,12 +411,14 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   Future<Uint8List> _gerarPdfBytes(List<Uint8List> pages, String size) async {
     // MLoja: 2x1 (2 cols, 1 row) e 6x1 (3 cols, 2 rows) = landscape A4.
     final s = size.toUpperCase().replaceAll('×', 'X');
-    final isLandscape = s == '2X1' || s == '6X1';
-    final pageFormat = isLandscape
-        ? PdfPageFormat.a4.landscape
-        : PdfPageFormat.a4;
+    final isLandscapePorNome = s == '2X1' || s == '6X1';
     final doc = pw.Document();
     for (final png in pages) {
+      // Usa a orientação real do preview para não sair vertical por engano.
+      final isLandscape = _pngHorizontal(png) ?? isLandscapePorNome;
+      final pageFormat = isLandscape
+          ? PdfPageFormat.a4.landscape
+          : PdfPageFormat.a4;
       doc.addPage(
         pw.Page(
           pageFormat: pageFormat,
@@ -428,6 +430,17 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       );
     }
     return await doc.save();
+  }
+
+  /// Lê largura/altura do cabeçalho PNG sem decodificar a imagem inteira.
+  bool? _pngHorizontal(Uint8List png) {
+    if (png.length < 24) return null;
+    if (png[0] != 0x89 || png[1] != 0x50 || png[2] != 0x4E || png[3] != 0x47) {
+      return null;
+    }
+    final w = (png[16] << 24) | (png[17] << 16) | (png[18] << 8) | png[19];
+    final h = (png[20] << 24) | (png[21] << 16) | (png[22] << 8) | png[23];
+    return w > h;
   }
 
   String get _titulo {
