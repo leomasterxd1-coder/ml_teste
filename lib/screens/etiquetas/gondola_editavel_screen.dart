@@ -712,16 +712,25 @@ class _GondolaPreviewPainter extends CustomPainter {
     /// Desenha mantendo a altura e comprimindo só a largura se passar de [maxLargura].
     double drawEscalado(String text, double x, double y, double size,
         TextAlign align, Color color, double maxLargura,
-        {double sy = 1.0}) {
+        {double sy = 1.0, double commaScale = 0.5}) {
+      final baseStyle = TextStyle(
+          fontFamily: 'HelveticaNeueCondensed',
+          fontSize: px(size),
+          fontWeight: FontWeight.bold,
+          color: color);
+      final partes = text.split(',');
+      final spans = <InlineSpan>[];
+      if (partes.length == 2) {
+        spans.add(TextSpan(text: partes[0], style: baseStyle));
+        spans.add(TextSpan(
+            text: ',',
+            style: baseStyle.copyWith(fontSize: px(size) * commaScale)));
+        spans.add(TextSpan(text: partes[1], style: baseStyle));
+      } else {
+        spans.add(TextSpan(text: text, style: baseStyle));
+      }
       final tp = TextPainter(
-        text: TextSpan(
-          text: text,
-          style: TextStyle(
-              fontFamily: 'HelveticaNeueCondensed',
-              fontSize: px(size),
-              fontWeight: FontWeight.bold,
-              color: color),
-        ),
+        text: TextSpan(children: spans),
         textAlign: align,
         textDirection: TextDirection.ltr,
       )..layout();
@@ -739,10 +748,10 @@ class _GondolaPreviewPainter extends CustomPainter {
       return tp.width * sx;
     }
 
-    /// Igual ao drawEscalado, mas desenha a vírgula com 97% do tamanho.
+    /// Igual ao drawEscalado, mas desenha a vírgula com o tamanho reduzido.
     double drawValor(String text, double x, double y, double size,
         TextAlign align, Color color, double maxLargura,
-        {double sy = 1.0, double commaScale = 1.0}) {
+        {double sy = 1.0, double commaScale = 0.5, double larguraAlvo = 0.0}) {
       final base = TextStyle(
           fontFamily: 'HelveticaNeueCondensed',
           fontSize: px(size),
@@ -765,7 +774,9 @@ class _GondolaPreviewPainter extends CustomPainter {
       )..layout();
       final baseY =
           tp.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-      final sx = tp.width > maxLargura ? maxLargura / tp.width : 1.0;
+      final sx = larguraAlvo > 0
+          ? larguraAlvo / tp.width
+          : (tp.width > maxLargura ? maxLargura / tp.width : 1.0);
       final left = align == TextAlign.right
           ? -tp.width
           : (align == TextAlign.center ? -tp.width / 2 : 0.0);
@@ -808,6 +819,7 @@ class _GondolaPreviewPainter extends CustomPainter {
 
     var larguraValorPx = 0.0;
     final ehDepor = cifrao.startsWith('De R\$');
+    final ehParc = promoLinha0 == 'EM ATÉ';
 
     // Os dois valores usam o mesmo tamanho (110) e a mesma largura máxima;
     // se o texto for maior que isso, só ele é comprimido na largura.
@@ -845,8 +857,8 @@ class _GondolaPreviewPainter extends CustomPainter {
       final cifraoDraw = cifrao;
       final tam = modo == 0 ? 110.0 : 54.0;
       final baseline = modo == 0
-          ? 240.0
-          : (ehDepor ? _boxCy + 38 : (leveGanhe ? 220.0 : 230.0));
+          ? 252.0
+          : (ehDepor ? _boxCy + 44 : (leveGanhe ? 256.0 : 254.0));
       final centroX = modo == 0 ? _TW / 2 - 80 : _leftCx;
 
       if (modo == 1) {
@@ -861,7 +873,7 @@ class _GondolaPreviewPainter extends CustomPainter {
           } else {
             larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
                 TextAlign.right, const Color(0xFF000000), px(maxValor),
-                sy: 1.5, commaScale: 0.6);
+                sy: 1.5);
           }
           drawEscalado(cifraoDraw, tx(20), ty(baseline), 110.0,
               TextAlign.left, const Color(0xFF000000), px(cifraoW), sy: 1.5);
@@ -870,8 +882,16 @@ class _GondolaPreviewPainter extends CustomPainter {
             _desenharBarcode(canvas, tx(_boxLeft + 10), ty(_boxCy - 45), 300.0);
             larguraValorPx = px(300);
           } else {
-            larguraValorPx = drawValor(valor, tx(345), ty(baseline), 110.0,
-                TextAlign.right, const Color(0xFF000000), px(valorMaxW));
+            final alvoDepor = ehDepor
+                ? (345.0 -
+                    (20.0 + _largura('R\$', px(45)) / scale + 8.0))
+                : 0.0;
+            larguraValorPx = drawValor(
+                valor, tx(345), ty(baseline), 110.0,
+                TextAlign.right, const Color(0xFF000000),
+                px(ehParc ? 260.0 : (ehDepor ? alvoDepor : valorMaxW)),
+                sy: ehParc ? 1.4 : 1.0,
+                larguraAlvo: ehDepor ? px(alvoDepor) : 0.0);
           }
           const maxCifrao = 45.0;
           // No De/Por o rótulo é desenhado em duas linhas ("De"/"R$"); usar 45
@@ -899,14 +919,14 @@ class _GondolaPreviewPainter extends CustomPainter {
           valorW = bw / scale;
         } else {
           final valorWpx = drawEscalado(valor, tx(_TW - 30), ty(baseline), tam,
-              TextAlign.right, const Color(0xFF000000), px(240));
+              TextAlign.right, const Color(0xFF000000), px(240), sy: 1.5);
           valorW = valorWpx / scale;
         }
         final valorLeft = (_TW - 30) - valorW;
         final cifraoCenterMax = valorLeft - 10 - cifraoW / 2;
         final cifraoX = cifraoCenterMax < centroX ? cifraoCenterMax : centroX;
-        draw(cifraoDraw, tx(cifraoX), ty(baseline), tam, TextAlign.center,
-            const Color(0xFF000000));
+        drawEscalado(cifraoDraw, tx(cifraoX), ty(baseline), tam,
+            TextAlign.center, const Color(0xFF000000), px(cifraoW), sy: 1.5);
         comumValorW = valorW;
         comumCifraoX = cifraoX;
       }
@@ -916,9 +936,10 @@ class _GondolaPreviewPainter extends CustomPainter {
     if (unidade.isNotEmpty) {
       if (modo == 1) {
         final numero = unidade.split('R\$/PCE ').last.trim();
-        draw('R\$/PCE', tx(20), ty(290), 15, TextAlign.left,
+        final yUnidade = leveGanhe ? 284.0 : 290.0;
+        draw('R\$/PCE', tx(20), ty(yUnidade), 15, TextAlign.left,
             const Color(0xFF000000));
-        draw('R\$' + numero, tx(345) - larguraValorPx / 2, ty(290), 15,
+        draw('R\$' + numero, tx(345) - larguraValorPx / 2, ty(yUnidade), 15,
             TextAlign.center, const Color(0xFF000000));
       } else {
         final numero = unidade.split('R\$/PCE ').last.trim();
@@ -931,7 +952,6 @@ class _GondolaPreviewPainter extends CustomPainter {
 
     // Caixa preta (promocional)
     if (modo == 1) {
-      final ehParc = promoLinha0 == 'EM ATÉ';
       var larguraPromo1 = 0.0;
       if (promoLinha0.isNotEmpty) {
         final t0 = _ajustarTexto(promoLinha0, 17, 10, _boxMax);
@@ -945,9 +965,14 @@ class _GondolaPreviewPainter extends CustomPainter {
           const rotuloTam = 45.0;
           final esquerda = _boxLeft + 12;
           final direita = _boxRight - 10;
-          final baseBox = _boxCy + 38;
+          final baseBox = _boxCy + 44;
+          final rotuloW = _largura('R\$', px(rotuloTam)) / scale;
+          final maxValorBox = (direita - (esquerda + rotuloW + 8.0) - 20.0)
+              .clamp(180.0, double.infinity)
+              .toDouble();
           drawValor(porValor, tx(direita), ty(baseBox), 110.0,
-              TextAlign.right, const Color(0xFFFFFFFF), px(valorMaxW));
+              TextAlign.right, const Color(0xFFFFFFFF), px(maxValorBox),
+              larguraAlvo: px(maxValorBox));
           draw('Por', tx(esquerda), ty(baseBox - rotuloTam), rotuloTam,
               TextAlign.left, const Color(0xFFFFFFFF));
           draw('R\$', tx(esquerda), ty(baseBox), rotuloTam,
