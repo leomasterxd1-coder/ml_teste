@@ -762,9 +762,9 @@ class _GondolaPreviewPainter extends CustomPainter {
           ? -tp.width
           : (align == TextAlign.center ? -tp.width / 2 : 0.0);
       canvas.save();
-      canvas.translate(x, y - base);
+      canvas.translate(x, y);
       canvas.scale(sx, sy);
-      tp.paint(canvas, Offset(left, 0));
+      tp.paint(canvas, Offset(left, -base));
       canvas.restore();
       return tp.width * sx;
     }
@@ -802,9 +802,9 @@ class _GondolaPreviewPainter extends CustomPainter {
           ? -tp.width
           : (align == TextAlign.center ? -tp.width / 2 : 0.0);
       canvas.save();
-      canvas.translate(x, y - baseY);
+      canvas.translate(x, y);
       canvas.scale(sx, sy);
-      tp.paint(canvas, Offset(left, 0));
+      tp.paint(canvas, Offset(left, -baseY));
       canvas.restore();
       return tp.width * sx;
     }
