@@ -44,16 +44,14 @@ PriceTag singleToPriceTag(SingleLabelItem item) => PriceTag(
 PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
   if (d.template != Constants.signTemplateLeveGanheCada) return d;
   final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 1;
-  final unitario = (d.promotionPrice ?? 0) > 0
-      ? d.promotionPrice!
-      : ((d.takeAndWinPrice ?? 0) > 0 ? d.takeAndWinPrice! / qty : 0.0);
-  final total = (d.takeAndWinPrice ?? 0) > 0
+  final unitario = (d.takeAndWinPrice ?? 0) > 0
       ? d.takeAndWinPrice!
-      : unitario * qty;
+      : ((d.promotionPrice ?? 0) > 0 ? d.promotionPrice! : 0.0);
+  final total = unitario * qty;
   return d.copyWith(
     template: Constants.signTemplateLeveGanheTotal,
-    promotionPrice: unitario,
-    takeAndWinPrice: total,
+    promotionPrice: total,
+    takeAndWinPrice: unitario,
     installmentPrice: null,
     installmentQuantity: null,
   );
