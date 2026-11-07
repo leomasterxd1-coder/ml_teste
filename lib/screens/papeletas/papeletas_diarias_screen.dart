@@ -10,6 +10,7 @@ import '../../widgets/cards.dart';
 import '../../core/session_manager.dart';
 import '../../core/constants.dart';
 import '../../utils/toast_utils.dart';
+import '../../utils/price_tag_mapper.dart';
 import '../../utils/log_helper.dart';
 import '../../utils/session_expired_handler.dart';
 import '../../utils/buscar_anim.dart';
@@ -345,6 +346,7 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
       final pd = e.printingData;
 
       String? itemTemplate = pd?.template;
+      final temLeveGanhe = (pd?.takeAndWinQuantity ?? 0) > 0;
       if (_usarModeloPersonalizado) {
         if (_usarModeloComum) {
           // Fiel ao Kotlin: usa o template ORIGINAL da API (ex: "comum_por").
@@ -352,7 +354,6 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
           itemTemplate = pd?.template ?? Constants.signTemplateNormal;
         } else {
           final movement = e.movement.toLowerCase();
-          final temLeveGanhe = (pd?.takeAndWinQuantity ?? 0) > 0;
           if (temLeveGanhe) {
             itemTemplate = Constants.signTemplateModelo;
           } else {
@@ -379,11 +380,16 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
               quantity: 1,
               unit: '',
             )
-          : pd.copyWith(
-              template: itemTemplate ?? pd.template,
-              size: _selectedSize,
-              quantity: 1,
-            );
+          : (temLeveGanhe &&
+                  pd.template == Constants.signTemplateLeveGanheCada)
+              ? ajustarDadosLeveGanhe(
+                      pd.copyWith(size: _selectedSize, quantity: 1))
+                  .copyWith(template: Constants.signTemplateModelo)
+              : pd.copyWith(
+                  template: itemTemplate ?? pd.template,
+                  size: _selectedSize,
+                  quantity: 1,
+                );
 
       final qtd = e.quantity > 0 ? e.quantity : 1;
       for (int i = 0; i < qtd; i++) {
