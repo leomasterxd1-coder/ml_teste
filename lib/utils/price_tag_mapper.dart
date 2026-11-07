@@ -43,16 +43,15 @@ PriceTag singleToPriceTag(SingleLabelItem item) => PriceTag(
 /// (leve_ganhe_total), para o scanner mostrar "Leve X por R$ ..." igual.
 PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
   if (d.template != Constants.signTemplateLeveGanheCada) return d;
-  final total = Constants.totalLeveGanhe(
-      d.promotionPrice, d.takeAndWinPrice, d.takeAndWinQuantity);
-  final qty = d.takeAndWinQuantity ?? 0;
-  final unitario = (d.takeAndWinPrice != null && d.takeAndWinPrice! > 0)
+  final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 1;
+  final unitario = (d.takeAndWinPrice ?? 0) > 0
       ? d.takeAndWinPrice!
-      : (qty > 0 ? total / qty : total);
+      : ((d.promotionPrice ?? 0) > 0 ? d.promotionPrice! : 0.0);
+  final total = unitario * qty;
   return d.copyWith(
     template: Constants.signTemplateLeveGanheTotal,
-    promotionPrice: unitario,
-    takeAndWinPrice: total,
+    promotionPrice: total,
+    takeAndWinPrice: unitario,
     installmentPrice: null,
     installmentQuantity: null,
   );
