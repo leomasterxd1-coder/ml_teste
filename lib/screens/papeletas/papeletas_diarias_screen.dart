@@ -384,7 +384,6 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
                   pd.template == Constants.signTemplateLeveGanheCada)
               ? ajustarDadosLeveGanhe(
                       pd.copyWith(size: _selectedSize, quantity: 1))
-                  .copyWith(template: Constants.signTemplateModelo)
               : pd.copyWith(
                   template: itemTemplate ?? pd.template,
                   size: _selectedSize,
