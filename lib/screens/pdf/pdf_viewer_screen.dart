@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -80,7 +81,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   Future<Uint8List?> _generatePreview(PapeletaPrintingData data) async {
     setState(() => _generating = true);
     try {
-      return await api.previewPriceSign(data);
+      return await api.previewPriceSign(prepararPreviewLeve(data));
     } on ApiException catch (e) {
       if (e.statusCode == 401) {
         SessionExpiredHandler.handleSessionExpired(context);

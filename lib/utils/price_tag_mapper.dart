@@ -45,3 +45,21 @@ PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
   // Mantem o JSON original esperado pela API.
   return d;
 }
+
+/// Ajuste apenas para preview: no template, o valor grande usa
+/// takeAndWinPrice (total) e a linha de unitario usa promotionPrice (cada).
+PapeletaPrintingData prepararPreviewLeve(PapeletaPrintingData d) {
+  final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 0;
+  if (qty <= 0) return d;
+  final total = (d.promotionPrice ?? 0) > 0
+      ? d.promotionPrice!
+      : ((d.takeAndWinPrice ?? 0) * qty);
+  final cada = (d.takeAndWinPrice ?? 0) > 0
+      ? d.takeAndWinPrice!
+      : (total / qty);
+  return d.copyWith(
+    template: Constants.signTemplateLeveGanheTotal,
+    promotionPrice: cada,
+    takeAndWinPrice: total,
+  );
+}

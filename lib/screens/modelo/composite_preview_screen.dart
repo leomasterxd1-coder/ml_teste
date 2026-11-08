@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -347,7 +348,7 @@ Future<List<Uint8List>> buildCompositePages({
               pdfBytes[i] = cached;
             } else {
               final b = await api.previewPriceSign(
-                  items[idx].copyWith(size: Constants.signSize1x1));
+                  prepararPreviewLeve(items[idx]).copyWith(size: Constants.signSize1x1));
               pdfBytes[i] = b;
               if (key != null) {
                 if (_pdfApiCache.length > 60) {
@@ -1003,7 +1004,7 @@ Future<img.Image?> _rasterizeCard(
   // conforme o tamanho selecionado (ex.: 3x2 para 6X1, já que a API não
   // possui 6X1).
   final bytes =
-      await api.previewPriceSign(data.copyWith(size: Constants.signSize1x1));
+      await api.previewPriceSign(prepararPreviewLeve(data).copyWith(size: Constants.signSize1x1));
 
   // Renderiza via PdfRenderer do Android (canal de plataforma), fiel ao MLoja.
   final platformRaster = await _renderViaPlatform(bytes, w, h);
@@ -1037,7 +1038,7 @@ String? _pdfCacheKey(PapeletaPrintingData d) {
 Future<Uint8List?> _renderPdfPng(
     ApiService api, PapeletaPrintingData data, int w, int h) async {
   final bytes =
-      await api.previewPriceSign(data.copyWith(size: Constants.signSize1x1));
+      await api.previewPriceSign(prepararPreviewLeve(data).copyWith(size: Constants.signSize1x1));
   final res = await _pdfChannel.invokeMethod<Map<dynamic, dynamic>>(
       'renderPdfToRgba', {'bytes': bytes, 'w': w, 'h': h});
   if (res == null) return null;
