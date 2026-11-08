@@ -264,34 +264,26 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       ToastUtils.show(context, 'Nenhum item selecionado');
       return;
     }
-    final usarApi = _semOverlay || _enviarApi;
-    if (usarApi) {
-      // Comum pura OU sem overlay com apiSemOverlay → envio via API
-      // (sem socket, fiel ao MLoja).
-      setState(() => _sending = true);
-      try {
-        await api.sendPriceSigns(
-          session.getUserStore(),
-          SendPriceSignRequest(products: toSend),
-        );
-        if (!mounted) return;
-        ToastUtils.showSuccess(context, 'Papeletas enviadas para impressora');
-        Navigator.pop(context, true);
-      } on ApiException catch (e) {
-        if (e.statusCode == 401) {
-          SessionExpiredHandler.handleSessionExpired(context);
-        } else {
-          ToastUtils.showError(context, e.message);
-        }
-      } catch (e) {
-        ToastUtils.showError(context, 'Erro ao enviar papeletas');
-        LogHelper.e('ModeloEditavel: erro ao enviar', e);
-      } finally {
-        if (mounted) setState(() => _sending = false);
+    setState(() => _sending = true);
+    try {
+      await api.sendPriceSigns(
+        session.getUserStore(),
+        SendPriceSignRequest(products: toSend),
+      );
+      if (!mounted) return;
+      ToastUtils.showSuccess(context, 'Papeletas enviadas para impressora');
+      Navigator.pop(context, true);
+    } on ApiException catch (e) {
+      if (e.statusCode == 401) {
+        SessionExpiredHandler.handleSessionExpired(context);
+      } else {
+        ToastUtils.showError(context, e.message);
       }
-    } else {
-      // Demais tipos → gera PDF e envia via socket RAW (igual ao MLoja).
-      await _enviarViaSocket(toSend);
+    } catch (e) {
+      ToastUtils.showError(context, 'Erro ao enviar papeletas');
+      LogHelper.e('ModeloEditavel: erro ao enviar', e);
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
   }
 
