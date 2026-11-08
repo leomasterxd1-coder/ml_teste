@@ -42,21 +42,6 @@ PriceTag singleToPriceTag(SingleLabelItem item) => PriceTag(
 /// Normaliza o leve_ganhe_cada para o mesmo conteúdo do promocional
 /// (leve_ganhe_total), para o scanner mostrar "Leve X por R$ ..." igual.
 PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
-  if (d.template != Constants.signTemplateLeveGanheCada) return d;
-  final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 1;
-  // No template, o valor grande ("por R$") usa takeAndWinPrice e a linha
-  // "preço unitário na promoção" usa promotionPrice.
-  final unitario = (d.takeAndWinPrice ?? 0) > 0
-      ? d.takeAndWinPrice!
-      : (d.price > 0 ? d.price : 0.0);
-  final total = (d.promotionPrice ?? 0) > 0
-      ? d.promotionPrice!
-      : unitario * qty;
-  return d.copyWith(
-    template: Constants.signTemplateLeveGanheTotal,
-    promotionPrice: unitario,
-    takeAndWinPrice: total,
-    installmentPrice: null,
-    installmentQuantity: null,
-  );
+  // Mantem o JSON original esperado pela API.
+  return d;
 }
