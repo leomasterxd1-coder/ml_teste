@@ -621,7 +621,7 @@ class PapeletaPrintingData {
       'codSap': codSap,
       'ean': ean,
       'referenceDate': referenceDate,
-      'size': size,
+      'size': size?.toLowerCase(),
       'quantity': quantity,
       'unit': unit,
     };
