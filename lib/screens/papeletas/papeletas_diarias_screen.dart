@@ -380,15 +380,11 @@ class _PapeletasDiariasScreenState extends State<PapeletasDiariasScreen>
               quantity: 1,
               unit: '',
             )
-          : (temLeveGanhe &&
-                  pd.template == Constants.signTemplateLeveGanheCada)
-              ? ajustarDadosLeveGanhe(
-                      pd.copyWith(size: _selectedSize, quantity: 1))
-              : pd.copyWith(
-                  template: itemTemplate ?? pd.template,
-                  size: _selectedSize,
-                  quantity: 1,
-                );
+          : pd.copyWith(
+              template: itemTemplate ?? pd.template,
+              size: _selectedSize,
+              quantity: 1,
+            );
 
       final qtd = e.quantity > 0 ? e.quantity : 1;
       for (int i = 0; i < qtd; i++) {
