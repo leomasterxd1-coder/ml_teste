@@ -264,7 +264,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       ToastUtils.show(context, 'Nenhum item selecionado');
       return;
     }
-    final usarApi = _semOverlay;
+    final usarApi = _semOverlay || _enviarApi;
     if (usarApi) {
       // Comum pura OU sem overlay com apiSemOverlay → envio via API
       // (sem socket, fiel ao MLoja).
@@ -300,7 +300,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   List<int> _a4CanvasDimensions(int dpi) {
     const a4W = 595;
     const a4H = 842;
-    const margin = 0.0;
+    const margin = 4.0;
     final s = _size.toUpperCase().replaceAll('×', 'X');
     final isLandscape = s == '2X1' || s == '6X1';
     final pageW = isLandscape ? a4H : a4W;
@@ -421,10 +421,9 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       doc.addPage(
         pw.Page(
           pageFormat: pageFormat,
-          margin: const pw.EdgeInsets.all(0.0),
-          build: (context) => pw.Image(
-            pw.MemoryImage(png),
-            fit: pw.BoxFit.fill,
+          margin: const pw.EdgeInsets.all(4.0),
+          build: (context) => pw.Center(
+            child: pw.Image(pw.MemoryImage(png)),
           ),
         ),
       );
