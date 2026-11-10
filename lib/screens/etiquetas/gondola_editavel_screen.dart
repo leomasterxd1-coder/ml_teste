@@ -206,7 +206,7 @@ class _GondolaEditavelScreenState extends State<GondolaEditavelScreen> {
             discountPercent: d.promotionalPrice?.discountPercent ?? 0,
             startAt: d.promotionalPrice?.startAt ?? '',
             endAt: d.promotionalPrice?.endAt ?? ''),
-        promotionPrice: unit,
+        promotionPrice: total,
         takeAndWinQuantity: qty,
         takeAndWinPrice: unit,
       );

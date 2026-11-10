@@ -55,9 +55,6 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   String? _errorPreview;
   Timer? _hb;
 
-  /// Comum pura (não Vencimentos) → envio via API; demais → PDF via socket.
-  late bool _enviarApi;
-
   /// Fiel ao MLoja: quando sem overlay e apiSemOverlay, envia via API
   /// (sem precisar de socket).
   bool _apiSemOverlay = false;
@@ -119,7 +116,6 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       if (_size != '1X1' && _size != '2X1' && _size != '4X1') _size = '4X1';
     }
     _ctrls = _items.map((d) => _ItemCtrls(d)).toList();
-    _enviarApi = !_modoVencimentos && _items.every(_isComum) && !_isEletro;
   }
 
   PapeletaPrintingData _currentData(int i) {
@@ -159,17 +155,6 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   double? _dOrNull(String v) =>
       v.trim().isEmpty ? null : double.tryParse(v.replaceAll(',', '.'));
   int? _iOrNull(String v) => v.trim().isEmpty ? null : int.tryParse(v);
-
-  bool _isComum(PapeletaPrintingData d) {
-    if (d.template == Constants.signTemplateModelo) return false;
-    if (d.template == Constants.signTypePapeletaPromocional) return false;
-    if (d.template == Constants.signTemplateDepor) return false;
-    if (d.template == Constants.signTemplateDeporParcelado) return true;
-    final hasPromo = d.promotionPrice != null && d.promotionPrice! > 0;
-    final hasTW = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
-    if (hasPromo || hasTW) return false;
-    return true;
-  }
 
   bool get _isEletro =>
       _items.isNotEmpty &&
@@ -262,6 +247,12 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     final toSend = _selecionados();
     if (toSend.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
+      return;
+    }
+    // Sem overlay e API permitida -> direto pela API.
+    // Com overlay -> sempre PDF via socket, para aplicar o modelo.
+    if (!(_semOverlay && _apiSemOverlay)) {
+      await _enviarViaSocket(toSend);
       return;
     }
     setState(() => _sending = true);

@@ -55,7 +55,6 @@ class Constants {
 
   static double totalLeveGanhePorTemplate(String? template, double? promotionPrice,
       double? takeAndWinPrice, int? takeAndWinQuantity) {
-    if (template == signTemplateModelo) return takeAndWinPrice ?? 0.0;
     return totalLeveGanhe(promotionPrice, takeAndWinPrice, takeAndWinQuantity);
   }
 
