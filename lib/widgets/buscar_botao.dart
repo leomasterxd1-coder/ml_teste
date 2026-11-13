@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'auth_logo_animado.dart';
 
 /// Botão BUSCAR dentro do campo:
 /// - EAN/SAP -> ícone de leitor (SVG).
@@ -57,12 +58,7 @@ class _BuscarBotaoState extends State<BuscarBotao>
         padding: const EdgeInsets.symmetric(horizontal: 16),
         alignment: Alignment.center,
         child: widget.buscando
-            ? const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
-              )
+            ? const AuthLogoAnimado(size: 24, color: Colors.white)
             : widget.porDescricao
                 ? AnimatedBuilder(
                     animation: _c,

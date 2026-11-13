@@ -13,6 +13,7 @@ import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/log_helper.dart';
+import 'package:minhaloja/widgets/auth_logo_animado.dart';
 
 
 /// Pré-visualização composta espelhando fielmente a ModeloEditavelActivity do
@@ -156,13 +157,13 @@ class _CompositePreviewScreenState extends State<CompositePreviewScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 12),
-            Text('Compondo pré-visualização...'),
+            const AuthLogoAnimado(size: 90, color: AppColors.primary),
+            const SizedBox(height: 12),
+            const Text('Compondo pré-visualização...'),
           ],
         ),
       );
@@ -364,7 +365,6 @@ Future<List<Uint8List>> buildCompositePages({
       }
 
       await Future.wait(List.generate(2, (_) => wk()));
-      final multiCellN = cols * rows > 1;
       final comums = <int>[];
       final tops = <double>[];
       final vds = <String>[];
