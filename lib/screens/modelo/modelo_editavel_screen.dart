@@ -283,7 +283,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   List<int> _a4CanvasDimensions(int dpi) {
     const a4W = 595;
     const a4H = 842;
-    const margin = 4.0;
+    const margin = 18.0;
     final s = _size.toUpperCase().replaceAll('×', 'X');
     final isLandscape = s == '2X1' || s == '6X1';
     final pageW = isLandscape ? a4H : a4W;
@@ -404,7 +404,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       doc.addPage(
         pw.Page(
           pageFormat: pageFormat,
-          margin: const pw.EdgeInsets.all(4.0),
+          margin: const pw.EdgeInsets.all(18.0),
           build: (context) => pw.Center(
             child: pw.Image(pw.MemoryImage(png)),
           ),
