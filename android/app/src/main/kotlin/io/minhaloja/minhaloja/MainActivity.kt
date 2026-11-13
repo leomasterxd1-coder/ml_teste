@@ -641,7 +641,7 @@ class MainActivity : FlutterActivity() {
         }
 
         draw("VAL.: ${txt.uppercase()}", top + cellH * topFrac, cellW / 18f)
-        draw("PRÓXIMO DA VALIDADE. CONSUMO RÁPIDO", top + cellH * 0.88f, (cellW / 32f).coerceIn(8f, 26f))
+        draw("PRÓXIMO DA VALIDADE. CONSUMO RÁPIDO", top + cellH * 0.88f, (cellW / 28f).coerceIn(9f, 30f))
     }
 
     // Fiel ao renderPdfToBitmap do MLoja: renderiza a página em sua proporção

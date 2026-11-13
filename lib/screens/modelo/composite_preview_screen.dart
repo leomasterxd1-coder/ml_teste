@@ -377,8 +377,7 @@ Future<List<Uint8List>> buildCompositePages({
           LogHelper.d('Composite: PDF VAZIO item $idx (template=${items[idx].template}, name=${items[idx].productName})');
         }
         comums.add(comum ? 1 : 0);
-        tops.add(
-            comum ? 0.25 : (multiCellN ? 0.28 : 0.25));
+        tops.add(0.25);
         vds.add(validades.length > idx ? validades[idx] : '');
         payload.add(pdfBytes[i] ?? Uint8List(0));
       }
@@ -956,7 +955,7 @@ Future<img.Image> _camadaTextosVencimento(int w, int h, String validade,
   // Promocional: 0.28 multi-célula / 0.25 single (posição validada).
   draw('VAL.: ${txt.toUpperCase()}', h * topFrac, w / 18);
   draw('PRÓXIMO DA VALIDADE. CONSUMO RÁPIDO', h * 0.88,
-      (w / 32).clamp(8, 26).toDouble());
+      (w / 28).clamp(9, 30).toDouble());
   final picture = recorder.endRecording();
   final out = await picture.toImage(w, h);
   final png = (await out.toByteData(format: ui.ImageByteFormat.png))!
@@ -1122,13 +1121,13 @@ Future<img.Image> _drawVencimento(
   // Aqui usamos o centro da célula (w/2) e deslocamento 0.28h — mais acima,
   // dentro da faixa do MLoja (h*0.28 a h*0.45).
   // Fonte maior: w / 18 (antes w / 20).
-  final yVal = h * 0.28;
+  final yVal = h * 0.25;
   // Rodapé: um pouco mais pra cima (0.88h) e fonte maior (w / 32).
   final yFooter = h * 0.88;
   _drawCentered(canvas, w, yVal, 'VAL.: $validaTexto'.toUpperCase(),
       fontSize: w / 18, bold: true, centerX: centroX);
   _drawCentered(canvas, w, yFooter, 'PRÓXIMO DA VALIDADE. CONSUMO RÁPIDO',
-      fontSize: (w / 32).clamp(8, 26).toDouble(), bold: true, centerX: centroX);
+      fontSize: (w / 28).clamp(9, 30).toDouble(), bold: true, centerX: centroX);
   final picture = recorder.endRecording();
   final out = await picture.toImage(w, h);
   final pngOut = (await out.toByteData(format: ui.ImageByteFormat.png))!
