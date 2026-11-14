@@ -190,6 +190,8 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                       context,
                       ean: widget.tag.ean,
                       descricao: widget.tag.description,
+                      codSap: widget.tag.sap,
+                      saldo: _saldo,
                     ),
                     child: Text(widget.tag.description,
                         maxLines: 2,
