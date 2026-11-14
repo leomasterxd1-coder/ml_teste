@@ -47,7 +47,7 @@ PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
 }
 
 /// Ajuste apenas para preview: no template, o valor grande usa
-/// promotionPrice (total) e a linha de unitario usa takeAndWinPrice (cada).
+/// takeAndWinPrice (total) e a linha de unitario usa promotionPrice (cada).
 PapeletaPrintingData prepararPreviewLeve(PapeletaPrintingData d) {
   final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 0;
   if (qty <= 0) return d;
@@ -59,7 +59,7 @@ PapeletaPrintingData prepararPreviewLeve(PapeletaPrintingData d) {
       : (total / qty);
   return d.copyWith(
     template: Constants.signTemplateLeveGanheTotal,
-    promotionPrice: total,
-    takeAndWinPrice: cada,
+    promotionPrice: cada,
+    takeAndWinPrice: total,
   );
 }
