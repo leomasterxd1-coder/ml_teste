@@ -51,12 +51,26 @@ PapeletaPrintingData ajustarDadosLeveGanhe(PapeletaPrintingData d) {
 PapeletaPrintingData prepararPreviewLeve(PapeletaPrintingData d) {
   final qty = (d.takeAndWinQuantity ?? 0) > 0 ? d.takeAndWinQuantity! : 0;
   if (qty <= 0) return d;
-  final total = (d.promotionPrice ?? 0) > 0
-      ? d.promotionPrice!
-      : ((d.takeAndWinPrice ?? 0) * qty);
-  final cada = (d.takeAndWinPrice ?? 0) > 0
-      ? d.takeAndWinPrice!
-      : (total / qty);
+  final pp = d.promotionPrice ?? 0;
+  final tp = d.takeAndWinPrice ?? 0;
+  double total, cada;
+  if (pp > 0 && tp > 0) {
+    if (pp > tp) {
+      total = pp;
+      cada = tp;
+    } else {
+      total = tp;
+      cada = pp;
+    }
+  } else if (pp > 0) {
+    total = pp;
+    cada = pp / qty;
+  } else if (tp > 0) {
+    total = tp;
+    cada = tp / qty;
+  } else {
+    return d;
+  }
   return d.copyWith(
     template: Constants.signTemplateLeveGanheTotal,
     promotionPrice: cada,

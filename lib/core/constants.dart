@@ -47,10 +47,16 @@ class Constants {
 
   static double totalLeveGanhe(
       double? promotionPrice, double? takeAndWinPrice, int? takeAndWinQuantity) {
-    if (promotionPrice != null && promotionPrice > 0) return promotionPrice;
-    final preco = takeAndWinPrice ?? 0;
     final qtd = takeAndWinQuantity ?? 1;
-    return preco * qtd;
+    final pp = promotionPrice ?? 0;
+    final tp = takeAndWinPrice ?? 0;
+    if (pp > 0 && tp > 0) {
+      // Ambos preenchidos: o maior valor eh o total da promocao
+      return pp > tp ? pp : tp;
+    }
+    if (pp > 0) return pp; // promotionPrice ja vem como total
+    if (tp > 0) return tp * qtd; // takeAndWinPrice vem como unitario
+    return 0;
   }
 
   static double totalLeveGanhePorTemplate(String? template, double? promotionPrice,
