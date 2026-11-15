@@ -36,28 +36,12 @@ class ProductImageService {
     if (americanas != null) {
       return ProductImageResult(americanas, 'Americanas');
     }
-    final si5 = await _si5(ean);
-    if (si5 != null) return ProductImageResult(si5, 'SI5 Global');
-
     final bluesoftEan = await _bluesoftEan(ean);
     if (bluesoftEan != null) {
       return ProductImageResult(bluesoftEan, 'Bluesoft');
     }
-    if (descricao.isNotEmpty) {
-      final bluesoftDesc = await _bluesoftDescricao(descricao);
-      if (bluesoftDesc != null) {
-        return ProductImageResult(bluesoftDesc, 'Bluesoft');
-      }
-    }
-
-    final googleImagens = await _googleImagens(ean, descricao);
-    if (googleImagens != null) {
-      return ProductImageResult(googleImagens, 'Google Imagens');
-    }
-    final googleShopping = await _googleShopping(ean, descricao);
-    if (googleShopping != null) {
-      return ProductImageResult(googleShopping, 'Google Shopping');
-    }
+    final si5 = await _si5(ean);
+    if (si5 != null) return ProductImageResult(si5, 'SI5 Global');
     return null;
   }
 
@@ -84,6 +68,13 @@ class ProductImageService {
       );
       final data = response.data;
       if (data is Map) {
+        final retorno = (data['ean'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'\D'), '');
+        final solicitado = ean.replaceAll(RegExp(r'\D'), '');
+        if (retorno.isNotEmpty && solicitado.isNotEmpty && retorno != solicitado) {
+          return null;
+        }
         final url = (data['imageUrl'] ?? '').toString().trim();
         if (url.startsWith('http')) return url;
       }
@@ -106,6 +97,10 @@ class ProductImageService {
       );
       final data = response.data;
       if (data is Map) {
+        final retorno = (data['codbar'] ?? '')
+            .toString()
+            .replaceAll(RegExp(r'\D'), '');
+        if (retorno.isNotEmpty && retorno != codigo) return null;
         final url = (data['imagem_url'] ?? '').toString().trim();
         if (url.startsWith('http')) return url;
       }
