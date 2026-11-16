@@ -45,6 +45,46 @@ class ProductImageService {
     return null;
   }
 
+  static Future<List<ProductImageResult>> buscarAlternativas(
+    String ean,
+    String store, {
+    String descricao = '',
+  }) async {
+    final resultados = <ProductImageResult>[];
+    final vistos = <String>{};
+
+    Future<void> adicionar(
+      Future<String?> Function() fonte,
+      String nome,
+    ) async {
+      try {
+        final url = await fonte();
+        if (url != null && url.isNotEmpty && vistos.add(url)) {
+          resultados.add(ProductImageResult(url, nome));
+        }
+      } catch (_) {}
+    }
+
+    await adicionar(() => _americanas(ean, store), 'Americanas');
+    await adicionar(() => _si5(ean), 'SI5 Global');
+    await adicionar(() => _bluesoftEan(ean), 'Bluesoft');
+    if (descricao.isNotEmpty) {
+      await adicionar(
+        () => _bluesoftDescricao(descricao),
+        'Bluesoft',
+      );
+    }
+    await adicionar(
+      () => _googleImagens(ean, descricao),
+      'Google Imagens',
+    );
+    await adicionar(
+      () => _googleShopping(ean, descricao),
+      'Google Shopping',
+    );
+    return resultados;
+  }
+
   static Future<Uint8List?> baixarBytes(String url) async {
     try {
       final response = await _dio.get<List<int>>(

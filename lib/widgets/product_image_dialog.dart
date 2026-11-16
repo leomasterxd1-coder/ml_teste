@@ -14,8 +14,10 @@ Future<void> mostrarImagemProduto(
   String descricao = '',
   String codSap = '',
   double? saldo,
-}) {
-  return showDialog<void>(
+}) async {
+  FocusManager.instance.primaryFocus?.unfocus();
+  await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
+  await showDialog<void>(
     context: context,
     barrierDismissible: true,
     builder: (_) => _ProdutoImagemDialog(
@@ -25,6 +27,8 @@ Future<void> mostrarImagemProduto(
       saldo: saldo,
     ),
   );
+  FocusManager.instance.primaryFocus?.unfocus();
+  await SystemChannels.textInput.invokeMethod<void>('TextInput.hide');
 }
 
 class _ProdutoImagemDialog extends StatefulWidget {
@@ -48,6 +52,10 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
   String? _url;
   Uint8List? _bytes;
   bool _carregando = true;
+  String? _store;
+  List<ProductImageResult> _alternativas = [];
+  int _indiceAlternativa = -1;
+  bool _buscandoAlternativas = false;
 
   @override
   void initState() {
@@ -61,6 +69,7 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
     try {
       final session = await SessionManager.getInstance();
       final store = session.getUserStore();
+      _store = store;
       resultado = await ProductImageService.buscarImagem(
         widget.ean,
         store,
@@ -76,6 +85,45 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
       _bytes = bytes;
       _carregando = false;
     });
+  }
+
+  Future<void> _buscarOutrasImagens() async {
+    if (_buscandoAlternativas) return;
+    setState(() => _buscandoAlternativas = true);
+    try {
+      if (_alternativas.isEmpty) {
+        final resultados = await ProductImageService.buscarAlternativas(
+          widget.ean,
+          _store ?? '',
+          descricao: widget.descricao,
+        );
+        final filtradas = resultados.where((r) => r.url != _url).toList();
+        if (filtradas.isEmpty) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Nenhuma outra imagem encontrada.'),
+              ),
+            );
+          }
+          return;
+        }
+        _alternativas = filtradas;
+        _indiceAlternativa = 0;
+      } else {
+        _indiceAlternativa =
+            (_indiceAlternativa + 1) % _alternativas.length;
+      }
+      final alternativa = _alternativas[_indiceAlternativa];
+      final bytes = await ProductImageService.baixarBytes(alternativa.url);
+      if (bytes == null || !mounted) return;
+      setState(() {
+        _url = alternativa.url;
+        _bytes = bytes;
+      });
+    } finally {
+      if (mounted) setState(() => _buscandoAlternativas = false);
+    }
   }
 
   String _extensao() {
@@ -219,6 +267,29 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
                           width: double.infinity,
                           height: alturaImagem,
                           child: _conteudoImagem(),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: (_carregando || _buscandoAlternativas)
+                              ? null
+                              : _buscarOutrasImagens,
+                          icon: _buscandoAlternativas
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.travel_explore, size: 18),
+                          label: Text(
+                            _alternativas.isEmpty
+                                ? 'Não é essa? Buscar outras imagens'
+                                : 'Buscar outra imagem '
+                                    '(${_indiceAlternativa + 1}/${_alternativas.length})',
+                          ),
                         ),
                       ),
                       if (widget.saldo != null) ...[
