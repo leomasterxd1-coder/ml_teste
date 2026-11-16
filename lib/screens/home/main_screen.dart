@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/core/theme.dart';
+import 'package:minhaloja/widgets/logo_refresh.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_fragment.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_fragment.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_screen.dart';
@@ -302,7 +303,10 @@ class _MainScreenState extends State<MainScreen> {
                     child: _buildHeader(),
                   ),
                   Expanded(
-                    child: _bodyFor(_currentBody),
+                    child: LogoRefreshPage(
+                      key: ValueKey(_currentBody),
+                      child: _bodyFor(_currentBody),
+                    ),
                   ),
                 ],
               ),
