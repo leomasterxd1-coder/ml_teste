@@ -240,6 +240,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         escolha['modalidade'] as String? ?? 'Misto Editável';
     final selecionados =
         (escolha['selecionados'] as Map).cast<String, bool>();
+    final itemDesafioRaw = escolha['itemDesafio'];
+    if (itemDesafioRaw is Map) {
+      final sel = <String, Set<String>>{};
+      itemDesafioRaw.forEach((k, v) {
+        if (v is Iterable) {
+          sel[k.toString()] = v.map((e) => e.toString()).toSet();
+        }
+      });
+      if (sel.isNotEmpty) {
+        await _abrirItemDesafioPreview(etiquetas, sel);
+        return;
+      }
+    }
     final itensSel =
         etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
     if (itensSel.isEmpty) {
@@ -277,6 +290,57 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         'modoVencimentos': vencimentos,
         'semOverlay': false,
         'apiSemOverlay': !eletro,
+        'hideGerarPreview': false,
+      });
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      ToastUtils.showError(context, 'Erro: $e');
+    }
+  }
+
+  Future<void> _abrirItemDesafioPreview(
+      List<PriceTag> etiquetas, Map<String, Set<String>> sel) async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+    try {
+      final grupos = <PapeletaGrupo>[];
+      for (final size in [
+        Constants.signSize2x1,
+        Constants.signSize4x1,
+      ]) {
+        final qtd = size == Constants.signSize2x1 ? 2 : 4;
+        final ets = etiquetas
+            .where((e) => sel[e.ean]?.contains(size) ?? false)
+            .toList();
+        if (ets.isEmpty) continue;
+        final qtdsSize = <String, int>{for (final e in ets) e.ean: qtd};
+        final lista =
+            await _carregarPapeletas(ets, qtdsSize, size, 'Item Desafio');
+        if (lista.isNotEmpty) {
+          grupos.add(PapeletaGrupo(items: lista, size: size));
+        }
+      }
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+      if (grupos.isEmpty) {
+        ToastUtils.show(context, 'Dados de papeleta não disponíveis');
+        return;
+      }
+      await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
+        'grupos': grupos,
+        'size': grupos.first.size,
+        'mostrarCheckboxOverlay': true,
+        'modoEditavel': false,
+        'modoVencimentos': false,
+        'semOverlay': false,
+        'apiSemOverlay': false,
         'hideGerarPreview': false,
       });
     } catch (e) {
@@ -397,6 +461,148 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
+  Future<Map<String, Set<String>>?> _mostrarDialogoItemDesafio(
+      List<PriceTag> itens) async {
+    final sel = <String, Set<String>>{};
+    return showModalBottomSheet<Map<String, Set<String>>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final keyboard = MediaQuery.of(ctx).viewInsets.bottom;
+          return SafeArea(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboard),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('ITEM DESAFIO',
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  const Text(
+                      'Escolha os itens e os tamanhos (pode marcar 2x1 e 4x1 do mesmo item)',
+                      style: TextStyle(fontSize: 12, color: Colors.black54)),
+                  const SizedBox(height: 12),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(ctx).size.height * 0.55),
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final it in itens)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          it.description.isEmpty
+                                              ? it.ean
+                                              : it.description,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600)),
+                                      Text(it.ean,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.black54)),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Checkbox(
+                                      value: sel[it.ean]?.contains(
+                                              Constants.signSize2x1) ??
+                                          false,
+                                      visualDensity: VisualDensity.compact,
+                                      onChanged: (v) => setSheet(() {
+                                        final set = sel.putIfAbsent(
+                                            it.ean, () => <String>{});
+                                        if (v == true) {
+                                          set.add(Constants.signSize2x1);
+                                        } else {
+                                          set.remove(Constants.signSize2x1);
+                                        }
+                                        if (set.isEmpty) sel.remove(it.ean);
+                                      }),
+                                    ),
+                                    const Text('2×1',
+                                        style: TextStyle(fontSize: 11)),
+                                    Checkbox(
+                                      value: sel[it.ean]?.contains(
+                                              Constants.signSize4x1) ??
+                                          false,
+                                      visualDensity: VisualDensity.compact,
+                                      onChanged: (v) => setSheet(() {
+                                        final set = sel.putIfAbsent(
+                                            it.ean, () => <String>{});
+                                        if (v == true) {
+                                          set.add(Constants.signSize4x1);
+                                        } else {
+                                          set.remove(Constants.signSize4x1);
+                                        }
+                                        if (set.isEmpty) sel.remove(it.ean);
+                                      }),
+                                    ),
+                                    const Text('4×1',
+                                        style: TextStyle(fontSize: 11)),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (sel.isEmpty) {
+                          ToastUtils.show(
+                              context, 'Selecione ao menos um tamanho');
+                          return;
+                        }
+                        Navigator.pop(ctx, {
+                          for (final e in sel.entries)
+                            e.key: Set<String>.from(e.value)
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC62828),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                      ),
+                      child: const Text('VISUALIZAR PAPELETA',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<Map<String, dynamic>?> _mostrarDialogoSelecao(
       List<PriceTag> itens, {
     required String titulo,
@@ -434,6 +640,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   .where((it) =>
                       (tipos[it.ean] ?? 'Normal') == filtroTipo)
                   .toList();
+          Future<void> abrirItemDesafio() async {
+            final sel = await _mostrarDialogoItemDesafio(itens);
+            if (sel == null || sel.isEmpty || !mounted) return;
+            Navigator.pop(ctx, {
+              'itemDesafio': sel,
+              'modalidade': 'Item Desafio',
+              'selecionados': selecionados,
+              'qtds': qtds,
+              'size': size,
+            });
+          }
           return SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboard),
@@ -642,6 +859,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             value: 'Misto Editável',
                             child: Text('Misto Editável')),
                         DropdownMenuItem(
+                            value: 'Item Desafio',
+                            child: Text('Item Desafio')),
+                        DropdownMenuItem(
                             value: 'Promocional',
                             child: Text('Promocional')),
                         DropdownMenuItem(
@@ -653,8 +873,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             value: 'Eletro da Semana',
                             child: Text('Eletro da Semana')),
                       ],
-                      onChanged: (v) => setSheet(
-                          () => modalidade = v ?? modalidade),
+                      onChanged: (v) async {
+                        final nova = v ?? modalidade;
+                        setSheet(() => modalidade = nova);
+                        if (nova == 'Item Desafio') {
+                          await abrirItemDesafio();
+                        }
+                      },
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
@@ -662,6 +887,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       ),
                     ),
+                    if (modalidade == 'Item Desafio')
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: abrirItemDesafio,
+                          child: const Text('SELECIONAR ITENS E TAMANHOS',
+                              style: TextStyle(fontSize: 11)),
+                        ),
+                      ),
                     const SizedBox(height: 8),
                     const Text('Tamanho',
                         style: TextStyle(
@@ -713,7 +947,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
+                        if (mostrarTamanho && modalidade == 'Item Desafio') {
+                          await abrirItemDesafio();
+                          return;
+                        }
                         final sane = <String, int>{
                           for (final e in qtds.entries)
                             e.key: e.value.clamp(1, 999).toInt(),

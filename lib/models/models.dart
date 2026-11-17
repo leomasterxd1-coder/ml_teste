@@ -665,6 +665,12 @@ class PapeletaPrintingData {
       );
 }
 
+class PapeletaGrupo {
+  final List<PapeletaPrintingData> items;
+  final String size;
+  PapeletaGrupo({required this.items, required this.size});
+}
+
 class SendPriceSignRequest {
   final List<PapeletaPrintingData> products;
   SendPriceSignRequest({required this.products});

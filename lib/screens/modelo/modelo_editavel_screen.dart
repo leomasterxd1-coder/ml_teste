@@ -44,6 +44,11 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   final SessionManager session = SessionManager.instance!;
 
   List<PapeletaPrintingData> _items = [];
+  List<PapeletaGrupo> _grupos = [];
+  bool _itemDesafio = false;
+  List<Uint8List> _pagesCom = [];
+  List<Uint8List> _pagesSem = [];
+  List<bool> _usaModeloPagina = [];
   late String _size;
   bool _semOverlay = false;
   bool _modoEditavel = false;
@@ -105,6 +110,18 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       _modoVencimentos = args['modoVencimentos'] ?? false;
       _mostrarOverlay = args['mostrarCheckboxOverlay'] ?? true;
       _apiSemOverlay = args['apiSemOverlay'] ?? false;
+      final grupos = args['grupos'];
+      if (grupos is List<PapeletaGrupo> && grupos.isNotEmpty) {
+        _grupos = List<PapeletaGrupo>.from(grupos);
+        _itemDesafio = true;
+        _items = _grupos.expand((g) => g.items).toList();
+        _size = _grupos.first.size;
+        _modoEditavel = false;
+        _modoVencimentos = false;
+        _mostrarOverlay = true;
+        _apiSemOverlay = false;
+        _semOverlay = false;
+      }
     }
     if (_items.isEmpty) {
       _items = [];
@@ -194,10 +211,72 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   List<String> _validades() =>
       [for (int i = 0; i < _items.length; i++) _ctrls[i].validade.text];
 
+  Future<void> _gerarPreviewItemDesafio() async {
+    if (!mounted) return;
+    setState(() {
+      _loadingPreview = true;
+      _errorPreview = null;
+    });
+    try {
+      final com = <Uint8List>[];
+      final sem = <Uint8List>[];
+      for (final grupo in _grupos) {
+        final comPages = await buildCompositePages(
+          api: api,
+          items: grupo.items,
+          size: grupo.size,
+          modoVencimentos: false,
+          validades: const [],
+          ofertas: const [],
+          semOverlay: false,
+          previewScale: 1.0,
+          jpegPreview: true,
+          displayMaxDim: 1280,
+        );
+        final semPages = await buildCompositePages(
+          api: api,
+          items: grupo.items,
+          size: grupo.size,
+          modoVencimentos: false,
+          validades: const [],
+          ofertas: const [],
+          semOverlay: true,
+          previewScale: 1.0,
+          jpegPreview: true,
+          displayMaxDim: 1280,
+        );
+        com.addAll(comPages);
+        sem.addAll(semPages);
+      }
+      if (!mounted) return;
+      setState(() {
+        _pagesCom = com;
+        _pagesSem = sem;
+        _pages = List<Uint8List>.from(com);
+        _usaModeloPagina = List<bool>.filled(com.length, true);
+        _page = 0;
+        _loadingPreview = false;
+      });
+    } catch (e) {
+      LogHelper.e('ModeloEditavel: item desafio preview', e);
+      if (mounted) {
+        setState(() {
+          _errorPreview = 'Erro ao gerar pré-visualização';
+          _loadingPreview = false;
+        });
+      }
+    }
+  }
+
   Future<void> _gerarPreview() async {
     // Trava de reentrada: toques repetidos não disparam gerações concorrentes
     // (threads nativas simultâneas derrubavam o app por memória/ANR).
-    if (_loadingPreview || _items.isEmpty) {
+    if (_loadingPreview ||
+        (_itemDesafio ? _grupos.isEmpty : _items.isEmpty)) {
+      return;
+    }
+    if (_itemDesafio) {
+      await _gerarPreviewItemDesafio();
       return;
     }
     if (!mounted) {
@@ -245,6 +324,10 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   }
 
   Future<void> _imprimir() async {
+    if (_itemDesafio) {
+      await _imprimirItemDesafio();
+      return;
+    }
     final toSend = _selecionados();
     if (toSend.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
@@ -342,6 +425,10 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   }
 
   Future<void> _compartilharPdf() async {
+    if (_itemDesafio) {
+      await _compartilharItemDesafio();
+      return;
+    }
     final toSend = _selecionados();
     if (toSend.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
@@ -391,6 +478,58 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
   }
 
+  Future<void> _imprimirItemDesafio() async {
+    if (_pages.isEmpty) {
+      ToastUtils.show(context, 'Nenhum item selecionado');
+      return;
+    }
+    setState(() => _sending = true);
+    try {
+      final pdfBytes = await _gerarPdfBytes(_pages, _size);
+      final socket = await Socket.connect(
+        _kPrinterIp,
+        _kPrinterPort,
+        timeout: const Duration(seconds: 5),
+      );
+      socket.add(pdfBytes);
+      await socket.flush();
+      await socket.close();
+      if (!mounted) return;
+      ToastUtils.showSuccess(context, 'Papeletas enviadas para impressora');
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.showError(context, 'Erro ao enviar via socket: $e');
+      LogHelper.e('ModeloEditavel: item desafio socket', e);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _compartilharItemDesafio() async {
+    if (_pages.isEmpty) {
+      ToastUtils.show(context, 'Nenhum item selecionado');
+      return;
+    }
+    setState(() => _gerando = true);
+    try {
+      final pdfBytes = await _gerarPdfBytes(_pages, _size);
+      final dir = await getTemporaryDirectory();
+      final file = File(
+          '${dir.path}/item_desafio_${DateTime.now().millisecondsSinceEpoch}.pdf');
+      await file.writeAsBytes(pdfBytes);
+      if (!mounted) return;
+      await Share.shareXFiles([XFile(file.path)],
+          subject: 'Item Desafio', text: 'Item Desafio');
+    } catch (e) {
+      if (!mounted) return;
+      ToastUtils.showError(context, 'Erro ao compartilhar PDF');
+      LogHelper.e('ModeloEditavel: item desafio share', e);
+    } finally {
+      if (mounted) setState(() => _gerando = false);
+    }
+  }
+
   Future<Uint8List> _gerarPdfBytes(List<Uint8List> pages, String size) async {
     // MLoja: 2x1 (2 cols, 1 row) e 6x1 (3 cols, 2 rows) = landscape A4.
     final s = size.toUpperCase().replaceAll('×', 'X');
@@ -427,6 +566,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   }
 
   String get _titulo {
+    if (_itemDesafio) return 'ITEM DESAFIO';
     if (_isEletro) return 'PAPELETA ELETRO DA SEMANA';
     if (_modoVencimentos) return 'PAPELETA DE VENCIMENTOS';
     return 'PAPELETA ${_size.toUpperCase()}';
@@ -490,6 +630,30 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     );
   }
 
+  bool get _comModeloAtual {
+    if (!_itemDesafio) return !_semOverlay;
+    if (_usaModeloPagina.isEmpty || _page >= _usaModeloPagina.length) {
+      return true;
+    }
+    return _usaModeloPagina[_page];
+  }
+
+  void _toggleOverlayAtual(bool comModelo) {
+    if (_itemDesafio) {
+      if (_usaModeloPagina.isEmpty || _page >= _usaModeloPagina.length) return;
+      setState(() {
+        _usaModeloPagina[_page] = comModelo;
+        final src = comModelo ? _pagesCom : _pagesSem;
+        if (_page < src.length && _page < _pages.length) {
+          _pages[_page] = src[_page];
+        }
+      });
+      return;
+    }
+    setState(() => _semOverlay = !comModelo);
+    _gerarPreview();
+  }
+
   Widget _buildPreviewCard(double previewH) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -528,28 +692,22 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
           if (_mostrarOverlay) ...[
             const SizedBox(height: 10),
             InkWell(
-              onTap: () {
-                setState(() => _semOverlay = !_semOverlay);
-                _gerarPreview();
-              },
+              onTap: () => _toggleOverlayAtual(!_comModeloAtual),
               child: Row(
                 children: [
                   SizedBox(
                     width: 22,
                     height: 22,
                     child: Checkbox(
-                      value: !_semOverlay,
+                      value: _comModeloAtual,
                       activeColor: _kRed,
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onChanged: (v) {
-                        setState(() => _semOverlay = !(v ?? false));
-                        _gerarPreview();
-                      },
+                      onChanged: (v) => _toggleOverlayAtual(v ?? false),
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(!_semOverlay ? 'Com modelo' : 'Sem modelo',
+                  Text(_comModeloAtual ? 'Com modelo' : 'Sem modelo',
                       style: const TextStyle(fontSize: 12)),
                   const Spacer(),
                   const Text('Cópias:',
@@ -589,7 +747,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
                     borderRadius: BorderRadius.circular(6)),
               ),
               child: Text(
-                'GERAR PRÉ-VISUALIZAÇÃO ${_size.toUpperCase()}',
+                _itemDesafio ? 'GERAR PRÉ-VISUALIZAÇÃO' : 'GERAR PRÉ-VISUALIZAÇÃO ${_size.toUpperCase()}',
                 style: const TextStyle(
                     fontSize: 13, fontWeight: FontWeight.bold),
               ),
