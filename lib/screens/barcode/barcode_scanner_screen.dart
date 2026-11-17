@@ -39,6 +39,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   String _lastCode = '';
   int _lastCodeTime = 0;
   int _added = 0;
+  final Map<String, Map<String, dynamic>> _overrides = {};
 
   @override
   void initState() {
@@ -359,37 +360,48 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   String _valorEtiqueta(PriceTag item) {
     final pd = item.printingData;
     final tipo = _tipoEtiqueta(item);
+    final ov = _overrides[_overrideKey(item)];
     String brl(double value) =>
         'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
 
-    final precoNormal = pd?.price?.value ?? 0;
-    final precoPromo = pd?.promotionalPrice?.value ?? 0;
-    final take = pd?.takeAndWin;
-    final inst = pd?.installments;
+    final precoNormal =
+        (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0;
+    final precoPromo = (ov?['promotionPrice'] as num?)
+            ?.toDouble() ??
+        pd?.promotionalPrice?.value ??
+        0;
+    final takeQty =
+        (ov?['takeAndWinQuantity'] as int?) ?? pd?.takeAndWin?.qty ?? 0;
+    final takeTotal = (ov?['takeAndWinPrice'] as num?)
+            ?.toDouble() ??
+        pd?.takeAndWin?.totalValue ??
+        0;
+    final instQty = (ov?['installmentQuantity'] as int?) ??
+        pd?.installments?.installmentQuantity ??
+        0;
+    final instValue = (ov?['installmentPrice'] as num?)
+            ?.toDouble() ??
+        pd?.installments?.installmentValue ??
+        0;
 
-    if (tipo == 'Leve e Ganhe' &&
-        take != null &&
-        take.qty > 0 &&
-        take.totalValue > 0) {
+    if (tipo == 'Leve e Ganhe' && takeQty > 0 && takeTotal > 0) {
       final total = (pd?.template == Constants.signTemplateLeveGanheCada &&
               precoPromo > 0)
           ? precoPromo
-          : take.totalValue;
+          : takeTotal;
       final normalPart = precoNormal > 0 ? ' | ${brl(precoNormal)}' : '';
-      return 'Leve ${take.qty} por ${brl(total)}$normalPart';
+      return 'Leve $takeQty por ${brl(total)}$normalPart';
     }
-    if (tipo == 'Parcelado' &&
-        inst != null &&
-        inst.installmentQuantity > 0) {
-      final parcela = inst.installmentValue > 0
-          ? inst.installmentValue
+    if (tipo == 'Parcelado' && instQty > 0) {
+      final parcela = instValue > 0
+          ? instValue
           : (pd?.displayPrice ?? 0);
       if (precoPromo > 0 && precoPromo < precoNormal) {
         return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)} | '
-            '${inst.installmentQuantity}x de ${brl(parcela)}';
+            '${instQty}x de ${brl(parcela)}';
       }
       final base = precoNormal > 0 ? brl(precoNormal) : item.price.trim();
-      return '$base | ${inst.installmentQuantity}x de ${brl(parcela)}';
+      return '$base | ${instQty}x de ${brl(parcela)}';
     }
     if (tipo == 'De/Por' && precoPromo > 0) {
       return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)}';
@@ -445,11 +457,161 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return const Color(0xFF9E9E9E);
   }
 
-  Widget _badgeVerde(PriceTag item) {
+  String _apiTipo(String tipoLabel) =>
+      tipoLabel == 'Normal' ? Constants.tipoComum : Constants.tipoPromocional;
+
+  String _overrideKey(PriceTag item) =>
+      '${item.ean}_${_apiTipo(_tipoEtiqueta(item))}';
+
+  String _txt(num? v) =>
+      v == null ? '' : v.toString().replaceAll('.', ',');
+
+  String _txtInt(int? v) => v?.toString() ?? '';
+
+  PapeletaPrintingData _aplicarOverride(
+      PapeletaPrintingData dados, String tipoApi) {
+    final ov = _overrides['${dados.ean}_$tipoApi'];
+    if (ov == null) return dados;
+    return dados.copyWith(
+      price: (ov['price'] as num?)?.toDouble(),
+      promotionPrice: (ov['promotionPrice'] as num?)?.toDouble(),
+      takeAndWinQuantity: ov['takeAndWinQuantity'] as int?,
+      takeAndWinPrice: (ov['takeAndWinPrice'] as num?)?.toDouble(),
+      installmentQuantity: ov['installmentQuantity'] as int?,
+      installmentPrice: (ov['installmentPrice'] as num?)?.toDouble(),
+    );
+  }
+
+  Future<bool> _abrirEditorValores(PriceTag item) async {
+    final tipo = _tipoEtiqueta(item);
+    final pd = item.printingData;
+    final ov = _overrides[_overrideKey(item)] ?? const <String, dynamic>{};
+    final priceCtrl =
+        TextEditingController(text: _txt(ov['price'] ?? pd?.price?.value));
+    final promoCtrl = TextEditingController(
+        text: _txt(ov['promotionPrice'] ?? pd?.promotionalPrice?.value));
+    final takeQtyCtrl = TextEditingController(
+        text: _txtInt(ov['takeAndWinQuantity'] ?? pd?.takeAndWin?.qty));
+    final takePriceCtrl = TextEditingController(
+        text: _txt(ov['takeAndWinPrice'] ?? pd?.takeAndWin?.totalValue));
+    final instQtyCtrl = TextEditingController(
+        text: _txtInt(
+            ov['installmentQuantity'] ?? pd?.installments?.installmentQuantity));
+    final instPriceCtrl = TextEditingController(
+        text: _txt(
+            ov['installmentPrice'] ?? pd?.installments?.installmentValue));
+    final fields = <Widget>[];
+    void add(String label, TextEditingController c, {bool integer = false}) {
+      fields.add(Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: TextField(
+          controller: c,
+          keyboardType: integer
+              ? TextInputType.number
+              : const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      ));
+    }
+
+    if (tipo == 'Normal') {
+      add('Preço', priceCtrl);
+    } else if (tipo == 'Leve e Ganhe') {
+      add('Leve quantidade', takeQtyCtrl, integer: true);
+      add('Leve total', takePriceCtrl);
+      add('Preço unitário', priceCtrl);
+    } else if (tipo == 'Parcelado') {
+      add('Preço', priceCtrl);
+      add('Preço promocional', promoCtrl);
+      add('Parcelas', instQtyCtrl, integer: true);
+      add('Valor da parcela', instPriceCtrl);
+    } else if (tipo == 'De/Por') {
+      add('Preço', priceCtrl);
+      add('Preço promocional', promoCtrl);
+    } else {
+      add('Preço', priceCtrl);
+      add('Preço promocional', promoCtrl);
+    }
+
+    final salvar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Editar valores • $tipo'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: fields),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('SALVAR')),
+        ],
+      ),
+    );
+    if (salvar != true) {
+      for (final c in [
+        priceCtrl,
+        promoCtrl,
+        takeQtyCtrl,
+        takePriceCtrl,
+        instQtyCtrl,
+        instPriceCtrl,
+      ]) {
+        c.dispose();
+      }
+      return false;
+    }
+    double? parseD(TextEditingController c) {
+      final raw = c.text
+          .trim()
+          .replaceAll('R\$', '')
+          .replaceAll('.', '')
+          .replaceAll(',', '.')
+          .trim();
+      return double.tryParse(raw);
+    }
+
+    int? parseI(TextEditingController c) => int.tryParse(c.text.trim());
+    final novo = <String, dynamic>{};
+    final price = parseD(priceCtrl);
+    final promo = parseD(promoCtrl);
+    final takeQty = parseI(takeQtyCtrl);
+    final takePrice = parseD(takePriceCtrl);
+    final instQty = parseI(instQtyCtrl);
+    final instPrice = parseD(instPriceCtrl);
+    if (price != null) novo['price'] = price;
+    if (promo != null) novo['promotionPrice'] = promo;
+    if (takeQty != null) novo['takeAndWinQuantity'] = takeQty;
+    if (takePrice != null) novo['takeAndWinPrice'] = takePrice;
+    if (instQty != null) novo['installmentQuantity'] = instQty;
+    if (instPrice != null) novo['installmentPrice'] = instPrice;
+    _overrides[_overrideKey(item)] = novo;
+    for (final c in [
+      priceCtrl,
+      promoCtrl,
+      takeQtyCtrl,
+      takePriceCtrl,
+      instQtyCtrl,
+      instPriceCtrl,
+    ]) {
+      c.dispose();
+    }
+    return true;
+  }
+
+  Widget _badgeVerde(PriceTag item, {VoidCallback? onTap}) {
     final tipo = _tipoEtiqueta(item);
     final valor = _valorEtiqueta(item);
-    return Container(
-      height: 24,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 24,
       padding: const EdgeInsets.only(left: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF4CAF50),
@@ -503,7 +665,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   bool _usaSelecaoTamanhos(String modalidade) =>
@@ -624,7 +787,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                               fontSize: 11,
                                               color: Colors.black54)),
                                       const SizedBox(height: 4),
-                                      _badgeVerde(it),
+                                      _badgeVerde(
+                                        it,
+                                        onTap: () async {
+                                          final ok =
+                                              await _abrirEditorValores(it);
+                                          if (ok && ctx.mounted) {
+                                            setSheet(() {});
+                                          }
+                                        },
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -722,9 +894,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     };
     final tipos = <String, String>{
       for (final it in itens) it.ean: _tipoEtiqueta(it),
-    };
-    final valores = <String, String>{
-      for (final it in itens) it.ean: _valorEtiqueta(it),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
     String? filtroTipo;
@@ -894,72 +1063,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                 const SizedBox(height: 4),
                                 Padding(
                                   padding: const EdgeInsets.only(left: 40),
-                                  child: Container(
-                                    height: 24,
-                                    padding: const EdgeInsets.only(left: 10),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF4CAF50),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                          color: const Color(0xFF2E7D32),
-                                          width: 1.5),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 3,
-                                          offset: Offset(0, 1),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          valores[it.ean] ?? '',
-                                          maxLines: 1,
-                                          softWrap: false,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 10,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Container(
-                                          height: 24,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                const BorderRadius.horizontal(right: Radius.circular(6)),
-                                            border: const Border(
-                                              top: BorderSide(
-                                                  color: Color(0xFF4CAF50),
-                                                  width: 1.5),
-                                              right: BorderSide(
-                                                  color: Color(0xFF4CAF50),
-                                                  width: 1.5),
-                                              bottom: BorderSide(
-                                                  color: Color(0xFF4CAF50),
-                                                  width: 1.5),
-                                            ),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            (tipos[it.ean] ?? 'Normal')
-                                                .toUpperCase(),
-                                            style: TextStyle(
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.bold,
-                                              color: _tipoCor(
-                                                  tipos[it.ean] ?? 'Normal'),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  child: _badgeVerde(
+                                    it,
+                                    onTap: () async {
+                                      final ok = await _abrirEditorValores(it);
+                                      if (ok && ctx.mounted) setSheet(() {});
+                                    },
                                   ),
                                 ),
                               ],
@@ -1150,7 +1259,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final pd = item.printingData;
         if (pd == null) continue;
         if (!vistos.add('${item.ean}_${tiposRef[i]}')) continue;
-        final dados = ajustarDadosLeveGanhe(pd);
+        var dados = _aplicarOverride(
+            ajustarDadosLeveGanhe(pd), tiposRef[i]);
         final qtdEletro = (dados.installmentQuantity ?? 0) > 0
             ? dados.installmentQuantity!
             : 10;
