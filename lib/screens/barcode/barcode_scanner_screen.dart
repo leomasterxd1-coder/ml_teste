@@ -240,16 +240,20 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         escolha['modalidade'] as String? ?? 'Misto Editável';
     final selecionados =
         (escolha['selecionados'] as Map).cast<String, bool>();
-    final itemDesafioRaw = escolha['itemDesafio'];
-    if (itemDesafioRaw is Map) {
+    final selecaoRaw = escolha['selecaoTamanhos'];
+    if (selecaoRaw is Map) {
       final sel = <String, Set<String>>{};
-      itemDesafioRaw.forEach((k, v) {
+      selecaoRaw.forEach((k, v) {
         if (v is Iterable) {
           sel[k.toString()] = v.map((e) => e.toString()).toSet();
         }
       });
       if (sel.isNotEmpty) {
-        await _abrirItemDesafioPreview(etiquetas, sel);
+        final modalidadeSel =
+            (escolha['modalidade'] ?? 'Item Desafio').toString();
+        final titulo = (escolha['titulo'] ?? 'ITEM DESAFIO').toString();
+        await _abrirSelecaoTamanhosPreview(
+            etiquetas, sel, modalidadeSel, titulo);
         return;
       }
     }
@@ -299,8 +303,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
-  Future<void> _abrirItemDesafioPreview(
-      List<PriceTag> etiquetas, Map<String, Set<String>> sel) async {
+  Future<void> _abrirSelecaoTamanhosPreview(
+      List<PriceTag> etiquetas,
+      Map<String, Set<String>> sel,
+      String modalidade,
+      String titulo) async {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -311,18 +318,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
     try {
       final grupos = <PapeletaGrupo>[];
-      for (final size in [
-        Constants.signSize2x1,
-        Constants.signSize4x1,
-      ]) {
-        final qtd = size == Constants.signSize2x1 ? 2 : 4;
+      final sizes = sel.values.expand((s) => s).toSet();
+      for (final size in sizes) {
+        final qtd = _qtdTamanho(size);
         final ets = etiquetas
             .where((e) => sel[e.ean]?.contains(size) ?? false)
             .toList();
         if (ets.isEmpty) continue;
         final qtdsSize = <String, int>{for (final e in ets) e.ean: qtd};
         final lista =
-            await _carregarPapeletas(ets, qtdsSize, size, 'Item Desafio');
+            await _carregarPapeletas(ets, qtdsSize, size, modalidade);
         if (lista.isNotEmpty) {
           grupos.add(PapeletaGrupo(items: lista, size: size));
         }
@@ -336,6 +341,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
         'grupos': grupos,
         'size': grupos.first.size,
+        'titulo': titulo,
         'mostrarCheckboxOverlay': true,
         'modoEditavel': false,
         'modoVencimentos': false,
@@ -439,6 +445,103 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return const Color(0xFF9E9E9E);
   }
 
+  Widget _badgeVerde(PriceTag item) {
+    final tipo = _tipoEtiqueta(item);
+    final valor = _valorEtiqueta(item);
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.only(left: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF4CAF50),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF2E7D32), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 3,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            valor,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Container(
+            height: 24,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius:
+                  const BorderRadius.horizontal(right: Radius.circular(6)),
+              border: const Border(
+                top: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                right: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                bottom: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              tipo.toUpperCase(),
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.bold,
+                color: _tipoCor(tipo),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _usaSelecaoTamanhos(String modalidade) =>
+      modalidade == 'Misto Editável' ||
+      modalidade == 'Item Desafio' ||
+      modalidade == 'Promocional' ||
+      modalidade == 'Normal';
+
+  List<MapEntry<String, String>> _tamanhosDaModalidade(String modalidade) {
+    if (modalidade == 'Item Desafio') {
+      return const [
+        MapEntry('2×1', Constants.signSize2x1),
+        MapEntry('4×1', Constants.signSize4x1),
+      ];
+    }
+    return const [
+      MapEntry('1×1', Constants.signSize1x1),
+      MapEntry('2×1', Constants.signSize2x1),
+      MapEntry('4×1', Constants.signSize4x1),
+      MapEntry('6×1', Constants.signSize6x1),
+    ];
+  }
+
+  int _qtdTamanho(String size) {
+    switch (size) {
+      case Constants.signSize1x1:
+        return 1;
+      case Constants.signSize2x1:
+        return 2;
+      case Constants.signSize4x1:
+        return 4;
+      case Constants.signSize6x1:
+        return 6;
+      default:
+        return 1;
+    }
+  }
+
   Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(
       List<PriceTag> itens) {
     return _mostrarDialogoSelecao(
@@ -461,8 +564,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
-  Future<Map<String, Set<String>>?> _mostrarDialogoItemDesafio(
-      List<PriceTag> itens) async {
+  Future<Map<String, Set<String>>?> _mostrarDialogoItensTamanhos(
+      List<PriceTag> itens, {
+    required String titulo,
+    required List<MapEntry<String, String>> tamanhos,
+  }) async {
     final sel = <String, Set<String>>{};
     return showModalBottomSheet<Map<String, Set<String>>>(
       context: context,
@@ -480,12 +586,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('ITEM DESAFIO',
-                      style: TextStyle(
+                  Text(titulo,
+                      style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   const Text(
-                      'Escolha os itens e os tamanhos (pode marcar 2x1 e 4x1 do mesmo item)',
+                      'Escolha os itens e os tamanhos',
                       style: TextStyle(fontSize: 12, color: Colors.black54)),
                   const SizedBox(height: 12),
                   ConstrainedBox(
@@ -517,49 +623,49 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                           style: const TextStyle(
                                               fontSize: 11,
                                               color: Colors.black54)),
+                                      const SizedBox(height: 4),
+                                      _badgeVerde(it),
                                     ],
                                   ),
                                 ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Checkbox(
-                                      value: sel[it.ean]?.contains(
-                                              Constants.signSize2x1) ??
-                                          false,
-                                      visualDensity: VisualDensity.compact,
-                                      onChanged: (v) => setSheet(() {
-                                        final set = sel.putIfAbsent(
-                                            it.ean, () => <String>{});
-                                        if (v == true) {
-                                          set.add(Constants.signSize2x1);
-                                        } else {
-                                          set.remove(Constants.signSize2x1);
-                                        }
-                                        if (set.isEmpty) sel.remove(it.ean);
-                                      }),
-                                    ),
-                                    const Text('2×1',
-                                        style: TextStyle(fontSize: 11)),
-                                    Checkbox(
-                                      value: sel[it.ean]?.contains(
-                                              Constants.signSize4x1) ??
-                                          false,
-                                      visualDensity: VisualDensity.compact,
-                                      onChanged: (v) => setSheet(() {
-                                        final set = sel.putIfAbsent(
-                                            it.ean, () => <String>{});
-                                        if (v == true) {
-                                          set.add(Constants.signSize4x1);
-                                        } else {
-                                          set.remove(Constants.signSize4x1);
-                                        }
-                                        if (set.isEmpty) sel.remove(it.ean);
-                                      }),
-                                    ),
-                                    const Text('4×1',
-                                        style: TextStyle(fontSize: 11)),
-                                  ],
+                                SizedBox(
+                                  width: 150,
+                                  child: Wrap(
+                                    spacing: 0,
+                                    children: [
+                                      for (final t in tamanhos)
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Checkbox(
+                                              value: sel[it.ean]
+                                                      ?.contains(t.value) ??
+                                                  false,
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              materialTapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                              onChanged: (v) => setSheet(() {
+                                                final set = sel.putIfAbsent(
+                                                    it.ean, () => <String>{});
+                                                if (v == true) {
+                                                  set.add(t.value);
+                                                } else {
+                                                  set.remove(t.value);
+                                                }
+                                                if (set.isEmpty) {
+                                                  sel.remove(it.ean);
+                                                }
+                                              }),
+                                            ),
+                                            Text(t.key,
+                                                style: const TextStyle(
+                                                    fontSize: 10)),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
@@ -640,15 +746,20 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                   .where((it) =>
                       (tipos[it.ean] ?? 'Normal') == filtroTipo)
                   .toList();
-          Future<void> abrirItemDesafio() async {
-            final sel = await _mostrarDialogoItemDesafio(itens);
+          Future<void> abrirSelecaoTamanhos(String modalidadeSel) async {
+            final titulo = modalidadeSel == 'Item Desafio'
+                ? 'ITEM DESAFIO'
+                : modalidadeSel.replaceAll(' Editável', '').toUpperCase();
+            final sel = await _mostrarDialogoItensTamanhos(
+              itens,
+              titulo: titulo,
+              tamanhos: _tamanhosDaModalidade(modalidadeSel),
+            );
             if (sel == null || sel.isEmpty || !mounted) return;
             Navigator.pop(ctx, {
-              'itemDesafio': sel,
-              'modalidade': 'Item Desafio',
-              'selecionados': selecionados,
-              'qtds': qtds,
-              'size': size,
+              'selecaoTamanhos': sel,
+              'modalidade': modalidadeSel,
+              'titulo': titulo,
             });
           }
           return SafeArea(
@@ -769,13 +880,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                       ),
                                     ),
                                     const SizedBox(width: 4),
-                                    _QtdInput(
-                                      key: ValueKey(it.ean),
-                                      initialValue: qtds[it.ean] ?? 1,
-                                      enabled: selecionados[it.ean] ?? true,
-                                      onChanged: (v) =>
-                                          setSheet(() => qtds[it.ean] = v),
-                                    ),
+                                    if (!mostrarTamanho ||
+                                        !_usaSelecaoTamanhos(modalidade))
+                                      _QtdInput(
+                                        key: ValueKey(it.ean),
+                                        initialValue: qtds[it.ean] ?? 1,
+                                        enabled: selecionados[it.ean] ?? true,
+                                        onChanged: (v) =>
+                                            setSheet(() => qtds[it.ean] = v),
+                                      ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -787,6 +900,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF4CAF50),
                                       borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                          color: const Color(0xFF2E7D32),
+                                          width: 1.5),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 3,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -845,7 +968,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       ],
                     ),
                   ),
-                  if (mostrarTamanho) ...[
+                  if (mostrarTamanho && !_usaSelecaoTamanhos(modalidade)) ...[
                     const SizedBox(height: 8),
                     const Text('Modalidade',
                         style: TextStyle(
@@ -876,8 +999,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       onChanged: (v) async {
                         final nova = v ?? modalidade;
                         setSheet(() => modalidade = nova);
-                        if (nova == 'Item Desafio') {
-                          await abrirItemDesafio();
+                        if (_usaSelecaoTamanhos(nova)) {
+                          await abrirSelecaoTamanhos(nova);
                         }
                       },
                       decoration: const InputDecoration(
@@ -887,11 +1010,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       ),
                     ),
-                    if (modalidade == 'Item Desafio')
+                    if (_usaSelecaoTamanhos(modalidade))
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: abrirItemDesafio,
+                          onPressed: () => abrirSelecaoTamanhos(modalidade),
                           child: const Text('SELECIONAR ITENS E TAMANHOS',
                               style: TextStyle(fontSize: 11)),
                         ),
@@ -948,8 +1071,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () async {
-                        if (mostrarTamanho && modalidade == 'Item Desafio') {
-                          await abrirItemDesafio();
+                        if (mostrarTamanho && _usaSelecaoTamanhos(modalidade)) {
+                          await abrirSelecaoTamanhos(modalidade);
                           return;
                         }
                         final sane = <String, int>{

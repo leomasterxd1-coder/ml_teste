@@ -46,6 +46,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   List<PapeletaPrintingData> _items = [];
   List<PapeletaGrupo> _grupos = [];
   bool _itemDesafio = false;
+  String _tituloGrupos = 'ITEM DESAFIO';
   List<Uint8List> _pagesCom = [];
   List<Uint8List> _pagesSem = [];
   List<bool> _usaModeloPagina = [];
@@ -114,6 +115,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
       if (grupos is List<PapeletaGrupo> && grupos.isNotEmpty) {
         _grupos = List<PapeletaGrupo>.from(grupos);
         _itemDesafio = true;
+        _tituloGrupos = (args['titulo'] ?? 'ITEM DESAFIO').toString();
         _items = _grupos.expand((g) => g.items).toList();
         _size = _grupos.first.size;
         _modoEditavel = false;
@@ -478,6 +480,15 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
   }
 
+  List<Uint8List> _pagesComCopias() {
+    if (_pages.isEmpty) return const [];
+    final out = <Uint8List>[];
+    for (var c = 0; c < _copias; c++) {
+      out.addAll(_pages);
+    }
+    return out;
+  }
+
   Future<void> _imprimirItemDesafio() async {
     if (_pages.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
@@ -485,7 +496,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _sending = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pages, _size);
+      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size);
       final socket = await Socket.connect(
         _kPrinterIp,
         _kPrinterPort,
@@ -513,7 +524,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _gerando = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pages, _size);
+      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size);
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/item_desafio_${DateTime.now().millisecondsSinceEpoch}.pdf');
@@ -566,7 +577,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   }
 
   String get _titulo {
-    if (_itemDesafio) return 'ITEM DESAFIO';
+    if (_itemDesafio) return _tituloGrupos;
     if (_isEletro) return 'PAPELETA ELETRO DA SEMANA';
     if (_modoVencimentos) return 'PAPELETA DE VENCIMENTOS';
     return 'PAPELETA ${_size.toUpperCase()}';
