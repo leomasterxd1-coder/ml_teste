@@ -234,12 +234,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     // acontece depois, em paralelo, com indicador de carregamento.
     final escolha = await _mostrarDialogoPapeleta(etiquetas);
     if (escolha == null || !mounted) return;
-    final qtds = (escolha['qtds'] as Map).cast<String, int>();
-    final size = escolha['size'] as String;
-    final modalidade =
-        escolha['modalidade'] as String? ?? 'Misto Editável';
-    final selecionados =
-        (escolha['selecionados'] as Map).cast<String, bool>();
     final selecaoRaw = escolha['selecaoTamanhos'];
     if (selecaoRaw is Map) {
       final sel = <String, Set<String>>{};
@@ -257,6 +251,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         return;
       }
     }
+    final qtds = (escolha['qtds'] as Map).cast<String, int>();
+    final size = escolha['size'] as String;
+    final modalidade =
+        escolha['modalidade'] as String? ?? 'Misto Editável';
+    final selecionados =
+        (escolha['selecionados'] as Map).cast<String, bool>();
     final itensSel =
         etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
     if (itensSel.isEmpty) {
