@@ -4,6 +4,7 @@ import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
+import 'package:minhaloja/utils/valor_override_store.dart';
 import 'product_image_dialog.dart';
 
 const Color _greenCheckbox = Color(0xFF1B5E20);
@@ -684,26 +685,39 @@ class _PriceTagCardState extends State<PriceTagCard> {
 
   ({String badge, Color badgeColor, String? promo, String? price}) _badge() {
     final pd = widget.tag.printingData;
-    final precoNormal = pd?.price?.value ?? 0.0;
-    final precoPromo = pd?.promotionalPrice?.value;
-    final take = pd?.takeAndWin;
+    final ov = ValorOverrideStore.instance.overrides[widget.tag.ean];
+    final precoNormal =
+        (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0.0;
+    final precoPromo = (ov?['promotionPrice'] as num?)?.toDouble() ??
+        pd?.promotionalPrice?.value;
+    final takeQty =
+        (ov?['takeAndWinQuantity'] as int?) ?? pd?.takeAndWin?.qty;
+    final takeTotal = (ov?['takeAndWinPrice'] as num?)?.toDouble() ??
+        pd?.takeAndWin?.totalValue;
     final movement = widget.tag.movement.toUpperCase();
     if (movement.contains('LEVE') || movement.contains('GANHE')) {
       String? promo;
-      if (take != null && take.qty > 0 && take.totalValue > 0) {
+      if (takeQty != null &&
+          takeQty > 0 &&
+          takeTotal != null &&
+          takeTotal > 0) {
         final totalLeve = (pd?.template == Constants.signTemplateLeveGanheCada &&
                     precoPromo != null && precoPromo > 0)
                 ? precoPromo
-                : take.totalValue;
-        promo = 'Leve ${take.qty} por ${_brl(totalLeve)} | ${_brl(precoNormal)}';
+                : takeTotal;
+        promo =
+            'Leve $takeQty por ${_brl(totalLeve)} | ${_brl(precoNormal)}';
       }
       final price = precoNormal > 0 ? _brl(precoNormal) : widget.tag.price;
       return (badge: 'LEVE E GANHE', badgeColor: _green, promo: promo, price: price);
     }
-    final inst = pd?.installments;
-    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
-    final valorParc = (inst != null && inst.installmentValue > 0)
-        ? inst.installmentValue
+    final instQty = (ov?['installmentQuantity'] as int?) ??
+        pd?.installments?.installmentQuantity;
+    final instValue = (ov?['installmentPrice'] as num?)?.toDouble() ??
+        pd?.installments?.installmentValue;
+    final qtdParc = (instQty != null && instQty > 0) ? instQty : null;
+    final valorParc = (instValue != null && instValue > 0)
+        ? instValue
         : (pd != null && pd.displayPrice > 0)
             ? pd.displayPrice
             : (pd != null && pd.unitValue > 0)
@@ -742,6 +756,30 @@ class _PriceTagCardState extends State<PriceTagCard> {
     }
     final price = precoNormal > 0 ? _brl(precoNormal) : widget.tag.price;
     return (badge: 'NORMAL', badgeColor: _grayBadge, promo: null, price: price);
+  }
+
+  Future<void> _editarBadge() async {
+    final b = _badge();
+    final tipo = b.badge == 'LEVE E GANHE'
+        ? 'Leve e Ganhe'
+        : b.badge == 'DE/POR'
+            ? 'De/Por'
+            : b.badge == 'PARCELADO'
+                ? 'Parcelado'
+                : 'Normal';
+    final pd = widget.tag.printingData;
+    final ok = await editarValores(
+      context,
+      ean: widget.tag.ean,
+      tipo: tipo,
+      price: pd?.price?.value,
+      promotionPrice: pd?.promotionalPrice?.value,
+      takeAndWinQuantity: pd?.takeAndWin?.qty,
+      takeAndWinPrice: pd?.takeAndWin?.totalValue,
+      installmentQuantity: pd?.installments?.installmentQuantity,
+      installmentPrice: pd?.installments?.installmentValue,
+    );
+    if (ok && mounted) setState(() {});
   }
 
   Widget _statusBadge() {
@@ -836,7 +874,9 @@ class _PriceTagCardState extends State<PriceTagCard> {
             ),
             if (showPromo || showPrice) ...[
               const SizedBox(height: 4),
-              Container(
+              GestureDetector(
+                onTap: _editarBadge,
+                child: Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
@@ -880,9 +920,12 @@ class _PriceTagCardState extends State<PriceTagCard> {
                   ],
                 ),
               ),
+              ),
             ] else ...[
               const SizedBox(height: 4),
-              Container(
+              GestureDetector(
+                onTap: _editarBadge,
+                child: Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
@@ -899,6 +942,7 @@ class _PriceTagCardState extends State<PriceTagCard> {
                             color: Colors.white)),
                   ],
                 ),
+              ),
               ),
             ],
           ],
@@ -948,14 +992,19 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
 
   ({String badge, Color badgeColor, String? promo, String? price}) _badge() {
     final pd = widget.item.printingData;
-    final precoNormal = pd?.price ?? 0.0;
-    final precoPromo = pd?.promotionPrice;
-    final takeQty = (pd?.takeAndWinQuantity != null && pd!.takeAndWinQuantity! > 0)
-        ? pd!.takeAndWinQuantity!
-        : null;
-    final takePrice = (pd?.takeAndWinPrice != null && pd!.takeAndWinPrice! > 0)
-        ? pd!.takeAndWinPrice!
-        : null;
+    final ov = ValorOverrideStore.instance.overrides[widget.item.ean];
+    final precoNormal =
+        (ov?['price'] as num?)?.toDouble() ?? pd?.price ?? 0.0;
+    final precoPromo =
+        (ov?['promotionPrice'] as num?)?.toDouble() ?? pd?.promotionPrice;
+    final takeQty = (ov?['takeAndWinQuantity'] as int?) ??
+        ((pd?.takeAndWinQuantity != null && pd!.takeAndWinQuantity! > 0)
+            ? pd!.takeAndWinQuantity!
+            : null);
+    final takePrice = (ov?['takeAndWinPrice'] as num?)?.toDouble() ??
+        ((pd?.takeAndWinPrice != null && pd!.takeAndWinPrice! > 0)
+            ? pd!.takeAndWinPrice!
+            : null);
     final movement = widget.item.movement.toUpperCase();
     if (movement.contains('LEVE') || movement.contains('GANHE')) {
       String? promo;
@@ -967,12 +1016,14 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
       final price = precoNormal > 0 ? _brl(precoNormal) : widget.item.price;
       return (badge: 'LEVE E GANHE', badgeColor: _green, promo: promo, price: price);
     }
-    final qtdParc = (pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
-        ? pd!.installmentQuantity!
-        : null;
-    final valorParc = (pd?.installmentPrice != null && pd!.installmentPrice! > 0)
-        ? pd!.installmentPrice!
-        : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal);
+    final qtdParc = (ov?['installmentQuantity'] as int?) ??
+        ((pd?.installmentQuantity != null && pd!.installmentQuantity! > 0)
+            ? pd!.installmentQuantity!
+            : null);
+    final valorParc = (ov?['installmentPrice'] as num?)?.toDouble() ??
+        ((pd?.installmentPrice != null && pd!.installmentPrice! > 0)
+            ? pd!.installmentPrice!
+            : (precoPromo != null && precoPromo > 0 ? precoPromo : precoNormal));
     // De/Por + Parcelado: badge combinado.
     if (qtdParc != null && precoPromo != null && precoPromo > 0 && precoPromo < precoNormal) {
       return (
@@ -1007,6 +1058,30 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
     }
     final price = precoNormal > 0 ? _brl(precoNormal) : widget.item.price;
     return (badge: 'COMUM', badgeColor: _grayBadge, promo: null, price: price);
+  }
+
+  Future<void> _editarBadge() async {
+    final b = _badge();
+    final tipo = b.badge == 'LEVE E GANHE'
+        ? 'Leve e Ganhe'
+        : b.badge == 'DE/POR'
+            ? 'De/Por'
+            : b.badge == 'PARCELADO'
+                ? 'Parcelado'
+                : 'Normal';
+    final pd = widget.item.printingData;
+    final ok = await editarValores(
+      context,
+      ean: widget.item.ean,
+      tipo: tipo,
+      price: pd?.price,
+      promotionPrice: pd?.promotionPrice,
+      takeAndWinQuantity: pd?.takeAndWinQuantity,
+      takeAndWinPrice: pd?.takeAndWinPrice,
+      installmentQuantity: pd?.installmentQuantity,
+      installmentPrice: pd?.installmentPrice,
+    );
+    if (ok && mounted) setState(() {});
   }
 
   Widget _statusBadge() {
@@ -1101,7 +1176,9 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
             ),
             if (showPromo || showPrice) ...[
               const SizedBox(height: 4),
-              Container(
+              GestureDetector(
+                onTap: _editarBadge,
+                child: Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
@@ -1145,9 +1222,12 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                   ],
                 ),
               ),
+              ),
             ] else ...[
               const SizedBox(height: 4),
-              Container(
+              GestureDetector(
+                onTap: _editarBadge,
+                child: Container(
                 height: 28,
                 padding: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
@@ -1164,6 +1244,7 @@ class _PapeletaDiariaCardState extends State<PapeletaDiariaCard> {
                             color: Colors.white)),
                   ],
                 ),
+              ),
               ),
             ],
           ],

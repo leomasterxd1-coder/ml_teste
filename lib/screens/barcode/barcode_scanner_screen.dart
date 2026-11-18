@@ -11,6 +11,7 @@ import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
 import 'package:minhaloja/utils/toast_utils.dart';
+import 'package:minhaloja/utils/valor_override_store.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
@@ -39,7 +40,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   String _lastCode = '';
   int _lastCodeTime = 0;
   int _added = 0;
-  final Map<String, Map<String, dynamic>> _overrides = {};
+  final Map<String, Map<String, dynamic>> _overrides =
+      ValorOverrideStore.instance.overrides;
 
   @override
   void initState() {
@@ -460,8 +462,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   String _apiTipo(String tipoLabel) =>
       tipoLabel == 'Normal' ? Constants.tipoComum : Constants.tipoPromocional;
 
-  String _overrideKey(PriceTag item) =>
-      '${item.ean}_${_apiTipo(_tipoEtiqueta(item))}';
+  String _overrideKey(PriceTag item) => item.ean;
 
   String _txt(num? v) =>
       v == null ? '' : v.toString().replaceAll('.', ',');
@@ -470,7 +471,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
   PapeletaPrintingData _aplicarOverride(
       PapeletaPrintingData dados, String tipoApi) {
-    final ov = _overrides['${dados.ean}_$tipoApi'];
+    final ov = _overrides[dados.ean];
     if (ov == null) return dados;
     return dados.copyWith(
       price: (ov['price'] as num?)?.toDouble(),
