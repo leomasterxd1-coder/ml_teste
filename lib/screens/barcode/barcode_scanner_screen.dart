@@ -187,8 +187,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (api == null) return;
     final lista = <PrintingData>[];
     for (final item in etiquetas) {
-      final pd = item.printingData;
-      if (pd == null) continue;
+      final pdBase = item.printingData;
+      if (pdBase == null) continue;
+      final pd = _aplicarOverridePrinting(pdBase);
       final movement = item.movement.toLowerCase();
       final templateOriginal = Constants.templateNormalizado(pd.template);
       final template = (pd.template?.toLowerCase().contains('leve') ?? false) ||
@@ -483,6 +484,57 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
+  PrintingData _aplicarOverridePrinting(PrintingData pd) {
+    final ov = _overrides[pd.ean];
+    if (ov == null) return pd;
+    final oldPrice = pd.price;
+    final oldPromo = pd.promotionalPrice;
+    final oldTake = pd.takeAndWin;
+    final oldInst = pd.installments;
+    final novoPrice = (ov['price'] as num?)?.toDouble();
+    final novoPromo = (ov['promotionPrice'] as num?)?.toDouble();
+    final novaTakeQty = ov['takeAndWinQuantity'] as int?;
+    final novaTakePrice = (ov['takeAndWinPrice'] as num?)?.toDouble();
+    final novaInstQty = ov['installmentQuantity'] as int?;
+    final novaInstPrice = (ov['installmentPrice'] as num?)?.toDouble();
+    return pd.copyWith(
+      price: novoPrice != null
+          ? PriceInfo(
+              value: novoPrice,
+              discountPercent: oldPrice?.discountPercent ?? 0,
+              startAt: oldPrice?.startAt ?? '',
+              endAt: oldPrice?.endAt ?? '',
+            )
+          : null,
+      promotionalPrice: novoPromo != null
+          ? PromotionalPriceInfo(
+              value: novoPromo,
+              discountPercent: oldPromo?.discountPercent ?? 0,
+              startAt: oldPromo?.startAt ?? '',
+              endAt: oldPromo?.endAt ?? '',
+            )
+          : null,
+      promotionPrice: novoPromo,
+      takeAndWinQuantity: novaTakeQty,
+      takeAndWinPrice: novaTakePrice,
+      takeAndWin: (novaTakeQty != null || novaTakePrice != null)
+          ? TakeAndWin(
+              discountValue: oldTake?.discountValue ?? 0,
+              qty: novaTakeQty ?? oldTake?.qty ?? 0,
+              totalValue: novaTakePrice ?? oldTake?.totalValue ?? 0,
+            )
+          : null,
+      installments: (novaInstQty != null || novaInstPrice != null)
+          ? Installments(
+              installmentQuantity:
+                  novaInstQty ?? oldInst?.installmentQuantity ?? 0,
+              installmentValue:
+                  novaInstPrice ?? oldInst?.installmentValue ?? 0,
+            )
+          : null,
+    );
+  }
+
   Future<bool> _abrirEditorValores(PriceTag item) async {
     final tipo = _tipoEtiqueta(item);
     final pd = item.printingData;
@@ -542,6 +594,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final salvar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
         title: Text('Editar valores • $tipo'),
         content: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: fields),
@@ -607,7 +660,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return true;
   }
 
-  Widget _badgeVerde(PriceTag item, {VoidCallback? onTap}) {
+  Widget _badgeVerde(PriceTag item,
+      {VoidCallback? onTap, bool mostrarTipo = true}) {
     final tipo = _tipoEtiqueta(item);
     final valor = _valorEtiqueta(item);
     return GestureDetector(
@@ -641,30 +695,32 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               fontSize: 10,
             ),
           ),
-          const SizedBox(width: 4),
-          Container(
-            height: 24,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius:
-                  const BorderRadius.horizontal(right: Radius.circular(6)),
-              border: const Border(
-                top: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
-                right: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
-                bottom: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+          if (mostrarTipo) ...[
+            const SizedBox(width: 4),
+            Container(
+              height: 24,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius:
+                    const BorderRadius.horizontal(right: Radius.circular(6)),
+                border: const Border(
+                  top: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                  right: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                  bottom: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                tipo.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: _tipoCor(tipo),
+                ),
               ),
             ),
-            alignment: Alignment.center,
-            child: Text(
-              tipo.toUpperCase(),
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
-                color: _tipoCor(tipo),
-              ),
-            ),
-          ),
+          ],
         ],
       ),
     ),
@@ -784,13 +840,26 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                           style: const TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w600)),
-                                      Text(it.ean,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.black54)),
+                                      Row(
+                                        children: [
+                                          Text(it.ean,
+                                              style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.black54)),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                              _tipoEtiqueta(it).toUpperCase(),
+                                              style: TextStyle(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: _tipoCor(
+                                                      _tipoEtiqueta(it)))),
+                                        ],
+                                      ),
                                       const SizedBox(height: 4),
                                       _badgeVerde(
                                         it,
+                                        mostrarTipo: false,
                                         onTap: () async {
                                           final ok =
                                               await _abrirEditorValores(it);

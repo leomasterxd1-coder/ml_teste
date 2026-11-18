@@ -92,6 +92,7 @@ Future<bool> editarValores(
   final salvar = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
       title: Text('Editar valores • $tipo'),
       content: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, children: fields),
