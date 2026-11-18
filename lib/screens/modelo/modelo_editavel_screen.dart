@@ -50,6 +50,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
   List<Uint8List> _pagesCom = [];
   List<Uint8List> _pagesSem = [];
   List<bool> _usaModeloPagina = [];
+  List<String> _pageSizes = [];
   late String _size;
   bool _semOverlay = false;
   bool _modoEditavel = false;
@@ -222,6 +223,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     try {
       final com = <Uint8List>[];
       final sem = <Uint8List>[];
+      final sizes = <String>[];
       for (final grupo in _grupos) {
         final comPages = await buildCompositePages(
           api: api,
@@ -249,6 +251,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         );
         com.addAll(comPages);
         sem.addAll(semPages);
+        sizes.addAll(List.filled(comPages.length, grupo.size));
       }
       if (!mounted) return;
       setState(() {
@@ -256,6 +259,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
         _pagesSem = sem;
         _pages = List<Uint8List>.from(com);
         _usaModeloPagina = List<bool>.filled(com.length, true);
+        _pageSizes = sizes;
         _page = 0;
         _loadingPreview = false;
       });
@@ -489,6 +493,15 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     return out;
   }
 
+  List<String> _pageSizesComCopias() {
+    if (_pageSizes.isEmpty) return const [];
+    final out = <String>[];
+    for (var c = 0; c < _copias; c++) {
+      out.addAll(_pageSizes);
+    }
+    return out;
+  }
+
   Future<void> _imprimirItemDesafio() async {
     if (_pages.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
@@ -496,7 +509,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _sending = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size);
+      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size, pageSizes: _pageSizesComCopias());
       final socket = await Socket.connect(
         _kPrinterIp,
         _kPrinterPort,
@@ -524,7 +537,7 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _gerando = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size);
+      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size, pageSizes: _pageSizesComCopias());
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/item_desafio_${DateTime.now().millisecondsSinceEpoch}.pdf');
@@ -541,14 +554,20 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
   }
 
-  Future<Uint8List> _gerarPdfBytes(List<Uint8List> pages, String size) async {
-    // MLoja: 2x1 (2 cols, 1 row) e 6x1 (3 cols, 2 rows) = landscape A4.
-    final s = size.toUpperCase().replaceAll('×', 'X');
-    final isLandscapePorNome = s == '2X1' || s == '6X1';
+  Future<Uint8List> _gerarPdfBytes(
+      List<Uint8List> pages, String size, {List<String>? pageSizes}) async {
+    // 2x1 e 6x1 = A4 landscape; 1x1 e 4x1 = A4 retrato.
+    bool isLandscapeSize(String s) {
+      final v = s.toUpperCase().replaceAll('×', 'X');
+      return v == '2X1' || v == '6X1';
+    }
+
     final doc = pw.Document();
-    for (final png in pages) {
-      // Usa a orientação real do preview para não sair vertical por engano.
-      final isLandscape = _pngHorizontal(png) ?? isLandscapePorNome;
+    for (var i = 0; i < pages.length; i++) {
+      final png = pages[i];
+      final pageSize =
+          pageSizes != null && i < pageSizes.length ? pageSizes[i] : size;
+      final isLandscape = isLandscapeSize(pageSize);
       final pageFormat = isLandscape
           ? PdfPageFormat.a4.landscape
           : PdfPageFormat.a4;
