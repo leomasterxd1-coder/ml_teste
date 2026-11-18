@@ -114,21 +114,33 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
 
   ({String? leveGanhe, String? deporValor, String? deporBadge}) _price() {
     final pd = widget.tag.printingData;
-    final precoNormal = pd?.price?.value ?? 0.0;
-    final precoPromo = pd?.promotionalPrice?.value;
-    final take = pd?.takeAndWin;
+    final ov = ValorOverrideStore.instance.overrides[widget.tag.ean];
+    final precoNormal =
+        (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0.0;
+    final precoPromo = (ov?['promotionPrice'] as num?)?.toDouble() ??
+        pd?.promotionalPrice?.value;
+    final takeQty =
+        (ov?['takeAndWinQuantity'] as int?) ?? pd?.takeAndWin?.qty;
+    final takeTotal = (ov?['takeAndWinPrice'] as num?)?.toDouble() ??
+        pd?.takeAndWin?.totalValue;
     final movement = widget.tag.movement.toUpperCase();
-    if (take != null && take.qty > 0 && take.totalValue > 0) {
+    if (takeQty != null &&
+        takeQty > 0 &&
+        takeTotal != null &&
+        takeTotal > 0) {
       final totalLeve = (pd?.template == Constants.signTemplateLeveGanheCada &&
-                  precoPromo != null && precoPromo > 0)
-              ? precoPromo
-              : take.totalValue;
-      return (leveGanhe: 'Leve ${take.qty} por ${_brl(totalLeve)} | ${_brl(precoNormal)}', deporValor: null, deporBadge: null);
+              precoPromo != null && precoPromo > 0)
+          ? precoPromo
+          : takeTotal;
+      return (leveGanhe: 'Leve $takeQty por ${_brl(totalLeve)} | ${_brl(precoNormal)}', deporValor: null, deporBadge: null);
     }
-    final inst = pd?.installments;
-    final qtdParc = (inst != null && inst.installmentQuantity > 0) ? inst.installmentQuantity : null;
-    final valorParc = (inst != null && inst.installmentValue > 0)
-        ? inst.installmentValue
+    final instQty = (ov?['installmentQuantity'] as int?) ??
+        pd?.installments?.installmentQuantity;
+    final instValue = (ov?['installmentPrice'] as num?)?.toDouble() ??
+        pd?.installments?.installmentValue;
+    final qtdParc = (instQty != null && instQty > 0) ? instQty : null;
+    final valorParc = (instValue != null && instValue > 0)
+        ? instValue
         : (pd != null && pd.displayPrice > 0)
             ? pd.displayPrice
             : (pd != null && pd.unitValue > 0)
