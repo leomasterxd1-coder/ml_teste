@@ -591,6 +591,43 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       add('Preço promocional', promoCtrl);
     }
 
+    double? parseValor(TextEditingController c) {
+      final raw = c.text
+          .trim()
+          .replaceAll('R\$', '')
+          .replaceAll('.', '')
+          .replaceAll(',', '.')
+          .trim();
+      return double.tryParse(raw);
+    }
+
+    if (tipo == 'Leve e Ganhe') {
+      void syncLeve() {
+        final q = int.tryParse(takeQtyCtrl.text.trim());
+        final total = parseValor(takePriceCtrl);
+        if (q != null && q > 0 && total != null && total > 0) {
+          promoCtrl.text =
+              (total / q).toStringAsFixed(2).replaceAll('.', ',');
+        }
+      }
+
+      takeQtyCtrl.addListener(syncLeve);
+      takePriceCtrl.addListener(syncLeve);
+    } else if (tipo == 'Parcelado') {
+      void syncParcela() {
+        final q = int.tryParse(instQtyCtrl.text.trim());
+        final promo = parseValor(promoCtrl) ?? parseValor(priceCtrl);
+        if (q != null && q > 0 && promo != null && promo > 0) {
+          instPriceCtrl.text =
+              (promo / q).toStringAsFixed(2).replaceAll('.', ',');
+        }
+      }
+
+      promoCtrl.addListener(syncParcela);
+      priceCtrl.addListener(syncParcela);
+      instQtyCtrl.addListener(syncParcela);
+    }
+
     final salvar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(

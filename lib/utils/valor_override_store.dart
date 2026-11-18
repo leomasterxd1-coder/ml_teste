@@ -89,6 +89,32 @@ Future<bool> editarValores(
     add('Preço promocional', promoCtrl);
   }
 
+  if (tipo == 'Leve e Ganhe') {
+    void syncLeve() {
+      final q = int.tryParse(takeQtyCtrl.text.trim());
+      final total = _parseD(takePriceCtrl);
+      if (q != null && q > 0 && total != null && total > 0) {
+        promoCtrl.text = (total / q).toStringAsFixed(2).replaceAll('.', ',');
+      }
+    }
+
+    takeQtyCtrl.addListener(syncLeve);
+    takePriceCtrl.addListener(syncLeve);
+  } else if (tipo == 'Parcelado') {
+    void syncParcela() {
+      final q = int.tryParse(instQtyCtrl.text.trim());
+      final promo = _parseD(promoCtrl) ?? _parseD(priceCtrl);
+      if (q != null && q > 0 && promo != null && promo > 0) {
+        instPriceCtrl.text =
+            (promo / q).toStringAsFixed(2).replaceAll('.', ',');
+      }
+    }
+
+    promoCtrl.addListener(syncParcela);
+    priceCtrl.addListener(syncParcela);
+    instQtyCtrl.addListener(syncParcela);
+  }
+
   final salvar = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
