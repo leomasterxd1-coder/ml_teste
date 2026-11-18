@@ -370,11 +370,14 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
 
   /// Calcula as dimensões do canvas A4 em pixels para impressão,
   /// espelhando o gerarPdfMultiArquivo do MLoja.
-  List<int> _a4CanvasDimensions(int dpi) {
+  List<int> _a4CanvasDimensions(int dpi) =>
+      _a4CanvasDimensionsForSize(_size, dpi);
+
+  List<int> _a4CanvasDimensionsForSize(String size, int dpi) {
     const a4W = 595;
     const a4H = 842;
     const margin = 12.0;
-    final s = _size.toUpperCase().replaceAll('×', 'X');
+    final s = size.toUpperCase().replaceAll('×', 'X');
     final isLandscape = s == '2X1' || s == '6X1';
     final pageW = isLandscape ? a4H : a4W;
     final pageH = isLandscape ? a4W : a4H;
@@ -502,6 +505,56 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     return out;
   }
 
+  Future<({List<Uint8List> pages, List<String> sizes})>
+      _paginasItemDesafioAltaRes() async {
+    if (_grupos.isEmpty) {
+      return (pages: _pagesComCopias(), sizes: _pageSizesComCopias());
+    }
+    final pages = <Uint8List>[];
+    final sizes = <String>[];
+    var offset = 0;
+    for (final grupo in _grupos) {
+      final a4 = _a4CanvasDimensionsForSize(grupo.size, 600);
+      final com = await buildCompositePages(
+        api: api,
+        items: grupo.items,
+        size: grupo.size,
+        modoVencimentos: false,
+        validades: const [],
+        ofertas: const [],
+        semOverlay: false,
+        previewScale: 1.0,
+        jpegPreview: true,
+        targetCanvasW: a4[0],
+        targetCanvasH: a4[1],
+      );
+      final sem = await buildCompositePages(
+        api: api,
+        items: grupo.items,
+        size: grupo.size,
+        modoVencimentos: false,
+        validades: const [],
+        ofertas: const [],
+        semOverlay: true,
+        previewScale: 1.0,
+        jpegPreview: true,
+        targetCanvasW: a4[0],
+        targetCanvasH: a4[1],
+      );
+      for (var j = 0; j < com.length; j++) {
+        final global = offset + j;
+        final usaModelo =
+            _usaModeloPagina.length > global ? _usaModeloPagina[global] : true;
+        pages.add(
+          usaModelo ? com[j] : (j < sem.length ? sem[j] : com[j]),
+        );
+        sizes.add(grupo.size);
+      }
+      offset += com.length;
+    }
+    return (pages: pages, sizes: sizes);
+  }
+
   Future<void> _imprimirItemDesafio() async {
     if (_pages.isEmpty) {
       ToastUtils.show(context, 'Nenhum item selecionado');
@@ -509,7 +562,18 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _sending = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size, pageSizes: _pageSizesComCopias());
+      final alta = await _paginasItemDesafioAltaRes();
+      final pages = <Uint8List>[];
+      final sizes = <String>[];
+      for (var c = 0; c < _copias; c++) {
+        pages.addAll(alta.pages);
+        sizes.addAll(alta.sizes);
+      }
+      final pdfBytes = await _gerarPdfBytes(
+        pages,
+        _size,
+        pageSizes: sizes,
+      );
       final socket = await Socket.connect(
         _kPrinterIp,
         _kPrinterPort,
@@ -537,7 +601,18 @@ class _ModeloEditavelScreenState extends State<ModeloEditavelScreen> {
     }
     setState(() => _gerando = true);
     try {
-      final pdfBytes = await _gerarPdfBytes(_pagesComCopias(), _size, pageSizes: _pageSizesComCopias());
+      final alta = await _paginasItemDesafioAltaRes();
+      final pages = <Uint8List>[];
+      final sizes = <String>[];
+      for (var c = 0; c < _copias; c++) {
+        pages.addAll(alta.pages);
+        sizes.addAll(alta.sizes);
+      }
+      final pdfBytes = await _gerarPdfBytes(
+        pages,
+        _size,
+        pageSizes: sizes,
+      );
       final dir = await getTemporaryDirectory();
       final file = File(
           '${dir.path}/item_desafio_${DateTime.now().millisecondsSinceEpoch}.pdf');
