@@ -417,6 +417,35 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return 'R\$ $raw';
   }
 
+  String _valorDialogo(PriceTag item) {
+    if (_tipoEtiqueta(item) != 'Parcelado') return _valorEtiqueta(item);
+    final pd = item.printingData;
+    final ov = _overrides[item.ean];
+    final precoNormal =
+        (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0;
+    final precoPromo = (ov?['promotionPrice'] as num?)
+            ?.toDouble() ??
+        pd?.promotionalPrice?.value;
+    final instQty = (ov?['installmentQuantity'] as int?) ??
+        pd?.installments?.installmentQuantity ??
+        0;
+    final instValue = (ov?['installmentPrice'] as num?)
+            ?.toDouble() ??
+        pd?.installments?.installmentValue;
+    final por = (precoPromo != null && precoPromo > 0)
+        ? precoPromo
+        : precoNormal;
+    final parcela = (instValue != null && instValue > 0)
+        ? instValue
+        : (pd?.displayPrice ?? 0);
+    String brl(double v) =>
+        'R\$ ${v.toStringAsFixed(2).replaceAll('.', ',')}';
+    if (instQty > 0 && (por > 0 || parcela > 0)) {
+      return '${brl(por)} | ${instQty}x de ${brl(parcela)}';
+    }
+    return _valorEtiqueta(item);
+  }
+
   String _tipoEtiqueta(PriceTag item) {
     final pd = item.printingData;
     final template = (pd?.template ?? '').toLowerCase();
@@ -698,9 +727,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Widget _badgeVerde(PriceTag item,
-      {VoidCallback? onTap, bool mostrarTipo = true}) {
+      {VoidCallback? onTap,
+      bool mostrarTipo = true,
+      String? valorTexto}) {
     final tipo = _tipoEtiqueta(item);
-    final valor = _valorEtiqueta(item);
+    final valor = valorTexto ?? _valorEtiqueta(item);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -721,15 +752,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            valor,
-            maxLines: 1,
-            softWrap: false,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 10,
+          Flexible(
+            child: Text(
+              valor,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 10,
+              ),
             ),
           ),
           if (mostrarTipo) ...[
@@ -897,6 +930,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                       _badgeVerde(
                                         it,
                                         mostrarTipo: false,
+                                        valorTexto: _valorDialogo(it),
                                         onTap: () async {
                                           final ok =
                                               await _abrirEditorValores(it);
