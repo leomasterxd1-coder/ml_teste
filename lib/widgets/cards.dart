@@ -165,6 +165,30 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
     return (leveGanhe: null, deporValor: valor, deporBadge: 'normal');
   }
 
+  Future<void> _editarBadge() async {
+    final p = _price();
+    final tipo = p.leveGanhe != null
+        ? 'Leve e Ganhe'
+        : p.deporBadge == 'de por'
+            ? 'De/Por'
+            : p.deporBadge == 'parcelado'
+                ? 'Parcelado'
+                : 'Normal';
+    final pd = widget.tag.printingData;
+    final ok = await editarValores(
+      context,
+      ean: widget.tag.ean,
+      tipo: tipo,
+      price: pd?.price?.value,
+      promotionPrice: pd?.promotionalPrice?.value,
+      takeAndWinQuantity: pd?.takeAndWin?.qty,
+      takeAndWinPrice: pd?.takeAndWin?.totalValue,
+      installmentQuantity: pd?.installments?.installmentQuantity,
+      installmentPrice: pd?.installments?.installmentValue,
+    );
+    if (ok && mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final p = _price();
@@ -243,7 +267,9 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                       ),
                       if (p.leveGanhe != null) ...[
                         const SizedBox(height: 4),
-                        Container(
+                        GestureDetector(
+                          onTap: _editarBadge,
+                          child: Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 10),
                           decoration: BoxDecoration(
@@ -279,9 +305,12 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                             ],
                           ),
                         ),
+                        ),
                       ] else if (p.deporValor != null) ...[
                         const SizedBox(height: 4),
-                        Container(
+                        GestureDetector(
+                          onTap: _editarBadge,
+                          child: Container(
                           height: 28,
                           padding: const EdgeInsets.only(left: 12),
                           decoration: BoxDecoration(
@@ -327,6 +356,7 @@ class _EtiquetaCardState extends State<EtiquetaCard> {
                               ),
                             ],
                           ),
+                        ),
                         ),
                       ],
                     ],
