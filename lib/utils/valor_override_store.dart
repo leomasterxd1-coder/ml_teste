@@ -75,13 +75,14 @@ Future<bool> editarValores(
   if (tipo == 'Normal') {
     add('Preço', priceCtrl);
   } else if (tipo == 'Leve e Ganhe') {
-    add('Leve quantidade', takeQtyCtrl, integer: true);
-    add('Leve total', takePriceCtrl);
-    add('Preço unitário', priceCtrl);
+    add('Quantidade leve', takeQtyCtrl, integer: true);
+    add('Valor total promoção', takePriceCtrl);
+    add('Valor unitário promoção', promoCtrl);
+    add('Valor unitário', priceCtrl);
   } else if (tipo == 'Parcelado') {
-    add('Preço', priceCtrl);
-    add('Preço promocional', promoCtrl);
-    add('Parcelas', instQtyCtrl, integer: true);
+    add('Valor anterior', priceCtrl);
+    add('Valor promocional', promoCtrl);
+    add('Quantidade da parcela', instQtyCtrl, integer: true);
     add('Valor da parcela', instPriceCtrl);
   } else {
     add('Preço', priceCtrl);
