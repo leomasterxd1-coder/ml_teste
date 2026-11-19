@@ -736,7 +736,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       onTap: onTap,
       child: Container(
         height: 24,
-      padding: const EdgeInsets.only(left: 10),
+      padding: EdgeInsets.only(left: 10, right: mostrarTipo ? 0 : 8),
       decoration: BoxDecoration(
         color: const Color(0xFF4CAF50),
         borderRadius: BorderRadius.circular(6),
