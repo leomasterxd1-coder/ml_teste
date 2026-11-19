@@ -774,11 +774,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 color: Colors.white,
                 borderRadius:
                     const BorderRadius.horizontal(right: Radius.circular(6)),
-                border: const Border(
-                  top: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
-                  right: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
-                  bottom: BorderSide(color: Color(0xFF4CAF50), width: 1.5),
-                ),
               ),
               alignment: Alignment.center,
               child: Text(
