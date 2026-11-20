@@ -193,7 +193,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
   Future<Uint8List> _capturePng() async {
     final boundary =
         _posterKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-    final image = await boundary.toImage(pixelRatio: 2);
+    final image = await boundary.toImage(pixelRatio: 2.35);
     try {
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
       return data!.buffer.asUint8List();
