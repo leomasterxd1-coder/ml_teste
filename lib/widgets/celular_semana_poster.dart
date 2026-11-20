@@ -177,117 +177,144 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _informacoes() {
     final de = 'R\$ ${_money(data.precoOriginal)}';
     final por = 'R\$ ${_money(data.precoFinal)}';
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          data.descricao,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: _ink,
-            fontSize: 62,
-            fontWeight: FontWeight.w700,
-            height: 0.98,
-            letterSpacing: -1.5,
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          'de: $de à vista',
-          style: const TextStyle(
-            color: _ink,
-            fontSize: 30,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const SizedBox(height: 6),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text.rich(
-            TextSpan(
-              children: [
-                const TextSpan(
-                  text: 'por: ',
-                  style: TextStyle(fontSize: 38, fontWeight: FontWeight.w400),
-                ),
-                TextSpan(
-                  text: por,
-                  style: const TextStyle(
-                    fontSize: 78,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -2.5,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          data.descricao,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 70,
+                            fontWeight: FontWeight.w700,
+                            height: 0.98,
+                            letterSpacing: -1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          'de: $de à vista',
+                          style: const TextStyle(
+                            color: _ink,
+                            fontSize: 38,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: 'por: ',
+                                  style: TextStyle(
+                                      fontSize: 38,
+                                      fontWeight: FontWeight.w400),
+                                ),
+                                TextSpan(
+                                  text: por,
+                                  style: const TextStyle(
+                                    fontSize: 86,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -2.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            style: const TextStyle(color: _ink, height: 1),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '+ plano controle',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 48,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        const Text(
+                          '(válido na portabilidade para quaisquer bandeiras*)',
+                          style: TextStyle(
+                            color: _ink,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              ),
             ),
-            style: const TextStyle(color: _ink, height: 1),
+            _caixaPix(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _caixaPix() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      decoration: BoxDecoration(
+        border: Border.all(color: _red, width: 3),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: const Column(
+        children: [
+          Text(
+            'condições válidas também\npara pagamento no pix',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _ink,
+              fontSize: 34,
+              fontWeight: FontWeight.w700,
+              height: 1.06,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          '+ plano controle',
-          style: TextStyle(
-            color: _ink,
-            fontSize: 38,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.8,
+          SizedBox(height: 6),
+          Text(
+            '(consulte opções de parcelamento)',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _ink,
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+            ),
           ),
-        ),
-        const SizedBox(height: 2),
-        const Text(
-          '(válido na portabilidade para quaisquer bandeiras*)',
-          style: TextStyle(
-            color: _ink,
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
-        const Spacer(),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-          decoration: BoxDecoration(
-            border: Border.all(color: _red, width: 3),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: const Column(
-            children: [
-              Text(
-                'condições válidas também\npara pagamento no pix',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w700,
-                  height: 1.06,
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                '(consulte opções de parcelamento)',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _ink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _faixaCombo() {
     return Container(
-      height: 64,
+      height: 52,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: _red,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(26),
       ),
       child: const Text(
         'oferta especial combo*:',
@@ -302,7 +329,7 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _caixasCombo() {
     return SizedBox(
-      height: 210,
+      height: 190,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -397,37 +424,37 @@ class CelularSemanaPoster extends StatelessWidget {
 
   static const TextStyle _label = TextStyle(
     color: _ink,
-    fontSize: 21,
+    fontSize: 26,
     fontWeight: FontWeight.w600,
     height: 1.05,
   );
   static const TextStyle _subLabel = TextStyle(
     color: _ink,
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: FontWeight.w600,
     height: 1.05,
   );
   static const TextStyle _valor = TextStyle(
     color: _ink,
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: FontWeight.w800,
     height: 1.05,
   );
   static const TextStyle _valorMedio = TextStyle(
     color: _ink,
-    fontSize: 32,
+    fontSize: 38,
     fontWeight: FontWeight.w800,
     height: 1.05,
   );
   static const TextStyle _valorGrande = TextStyle(
     color: _ink,
-    fontSize: 44,
+    fontSize: 48,
     fontWeight: FontWeight.w900,
     height: 1.05,
   );
   static const TextStyle _plus = TextStyle(
     color: _ink,
-    fontSize: 50,
+    fontSize: 44,
     fontWeight: FontWeight.w500,
     height: 1,
   );
@@ -437,11 +464,15 @@ class CelularSemanaPoster extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: white ? Colors.white : _boxColor,
+        border: white ? Border.all(color: Colors.black, width: 2) : null,
         borderRadius: BorderRadius.circular(13),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: children,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: children,
+        ),
       ),
     );
   }
@@ -449,7 +480,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _letraMiuda() {
     const base = TextStyle(
       color: _ink,
-      fontSize: 15.5,
+      fontSize: 19,
       height: 1.26,
       fontWeight: FontWeight.w400,
     );
@@ -481,13 +512,13 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _rodape() {
     return SizedBox(
-      height: 220,
+      height: 180,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 145,
-            height: 145,
+            width: 136,
+            height: 136,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -498,7 +529,7 @@ class CelularSemanaPoster extends StatelessWidget {
                   'https://play.google.com/store/apps/details?id=amer.papeleta.papeleta63',
               padding: EdgeInsets.zero,
               backgroundColor: Colors.white,
-              size: 128,
+              size: 118,
             ),
           ),
           const SizedBox(width: 14),
@@ -506,7 +537,7 @@ class CelularSemanaPoster extends StatelessWidget {
             'baixe\no app!',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 58,
+              fontSize: 64,
               fontWeight: FontWeight.w700,
               height: 0.9,
               letterSpacing: -1.5,
