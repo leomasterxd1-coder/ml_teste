@@ -299,7 +299,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             children: [
               TextSpan(
-                text: 'Spinner • Celular da ',
+                text: 'Celular da ',
                 style: TextStyle(color: _red),
               ),
               TextSpan(

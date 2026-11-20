@@ -19,44 +19,41 @@ class CelularSemanaPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: posterWidth,
-      height: posterHeight,
-      child: ColoredBox(
-        color: _red,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(26, 22, 26, 18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: 210,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    'celular da\nsemana',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 112,
-                      fontWeight: FontWeight.w900,
-                      height: 0.86,
-                      letterSpacing: -4,
+    return DefaultTextStyle(
+      style: const TextStyle(fontFamily: 'SFProDisplay', color: _ink),
+      child: SizedBox(
+        width: posterWidth,
+        height: posterHeight,
+        child: ColoredBox(
+          color: _red,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(26, 22, 26, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 290,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'celular da\nsemana',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 120,
+                        fontWeight: FontWeight.w900,
+                        height: 0.86,
+                        letterSpacing: -5,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Expanded(child: _cartaoBranco()),
-              const SizedBox(height: 14),
-              _faixaCombo(),
-              const SizedBox(height: 12),
-              _caixasCombo(),
-              const SizedBox(height: 12),
-              _letraMiuda(),
-              const SizedBox(height: 12),
-              _rodape(),
-            ],
+                const SizedBox(height: 10),
+                Expanded(child: _cartaoBranco()),
+                const SizedBox(height: 12),
+                _rodape(),
+              ],
+            ),
           ),
         ),
       ),
@@ -76,42 +73,25 @@ class CelularSemanaPoster extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: Container(
-              height: 48,
-              padding: const EdgeInsets.only(left: 18, right: 8),
+              height: 56,
+              padding: const EdgeInsets.only(left: 20, right: 12),
               decoration: BoxDecoration(
-                color: _red,
-                borderRadius: BorderRadius.circular(24),
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(28),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'oferta especial cartão cliente',
+                    'oferta especial cartão cliente •',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      'a',
-                      style: TextStyle(
-                        color: _red,
-                        fontSize: 25,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(width: 12),
+                  _logoA(size: 34),
                 ],
               ),
             ),
@@ -127,8 +107,36 @@ class CelularSemanaPoster extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 12),
+          _faixaCombo(),
+          const SizedBox(height: 10),
+          _caixasCombo(),
+          const SizedBox(height: 10),
+          _letraMiuda(),
         ],
       ),
+    );
+  }
+
+  Widget _logoA({double size = 34, Color color = Colors.white}) {
+    final barWidth = size * 0.66;
+    final barHeight = size * 0.07;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(width: barWidth, height: barHeight, color: color),
+        Text(
+          'a',
+          style: TextStyle(
+            color: color,
+            fontSize: size,
+            fontWeight: FontWeight.w700,
+            height: 0.78,
+            letterSpacing: -2,
+          ),
+        ),
+        Container(width: barWidth, height: barHeight, color: color),
+      ],
     );
   }
 
@@ -178,10 +186,10 @@ class CelularSemanaPoster extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: _ink,
-            fontSize: 42,
+            fontSize: 62,
             fontWeight: FontWeight.w700,
-            height: 1.02,
-            letterSpacing: -1,
+            height: 0.98,
+            letterSpacing: -1.5,
           ),
         ),
         const SizedBox(height: 14),
@@ -189,8 +197,8 @@ class CelularSemanaPoster extends StatelessWidget {
           'de: $de à vista',
           style: const TextStyle(
             color: _ink,
-            fontSize: 25,
-            fontWeight: FontWeight.w500,
+            fontSize: 30,
+            fontWeight: FontWeight.w400,
           ),
         ),
         const SizedBox(height: 6),
@@ -202,14 +210,14 @@ class CelularSemanaPoster extends StatelessWidget {
               children: [
                 const TextSpan(
                   text: 'por: ',
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 38, fontWeight: FontWeight.w400),
                 ),
                 TextSpan(
                   text: por,
                   style: const TextStyle(
-                    fontSize: 66,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -2,
+                    fontSize: 78,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -2.5,
                   ),
                 ),
               ],
@@ -222,9 +230,9 @@ class CelularSemanaPoster extends StatelessWidget {
           '+ plano controle',
           style: TextStyle(
             color: _ink,
-            fontSize: 33,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
+            fontSize: 38,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.8,
           ),
         ),
         const SizedBox(height: 2),
@@ -232,14 +240,14 @@ class CelularSemanaPoster extends StatelessWidget {
           '(válido na portabilidade para quaisquer bandeiras*)',
           style: TextStyle(
             color: _ink,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
           ),
         ),
         const Spacer(),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           decoration: BoxDecoration(
             border: Border.all(color: _red, width: 3),
             borderRadius: BorderRadius.circular(14),
@@ -251,9 +259,9 @@ class CelularSemanaPoster extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _ink,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  height: 1.08,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  height: 1.06,
                 ),
               ),
               SizedBox(height: 6),
@@ -262,8 +270,8 @@ class CelularSemanaPoster extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: _ink,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
@@ -275,18 +283,18 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _faixaCombo() {
     return Container(
-      height: 52,
+      height: 64,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: _red,
-        borderRadius: BorderRadius.circular(26),
+        borderRadius: BorderRadius.circular(32),
       ),
       child: const Text(
         'oferta especial combo*:',
         style: TextStyle(
           color: Colors.white,
-          fontSize: 27,
-          fontWeight: FontWeight.w800,
+          fontSize: 34,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -294,7 +302,7 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _caixasCombo() {
     return SizedBox(
-      height: 174,
+      height: 210,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -370,7 +378,7 @@ class CelularSemanaPoster extends StatelessWidget {
                   children: const [
                     Text('seguro', style: _label),
                     SizedBox(width: 5),
-                    Icon(Icons.security, size: 22, color: _ink),
+                    Icon(Icons.security, size: 24, color: _ink),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -389,37 +397,37 @@ class CelularSemanaPoster extends StatelessWidget {
 
   static const TextStyle _label = TextStyle(
     color: _ink,
-    fontSize: 18,
+    fontSize: 21,
     fontWeight: FontWeight.w600,
     height: 1.05,
   );
   static const TextStyle _subLabel = TextStyle(
     color: _ink,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FontWeight.w600,
     height: 1.05,
   );
   static const TextStyle _valor = TextStyle(
     color: _ink,
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: FontWeight.w800,
     height: 1.05,
   );
   static const TextStyle _valorMedio = TextStyle(
     color: _ink,
-    fontSize: 27,
+    fontSize: 32,
     fontWeight: FontWeight.w800,
     height: 1.05,
   );
   static const TextStyle _valorGrande = TextStyle(
     color: _ink,
-    fontSize: 37,
+    fontSize: 44,
     fontWeight: FontWeight.w900,
     height: 1.05,
   );
   static const TextStyle _plus = TextStyle(
     color: _ink,
-    fontSize: 44,
+    fontSize: 50,
     fontWeight: FontWeight.w500,
     height: 1,
   );
@@ -441,9 +449,9 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _letraMiuda() {
     const base = TextStyle(
       color: _ink,
-      fontSize: 13.5,
-      height: 1.28,
-      fontWeight: FontWeight.w500,
+      fontSize: 15.5,
+      height: 1.26,
+      fontWeight: FontWeight.w400,
     );
     return Text.rich(
       TextSpan(
@@ -463,9 +471,7 @@ class CelularSemanaPoster extends StatelessWidget {
           ),
           TextSpan(
             text: 'Desconto do plano controle disponível para portabilidade '
-                'para quaisquer bandeiras, consulte planos e condições. '
-                'Ofertas válidas de ${data.ofertaInicio} a ${data.ofertaFim} '
-                'podendo encerrar sem aviso prévio.',
+                'para quaisquer bandeiras, consulte planos\ne condições. Ofertas válidas de ${data.ofertaInicio} a ${data.ofertaFim} podendo encerrar sem aviso prévio.',
           ),
         ],
       ),
@@ -475,14 +481,14 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _rodape() {
     return SizedBox(
-      height: 128,
+      height: 220,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 122,
-            height: 122,
-            padding: const EdgeInsets.all(7),
+            width: 145,
+            height: 145,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(4),
@@ -492,7 +498,7 @@ class CelularSemanaPoster extends StatelessWidget {
                   'https://play.google.com/store/apps/details?id=amer.papeleta.papeleta63',
               padding: EdgeInsets.zero,
               backgroundColor: Colors.white,
-              size: 108,
+              size: 128,
             ),
           ),
           const SizedBox(width: 14),
@@ -500,14 +506,14 @@ class CelularSemanaPoster extends StatelessWidget {
             'baixe\no app!',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 45,
-              fontWeight: FontWeight.w900,
-              height: 0.92,
-              letterSpacing: -1,
+              fontSize: 58,
+              fontWeight: FontWeight.w700,
+              height: 0.9,
+              letterSpacing: -1.5,
             ),
           ),
           const Spacer(),
-          Image.asset('assets/logo.png', height: 96),
+          _logoA(size: 100),
         ],
       ),
     );

@@ -272,7 +272,7 @@ class _MainScreenState extends State<MainScreen> {
           _menuItem('assets/icons/pap_diaria.png', 'Papeletas diárias',
               () => _onMenuItem(3)),
           _divider(),
-          _menuItem('assets/icons/pap_diaria.png', 'Spinner celular',
+          _menuItem('assets/icons/pap_diaria.png', 'Celular da semana',
               () => _onMenuItem(4)),
         ],
       ),
