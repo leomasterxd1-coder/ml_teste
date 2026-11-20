@@ -8,6 +8,7 @@ import 'package:minhaloja/screens/etiquetas/etiquetas_fragment.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_fragment.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_screen.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_diarias_screen.dart';
+import 'package:minhaloja/screens/spinner_celular_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -59,6 +60,12 @@ class _MainScreenState extends State<MainScreen> {
       case 3:
         _selecionarCorpo(
             3, 'Papeletas diárias', 'assets/icons/pap_diaria.png');
+        break;
+      case 4:
+        setState(() => _menuOpen = false);
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SpinnerCelularScreen()),
+        );
         break;
     }
   }
@@ -264,6 +271,9 @@ class _MainScreenState extends State<MainScreen> {
           _divider(),
           _menuItem('assets/icons/pap_diaria.png', 'Papeletas diárias',
               () => _onMenuItem(3)),
+          _divider(),
+          _menuItem('assets/icons/pap_diaria.png', 'Spinner celular',
+              () => _onMenuItem(4)),
         ],
       ),
     );
