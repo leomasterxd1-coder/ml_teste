@@ -31,6 +31,7 @@ Future<bool> editarValores(
   BuildContext context, {
   required String ean,
   required String tipo,
+  String? description,
   double? price,
   double? promotionPrice,
   int? takeAndWinQuantity,
@@ -41,6 +42,8 @@ Future<bool> editarValores(
   final store = ValorOverrideStore.instance.overrides;
   final ov = store[ean] ?? const <String, dynamic>{};
 
+  final descCtrl = TextEditingController(
+      text: (ov['description'] as String?) ?? description ?? '');
   final priceCtrl =
       TextEditingController(text: _txt(ov['price'] ?? price));
   final promoCtrl = TextEditingController(
@@ -55,14 +58,17 @@ Future<bool> editarValores(
       text: _txt(ov['installmentPrice'] ?? installmentPrice));
 
   final fields = <Widget>[];
-  void add(String label, TextEditingController c, {bool integer = false}) {
+  void add(String label, TextEditingController c,
+      {bool integer = false, bool texto = false}) {
     fields.add(Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TextField(
         controller: c,
-        keyboardType: integer
-            ? TextInputType.number
-            : const TextInputType.numberWithOptions(decimal: true),
+        keyboardType: texto
+            ? TextInputType.text
+            : integer
+                ? TextInputType.number
+                : const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
           labelText: label,
           isDense: true,
@@ -71,6 +77,8 @@ Future<bool> editarValores(
       ),
     ));
   }
+
+  add('Descrição', descCtrl, texto: true);
 
   if (tipo == 'Normal') {
     add('Preço', priceCtrl);
@@ -135,6 +143,7 @@ Future<bool> editarValores(
   );
 
   final controllers = [
+    descCtrl,
     priceCtrl,
     promoCtrl,
     takeQtyCtrl,
@@ -150,6 +159,8 @@ Future<bool> editarValores(
   }
 
   final novo = <String, dynamic>{};
+  final desc = descCtrl.text.trim();
+  if (desc.isNotEmpty) novo['description'] = desc;
   final p = _parseD(priceCtrl);
   final promo = _parseD(promoCtrl);
   final tq = _parseI(takeQtyCtrl);

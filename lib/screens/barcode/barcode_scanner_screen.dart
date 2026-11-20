@@ -417,6 +417,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return 'R\$ $raw';
   }
 
+  String _descricaoItem(PriceTag item) {
+    final d = (_overrides[item.ean]?['description'] as String?)?.trim();
+    return (d != null && d.isNotEmpty) ? d : item.description;
+  }
+
   String _valorDialogo(PriceTag item) {
     if (_tipoEtiqueta(item) != 'Parcelado') return _valorEtiqueta(item);
     final pd = item.printingData;
@@ -504,6 +509,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final ov = _overrides[dados.ean];
     if (ov == null) return dados;
     return dados.copyWith(
+      productName: (ov['description'] as String?)?.trim().isNotEmpty == true
+          ? (ov['description'] as String)
+          : null,
       price: (ov['price'] as num?)?.toDouble(),
       promotionPrice: (ov['promotionPrice'] as num?)?.toDouble(),
       takeAndWinQuantity: ov['takeAndWinQuantity'] as int?,
@@ -527,6 +535,12 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final novaInstQty = ov['installmentQuantity'] as int?;
     final novaInstPrice = (ov['installmentPrice'] as num?)?.toDouble();
     return pd.copyWith(
+      description: (ov['description'] as String?)?.trim().isNotEmpty == true
+          ? (ov['description'] as String)
+          : null,
+      productName: (ov['description'] as String?)?.trim().isNotEmpty == true
+          ? (ov['description'] as String)
+          : null,
       price: novoPrice != null
           ? PriceInfo(
               value: novoPrice,
@@ -568,6 +582,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final tipo = _tipoEtiqueta(item);
     final pd = item.printingData;
     final ov = _overrides[_overrideKey(item)] ?? const <String, dynamic>{};
+    final descCtrl = TextEditingController(
+        text: (ov['description'] as String?) ?? item.description);
     final priceCtrl =
         TextEditingController(text: _txt(ov['price'] ?? pd?.price?.value));
     final promoCtrl = TextEditingController(
@@ -583,14 +599,17 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         text: _txt(
             ov['installmentPrice'] ?? pd?.installments?.installmentValue));
     final fields = <Widget>[];
-    void add(String label, TextEditingController c, {bool integer = false}) {
+    void add(String label, TextEditingController c,
+        {bool integer = false, bool texto = false}) {
       fields.add(Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: TextField(
           controller: c,
-          keyboardType: integer
-              ? TextInputType.number
-              : const TextInputType.numberWithOptions(decimal: true),
+          keyboardType: texto
+              ? TextInputType.text
+              : integer
+                  ? TextInputType.number
+                  : const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: label,
             isDense: true,
@@ -599,6 +618,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         ),
       ));
     }
+
+    add('Descrição', descCtrl, texto: true);
 
     if (tipo == 'Normal') {
       add('Preço', priceCtrl);
@@ -677,6 +698,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
     if (salvar != true) {
       for (final c in [
+        descCtrl,
         priceCtrl,
         promoCtrl,
         takeQtyCtrl,
@@ -700,6 +722,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
     int? parseI(TextEditingController c) => int.tryParse(c.text.trim());
     final novo = <String, dynamic>{};
+    final desc = descCtrl.text.trim();
+    if (desc.isNotEmpty) novo['description'] = desc;
     final price = parseD(priceCtrl);
     final promo = parseD(promoCtrl);
     final takeQty = parseI(takeQtyCtrl);
@@ -714,6 +738,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     if (instPrice != null) novo['installmentPrice'] = instPrice;
     _overrides[_overrideKey(item)] = novo;
     for (final c in [
+      descCtrl,
       priceCtrl,
       promoCtrl,
       takeQtyCtrl,
@@ -897,9 +922,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                          it.description.isEmpty
+                                          _descricaoItem(it).isEmpty
                                               ? it.ean
-                                              : it.description,
+                                              : _descricaoItem(it),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -1169,9 +1194,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                              it.description.isEmpty
+                                              _descricaoItem(it).isEmpty
                                                   ? it.ean
-                                                  : it.description,
+                                                  : _descricaoItem(it),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                               style: const TextStyle(
