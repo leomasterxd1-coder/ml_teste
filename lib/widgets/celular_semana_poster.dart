@@ -44,10 +44,10 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 30,
-      top: 330,
-      width: 465,
-      height: 555,
+      left: 25,
+      top: 322,
+      width: 480,
+      height: 565,
       child: file != null && file.existsSync()
           ? Image.file(
               file,
@@ -67,8 +67,8 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _descricao() {
     return Positioned(
-      left: 512,
-      top: 330,
+      left: 515,
+      top: 322,
       width: 510,
       child: Text(
         data.descricao,
@@ -88,15 +88,15 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _de() {
     return Positioned(
-      left: 512,
-      top: 452,
+      left: 515,
+      top: 440,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
         style: const TextStyle(
           fontFamily: 'SFProDisplay',
           color: _ink,
-          fontSize: 30,
+          fontSize: 36,
           fontWeight: FontWeight.w400,
         ),
       ),
@@ -105,10 +105,10 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _por() {
     return Positioned(
-      left: 512,
-      top: 492,
+      left: 515,
+      top: 486,
       width: 510,
-      height: 82,
+      height: 96,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
@@ -118,16 +118,16 @@ class CelularSemanaPoster extends StatelessWidget {
               const TextSpan(
                 text: 'por: ',
                 style: TextStyle(
-                  fontSize: 30,
+                  fontSize: 34,
                   fontWeight: FontWeight.w400,
                 ),
               ),
               TextSpan(
                 text: 'R\$ ${_money(data.precoFinal)}',
                 style: const TextStyle(
-                  fontSize: 72,
+                  fontSize: 84,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: -2,
+                  letterSpacing: -2.5,
                 ),
               ),
             ],
@@ -236,7 +236,7 @@ class CelularSemanaPoster extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'SFProDisplay',
                   color: _ink,
-                  fontSize: 14.5,
+                  fontSize: 16.5,
                   fontWeight: FontWeight.w400,
                   height: 1.24,
                 ),
