@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:minhaloja/utils/brl.dart';
 
 /// Overrides de valores apenas para a sessão atual.
 class ValorOverrideStore {
@@ -9,7 +10,7 @@ class ValorOverrideStore {
   final Map<String, Map<String, dynamic>> overrides = {};
 }
 
-String _txt(num? v) => v == null ? '' : v.toString().replaceAll('.', ',');
+String _txt(num? v) => v == null ? '' : formatBrlNumber(v);
 
 String _txtInt(int? v) => v?.toString() ?? '';
 
@@ -102,7 +103,7 @@ Future<bool> editarValores(
       final q = int.tryParse(takeQtyCtrl.text.trim());
       final total = _parseD(takePriceCtrl);
       if (q != null && q > 0 && total != null && total > 0) {
-        promoCtrl.text = (total / q).toStringAsFixed(2).replaceAll('.', ',');
+        promoCtrl.text = formatBrlNumber(total / q);
       }
     }
 
@@ -113,8 +114,7 @@ Future<bool> editarValores(
       final q = int.tryParse(instQtyCtrl.text.trim());
       final promo = _parseD(promoCtrl) ?? _parseD(priceCtrl);
       if (q != null && q > 0 && promo != null && promo > 0) {
-        instPriceCtrl.text =
-            (promo / q).toStringAsFixed(2).replaceAll('.', ',');
+        instPriceCtrl.text = formatBrlNumber(promo / q);
       }
     }
 

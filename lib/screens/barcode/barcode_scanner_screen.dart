@@ -7,6 +7,7 @@ import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
 import 'package:minhaloja/utils/beep.dart';
+import 'package:minhaloja/utils/brl.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
@@ -358,8 +359,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final pd = item.printingData;
     final tipo = _tipoEtiqueta(item);
     final ov = _overrides[_overrideKey(item)];
-    String brl(double value) =>
-        'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+    String brl(double value) => formatBrl(value);
 
     final precoNormal =
         (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0;
@@ -432,7 +432,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final parcela = (instValue != null && instValue > 0)
         ? instValue
         : (pd?.displayPrice ?? 0);
-    String brl(double v) => 'R\$ ${v.toStringAsFixed(2).replaceAll('.', ',')}';
+    String brl(double v) => formatBrl(v);
     if (instQty > 0 && (por > 0 || parcela > 0)) {
       return '${brl(por)} | ${instQty}x de ${brl(parcela)}';
     }
@@ -642,7 +642,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final q = int.tryParse(takeQtyCtrl.text.trim());
         final total = parseValor(takePriceCtrl);
         if (q != null && q > 0 && total != null && total > 0) {
-          promoCtrl.text = (total / q).toStringAsFixed(2).replaceAll('.', ',');
+          promoCtrl.text = formatBrlNumber(total / q);
         }
       }
 
@@ -653,8 +653,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final q = int.tryParse(instQtyCtrl.text.trim());
         final promo = parseValor(promoCtrl) ?? parseValor(priceCtrl);
         if (q != null && q > 0 && promo != null && promo > 0) {
-          instPriceCtrl.text =
-              (promo / q).toStringAsFixed(2).replaceAll('.', ',');
+          instPriceCtrl.text = formatBrlNumber(promo / q);
         }
       }
 

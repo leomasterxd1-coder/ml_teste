@@ -12,6 +12,7 @@ import 'package:minhaloja/core/theme.dart';
 import 'package:minhaloja/models/models.dart';
 import 'package:minhaloja/network/api_client.dart';
 import 'package:minhaloja/network/api_service.dart';
+import 'package:minhaloja/utils/brl.dart';
 import 'package:minhaloja/utils/log_helper.dart';
 import 'package:minhaloja/widgets/auth_logo_animado.dart';
 
@@ -752,8 +753,7 @@ void _drawEletroContent(
 
 }
 
-String _eletroMoney(double value) =>
-    'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
+String _eletroMoney(double value) => formatBrl(value);
 
 TextPainter _eletroPainter(
   String text,
