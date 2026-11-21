@@ -201,9 +201,9 @@ class CelularSemanaPoster extends StatelessWidget {
           _valorCaixa(
             left: 280,
             width: 235,
-            top: 1078,
+            top: 1082,
             texto: 'R\$ ${_money(data.descontoPortabilidade)}',
-            fontSize: 30,
+            fontSize: 32,
           ),
           _valorCaixa(
             left: 550,
@@ -217,7 +217,7 @@ class CelularSemanaPoster extends StatelessWidget {
             width: 200,
             top: 1048,
             texto: 'R\$ ${_money(data.seguro)}',
-            fontSize: 30,
+            fontSize: 40,
           ),
         ],
       ),
