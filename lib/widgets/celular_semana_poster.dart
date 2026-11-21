@@ -90,7 +90,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 40,
+              fontSize: 64,
               fontWeight: FontWeight.w400,
               height: 1,
               letterSpacing: -0.5,
@@ -104,7 +104,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 60,
+              fontSize: 70,
               fontWeight: FontWeight.w700,
               height: 0.95,
               letterSpacing: -1.2,
@@ -134,7 +134,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 456,
+      top: 490,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -151,7 +151,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 514,
+      top: 548,
       width: 510,
       height: 90,
       child: FittedBox(
