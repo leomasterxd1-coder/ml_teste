@@ -78,7 +78,7 @@ class CelularSemanaPoster extends StatelessWidget {
     final partes = _partesDescricao(data.descricao);
     return Positioned(
       left: 515,
-      top: 340,
+      top: 343,
       width: 510,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +92,7 @@ class CelularSemanaPoster extends StatelessWidget {
               color: _ink,
               fontSize: 64,
               fontWeight: FontWeight.w400,
-              height: 1,
+              height: 0.9,
               letterSpacing: -0.5,
             ),
           ),
@@ -106,7 +106,7 @@ class CelularSemanaPoster extends StatelessWidget {
               color: _ink,
               fontSize: 70,
               fontWeight: FontWeight.w700,
-              height: 0.95,
+              height: 0.9,
               letterSpacing: -1.2,
             ),
           ),
@@ -134,7 +134,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 490,
+      top: 483,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -151,7 +151,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 548,
+      top: 541,
       width: 510,
       height: 90,
       child: FittedBox(
@@ -192,30 +192,30 @@ class CelularSemanaPoster extends StatelessWidget {
       child: Stack(
         children: [
           _valorCaixa(
-            left: 35,
+            left: 45,
             width: 210,
             top: 1055,
             texto: 'R\$ ${_money(data.precoOriginal)}',
             fontSize: 34,
           ),
           _valorCaixa(
-            left: 280,
+            left: 292,
             width: 235,
-            top: 1082,
+            top: 1085,
             texto: 'R\$ ${_money(data.descontoPortabilidade)}',
             fontSize: 32,
           ),
           _valorCaixa(
-            left: 550,
+            left: 559,
             width: 235,
-            top: 1052,
+            top: 1058,
             texto: '${data.percentualFormatado}% OFF',
             fontSize: 42,
           ),
           _valorCaixa(
-            left: 820,
+            left: 815,
             width: 200,
-            top: 1048,
+            top: 1050,
             texto: 'R\$ ${_money(data.seguro)}',
             fontSize: 40,
           ),
@@ -265,9 +265,9 @@ class CelularSemanaPoster extends StatelessWidget {
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
       left: 35,
-      top: 1122,
+      top: 1135,
       width: 985,
-      height: 176,
+      height: 140,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
