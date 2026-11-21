@@ -54,7 +54,7 @@ class CelularSemanaPoster extends StatelessWidget {
     final file = path.isEmpty ? null : File(path);
     return Positioned(
       left: 25,
-      top: 322,
+      top: 330,
       width: 480,
       height: 565,
       child: file != null && file.existsSync()
@@ -134,7 +134,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 510,
+      top: 456,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -151,12 +151,12 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 565,
+      top: 514,
       width: 510,
-      height: 104,
+      height: 90,
       child: FittedBox(
         fit: BoxFit.scaleDown,
-        alignment: Alignment.centerLeft,
+        alignment: Alignment.topLeft,
         child: Text.rich(
           TextSpan(
             children: [
