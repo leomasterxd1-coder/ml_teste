@@ -3,7 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:minhaloja/utils/celular_semana.dart';
 
-String _money(double value) => value.toStringAsFixed(2).replaceAll('.', ',');
+String _money(double value) {
+  final fixed = value.toStringAsFixed(2).split('.');
+  final inteiro = (int.tryParse(fixed[0]) ?? 0).toString();
+  final buf = StringBuffer();
+  for (var i = 0; i < inteiro.length; i++) {
+    if (i > 0 && (inteiro.length - i) % 3 == 0) buf.write('.');
+    buf.write(inteiro[i]);
+  }
+  return '${buf.toString()},${fixed[1]}';
+}
 
 class CelularSemanaPoster extends StatelessWidget {
   static const double posterWidth = 1055;

@@ -711,8 +711,10 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     return 'R\$ ${_brInt(cents ~/ 100)},${(cents % 100).toString().padLeft(2, '0')}';
   }
 
-  static String _fmtMoney(double value) =>
-      value.toStringAsFixed(2).replaceAll('.', ',');
+  static String _fmtMoney(double value) {
+    final fixed = value.toStringAsFixed(2).split('.');
+    return '${_brInt(int.tryParse(fixed[0]) ?? 0)},${fixed[1]}';
+  }
 
   static String _brInt(int value) {
     final reversed = value.toString().split('').reversed.toList();
