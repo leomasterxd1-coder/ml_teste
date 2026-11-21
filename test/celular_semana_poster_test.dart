@@ -21,6 +21,13 @@ void main() {
       )),
     ));
     await tester.pumpAndSettle();
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/overlays/celular_semana.png'),
+        tester.element(find.byType(CelularSemanaPoster)),
+      );
+    });
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
 }

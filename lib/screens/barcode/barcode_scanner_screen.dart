@@ -12,6 +12,7 @@ import 'package:minhaloja/utils/price_tag_mapper.dart';
 import 'package:minhaloja/utils/session_expired_handler.dart';
 import 'package:minhaloja/utils/toast_utils.dart';
 import 'package:minhaloja/utils/valor_override_store.dart';
+import 'package:minhaloja/screens/spinner_celular_screen.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class BarcodeScannerScreen extends StatefulWidget {
@@ -52,7 +53,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
     if (widget.continuo) {
       _api = ApiService(ApiClient.instance.getSlApiService());
-      _storeId = SessionManager.instance?.getUserStore() ?? Constants.defaultStore;
+      _storeId =
+          SessionManager.instance?.getUserStore() ?? Constants.defaultStore;
       final d = DateTime.now();
       _today =
           '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -149,8 +151,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final escolha = await _mostrarDialogoEtiquetas(etiquetas);
     if (escolha == null || !mounted) return;
     final qtds = (escolha['qtds'] as Map).cast<String, int>();
-    final selecionados =
-        (escolha['selecionados'] as Map).cast<String, bool>();
+    final selecionados = (escolha['selecionados'] as Map).cast<String, bool>();
     final itensSel =
         etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
     if (itensSel.isEmpty) {
@@ -181,8 +182,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
-  Future<void> _enviarImpressao(String printerId, List<PriceTag> etiquetas,
-      Map<String, int> qtds) async {
+  Future<void> _enviarImpressao(
+      String printerId, List<PriceTag> etiquetas, Map<String, int> qtds) async {
     final api = _api;
     if (api == null) return;
     final lista = <PrintingData>[];
@@ -257,10 +258,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
     final qtds = (escolha['qtds'] as Map).cast<String, int>();
     final size = escolha['size'] as String;
-    final modalidade =
-        escolha['modalidade'] as String? ?? 'Misto Editável';
-    final selecionados =
-        (escolha['selecionados'] as Map).cast<String, bool>();
+    final modalidade = escolha['modalidade'] as String? ?? 'Misto Editável';
+    final selecionados = (escolha['selecionados'] as Map).cast<String, bool>();
     final itensSel =
         etiquetas.where((e) => selecionados[e.ean] ?? true).toList();
     if (itensSel.isEmpty) {
@@ -277,8 +276,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       ),
     );
     try {
-      final lista =
-          await _carregarPapeletas(itensSel, qtds, size, modalidade);
+      final lista = await _carregarPapeletas(itensSel, qtds, size, modalidade);
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
       if (lista.isEmpty) {
@@ -307,11 +305,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
-  Future<void> _abrirSelecaoTamanhosPreview(
-      List<PriceTag> etiquetas,
-      Map<String, Set<String>> sel,
-      String modalidade,
-      String titulo) async {
+  Future<void> _abrirSelecaoTamanhosPreview(List<PriceTag> etiquetas,
+      Map<String, Set<String>> sel, String modalidade, String titulo) async {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -330,8 +325,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             .toList();
         if (ets.isEmpty) continue;
         final qtdsSize = <String, int>{for (final e in ets) e.ean: qtd};
-        final lista =
-            await _carregarPapeletas(ets, qtdsSize, size, modalidade);
+        final lista = await _carregarPapeletas(ets, qtdsSize, size, modalidade);
         if (lista.isNotEmpty) {
           grupos.add(PapeletaGrupo(items: lista, size: size));
         }
@@ -369,21 +363,18 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
     final precoNormal =
         (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0;
-    final precoPromo = (ov?['promotionPrice'] as num?)
-            ?.toDouble() ??
+    final precoPromo = (ov?['promotionPrice'] as num?)?.toDouble() ??
         pd?.promotionalPrice?.value ??
         0;
     final takeQty =
         (ov?['takeAndWinQuantity'] as int?) ?? pd?.takeAndWin?.qty ?? 0;
-    final takeTotal = (ov?['takeAndWinPrice'] as num?)
-            ?.toDouble() ??
+    final takeTotal = (ov?['takeAndWinPrice'] as num?)?.toDouble() ??
         pd?.takeAndWin?.totalValue ??
         0;
     final instQty = (ov?['installmentQuantity'] as int?) ??
         pd?.installments?.installmentQuantity ??
         0;
-    final instValue = (ov?['installmentPrice'] as num?)
-            ?.toDouble() ??
+    final instValue = (ov?['installmentPrice'] as num?)?.toDouble() ??
         pd?.installments?.installmentValue ??
         0;
 
@@ -396,9 +387,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       return 'Leve $takeQty por ${brl(total)}$normalPart';
     }
     if (tipo == 'Parcelado' && instQty > 0) {
-      final parcela = instValue > 0
-          ? instValue
-          : (pd?.displayPrice ?? 0);
+      final parcela = instValue > 0 ? instValue : (pd?.displayPrice ?? 0);
       if (precoPromo > 0 && precoPromo < precoNormal) {
         return 'De ${brl(precoNormal)} | Por ${brl(precoPromo)} | '
             '${instQty}x de ${brl(parcela)}';
@@ -417,6 +406,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     return 'R\$ $raw';
   }
 
+  bool _ehDep63(PriceTag item) =>
+      item.department.split(' -').first.trim() == '63';
+
   String _descricaoItem(PriceTag item) {
     final d = (_overrides[item.ean]?['description'] as String?)?.trim();
     return (d != null && d.isNotEmpty) ? d : item.description;
@@ -428,23 +420,19 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final ov = _overrides[item.ean];
     final precoNormal =
         (ov?['price'] as num?)?.toDouble() ?? pd?.price?.value ?? 0;
-    final precoPromo = (ov?['promotionPrice'] as num?)
-            ?.toDouble() ??
+    final precoPromo = (ov?['promotionPrice'] as num?)?.toDouble() ??
         pd?.promotionalPrice?.value;
     final instQty = (ov?['installmentQuantity'] as int?) ??
         pd?.installments?.installmentQuantity ??
         0;
-    final instValue = (ov?['installmentPrice'] as num?)
-            ?.toDouble() ??
+    final instValue = (ov?['installmentPrice'] as num?)?.toDouble() ??
         pd?.installments?.installmentValue;
-    final por = (precoPromo != null && precoPromo > 0)
-        ? precoPromo
-        : precoNormal;
+    final por =
+        (precoPromo != null && precoPromo > 0) ? precoPromo : precoNormal;
     final parcela = (instValue != null && instValue > 0)
         ? instValue
         : (pd?.displayPrice ?? 0);
-    String brl(double v) =>
-        'R\$ ${v.toStringAsFixed(2).replaceAll('.', ',')}';
+    String brl(double v) => 'R\$ ${v.toStringAsFixed(2).replaceAll('.', ',')}';
     if (instQty > 0 && (por > 0 || parcela > 0)) {
       return '${brl(por)} | ${instQty}x de ${brl(parcela)}';
     }
@@ -461,15 +449,15 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final parcelado = (inst != null && inst.installmentQuantity > 0) ||
         template.contains('parcelad') ||
         movement.contains('parcelad');
-    final depor = (precoPromo > 0 &&
-            (precoNormal <= 0 || precoPromo < precoNormal)) ||
-        template.contains('de/por') ||
-        template.contains('de_por') ||
-        template.contains('depor') ||
-        template.contains('por_de') ||
-        movement.contains('de/por') ||
-        movement.contains('depor') ||
-        movement.contains('promocional');
+    final depor =
+        (precoPromo > 0 && (precoNormal <= 0 || precoPromo < precoNormal)) ||
+            template.contains('de/por') ||
+            template.contains('de_por') ||
+            template.contains('depor') ||
+            template.contains('por_de') ||
+            movement.contains('de/por') ||
+            movement.contains('depor') ||
+            movement.contains('promocional');
     if (template.contains('leve') ||
         template.contains('ganhe') ||
         movement.contains('leve') ||
@@ -499,8 +487,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
   String _overrideKey(PriceTag item) => item.ean;
 
-  String _txt(num? v) =>
-      v == null ? '' : v.toString().replaceAll('.', ',');
+  String _txt(num? v) => v == null ? '' : v.toString().replaceAll('.', ',');
 
   String _txtInt(int? v) => v?.toString() ?? '';
 
@@ -571,8 +558,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           ? Installments(
               installmentQuantity:
                   novaInstQty ?? oldInst?.installmentQuantity ?? 0,
-              installmentValue:
-                  novaInstPrice ?? oldInst?.installmentValue ?? 0,
+              installmentValue: novaInstPrice ?? oldInst?.installmentValue ?? 0,
             )
           : null,
     );
@@ -593,11 +579,11 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     final takePriceCtrl = TextEditingController(
         text: _txt(ov['takeAndWinPrice'] ?? pd?.takeAndWin?.totalValue));
     final instQtyCtrl = TextEditingController(
-        text: _txtInt(
-            ov['installmentQuantity'] ?? pd?.installments?.installmentQuantity));
+        text: _txtInt(ov['installmentQuantity'] ??
+            pd?.installments?.installmentQuantity));
     final instPriceCtrl = TextEditingController(
-        text: _txt(
-            ov['installmentPrice'] ?? pd?.installments?.installmentValue));
+        text:
+            _txt(ov['installmentPrice'] ?? pd?.installments?.installmentValue));
     final fields = <Widget>[];
     void add(String label, TextEditingController c,
         {bool integer = false, bool texto = false}) {
@@ -656,8 +642,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final q = int.tryParse(takeQtyCtrl.text.trim());
         final total = parseValor(takePriceCtrl);
         if (q != null && q > 0 && total != null && total > 0) {
-          promoCtrl.text =
-              (total / q).toStringAsFixed(2).replaceAll('.', ',');
+          promoCtrl.text = (total / q).toStringAsFixed(2).replaceAll('.', ',');
         }
       }
 
@@ -752,69 +737,67 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Widget _badgeVerde(PriceTag item,
-      {VoidCallback? onTap,
-      bool mostrarTipo = true,
-      String? valorTexto}) {
+      {VoidCallback? onTap, bool mostrarTipo = true, String? valorTexto}) {
     final tipo = _tipoEtiqueta(item);
     final valor = valorTexto ?? _valorEtiqueta(item);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         height: 24,
-      padding: EdgeInsets.only(left: 10, right: mostrarTipo ? 0 : 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4CAF50),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF2E7D32), width: 1.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              valor,
-              maxLines: 1,
-              softWrap: false,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 10,
-              ),
+        padding: EdgeInsets.only(left: 10, right: mostrarTipo ? 0 : 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4CAF50),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF2E7D32), width: 1.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 3,
+              offset: Offset(0, 1),
             ),
-          ),
-          if (mostrarTipo) ...[
-            const SizedBox(width: 4),
-            Container(
-              height: 24,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    const BorderRadius.horizontal(right: Radius.circular(6)),
-              ),
-              alignment: Alignment.center,
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
               child: Text(
-                tipo.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 9,
+                valor,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  color: _tipoCor(tipo),
+                  fontSize: 10,
                 ),
               ),
             ),
+            if (mostrarTipo) ...[
+              const SizedBox(width: 4),
+              Container(
+                height: 24,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      const BorderRadius.horizontal(right: Radius.circular(6)),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  tipo.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                    color: _tipoCor(tipo),
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
-  );
+    );
   }
 
   bool _usaSelecaoTamanhos(String modalidade) =>
@@ -853,8 +836,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     }
   }
 
-  Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(
-      List<PriceTag> itens) {
+  Future<Map<String, dynamic>?> _mostrarDialogoEtiquetas(List<PriceTag> itens) {
     return _mostrarDialogoSelecao(
       itens,
       titulo: 'ENVIAR ETIQUETAS',
@@ -864,8 +846,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     );
   }
 
-  Future<Map<String, dynamic>?> _mostrarDialogoPapeleta(
-      List<PriceTag> itens) {
+  Future<Map<String, dynamic>?> _mostrarDialogoPapeleta(List<PriceTag> itens) {
     return _mostrarDialogoSelecao(
       itens,
       titulo: 'IMPRIMIR PAPELETA',
@@ -876,7 +857,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<Map<String, Set<String>>?> _mostrarDialogoItensTamanhos(
-      List<PriceTag> itens, {
+    List<PriceTag> itens, {
     required String titulo,
     required List<MapEntry<String, String>> tamanhos,
   }) async {
@@ -901,8 +882,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                       style: const TextStyle(
                           fontSize: 15, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  const Text(
-                      'Escolha os itens e os tamanhos',
+                  const Text('Escolha os itens e os tamanhos',
                       style: TextStyle(fontSize: 12, color: Colors.black54)),
                   const SizedBox(height: 12),
                   ConstrainedBox(
@@ -937,8 +917,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                                                   fontSize: 11,
                                                   color: Colors.black54)),
                                           const SizedBox(width: 6),
-                                          Text(
-                                              _tipoEtiqueta(it).toUpperCase(),
+                                          Text(_tipoEtiqueta(it).toUpperCase(),
                                               style: TextStyle(
                                                   fontSize: 9,
                                                   fontWeight: FontWeight.bold,
@@ -1044,7 +1023,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Future<Map<String, dynamic>?> _mostrarDialogoSelecao(
-      List<PriceTag> itens, {
+    List<PriceTag> itens, {
     required String titulo,
     required String subtitulo,
     required String confirmar,
@@ -1058,6 +1037,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       for (final it in itens) it.ean: _tipoEtiqueta(it),
     };
     final selecionados = <String, bool>{for (final it in itens) it.ean: true};
+    final celularMarcado = <String, bool>{};
     String? filtroTipo;
     var size = Constants.signSize1x1;
     var modalidade = 'Misto Editável';
@@ -1074,8 +1054,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
           final itensVisiveis = filtroTipo == null
               ? itens
               : itens
-                  .where((it) =>
-                      (tipos[it.ean] ?? 'Normal') == filtroTipo)
+                  .where((it) => (tipos[it.ean] ?? 'Normal') == filtroTipo)
                   .toList();
           Future<void> abrirSelecaoTamanhos(String modalidadeSel) async {
             final titulo = modalidadeSel == 'Item Desafio'
@@ -1093,6 +1072,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
               'titulo': titulo,
             });
           }
+
           return SafeArea(
             child: Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + keyboard),
@@ -1105,16 +1085,16 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                           fontSize: 15, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
                   Text(subtitulo,
-                      style: const TextStyle(
-                          fontSize: 12, color: Colors.black54)),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black54)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Checkbox(
                         visualDensity: VisualDensity.compact,
                         value: itensVisiveis.isNotEmpty &&
-                            itensVisiveis.every(
-                                (it) => selecionados[it.ean] ?? true),
+                            itensVisiveis
+                                .every((it) => selecionados[it.ean] ?? true),
                         onChanged: (v) {
                           final marcar = v ?? false;
                           setSheet(() {
@@ -1147,11 +1127,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                               DropdownMenuItem<String?>(
                                   value: tipo,
                                   child: Text(tipo,
-                                      style:
-                                          const TextStyle(fontSize: 12))),
+                                      style: const TextStyle(fontSize: 12))),
                           ],
-                          onChanged: (v) =>
-                              setSheet(() => filtroTipo = v),
+                          onChanged: (v) => setSheet(() => filtroTipo = v),
                         ),
                       ),
                     ],
@@ -1176,66 +1154,115 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                         else
                           for (final it in itensVisiveis)
                             Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Checkbox(
-                                      value: selecionados[it.ean] ?? true,
-                                      visualDensity: VisualDensity.compact,
-                                      onChanged: (v) => setSheet(() =>
-                                          selecionados[it.ean] = v ?? false),
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: selecionados[it.ean] ?? true,
+                                        visualDensity: VisualDensity.compact,
+                                        onChanged: (v) => setSheet(() =>
+                                            selecionados[it.ean] = v ?? false),
+                                      ),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                _descricaoItem(it).isEmpty
+                                                    ? it.ean
+                                                    : _descricaoItem(it),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight:
+                                                        FontWeight.w600)),
+                                            Text(it.ean,
+                                                style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black54)),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      if (!mostrarTamanho ||
+                                          !_usaSelecaoTamanhos(modalidade))
+                                        _QtdInput(
+                                          key: ValueKey(it.ean),
+                                          initialValue: qtds[it.ean] ?? 1,
+                                          enabled: selecionados[it.ean] ?? true,
+                                          onChanged: (v) =>
+                                              setSheet(() => qtds[it.ean] = v),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 40),
+                                    child: _badgeVerde(
+                                      it,
+                                      onTap: () async {
+                                        final ok =
+                                            await _abrirEditorValores(it);
+                                        if (ok && ctx.mounted) setSheet(() {});
+                                      },
                                     ),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                  ),
+                                  if (mostrarTamanho && _ehDep63(it))
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 34),
+                                      child: Row(
                                         children: [
-                                          Text(
-                                              _descricaoItem(it).isEmpty
-                                                  ? it.ean
-                                                  : _descricaoItem(it),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight:
-                                                      FontWeight.w600)),
-                                          Text(it.ean,
-                                              style: const TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black54)),
+                                          Checkbox(
+                                            value:
+                                                celularMarcado[it.ean] ?? false,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            materialTapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            onChanged: (v) async {
+                                              setSheet(() =>
+                                                  celularMarcado[it.ean] =
+                                                      v ?? false);
+                                              if (v != true) return;
+                                              await Navigator.of(ctx).push(
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      SpinnerCelularScreen(
+                                                    descricaoInicial:
+                                                        _descricaoItem(it),
+                                                    precoInicial: it
+                                                        .printingData
+                                                        ?.price
+                                                        ?.value,
+                                                  ),
+                                                ),
+                                              );
+                                              if (ctx.mounted) {
+                                                setSheet(() =>
+                                                    celularMarcado[it.ean] =
+                                                        false);
+                                              }
+                                            },
+                                          ),
+                                          const Text(
+                                            'Celular da semana',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(width: 4),
-                                    if (!mostrarTamanho ||
-                                        !_usaSelecaoTamanhos(modalidade))
-                                      _QtdInput(
-                                        key: ValueKey(it.ean),
-                                        initialValue: qtds[it.ean] ?? 1,
-                                        enabled: selecionados[it.ean] ?? true,
-                                        onChanged: (v) =>
-                                            setSheet(() => qtds[it.ean] = v),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 40),
-                                  child: _badgeVerde(
-                                    it,
-                                    onTap: () async {
-                                      final ok = await _abrirEditorValores(it);
-                                      if (ok && ctx.mounted) setSheet(() {});
-                                    },
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
                       ],
                     ),
                   ),
@@ -1253,16 +1280,13 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                             value: 'Misto Editável',
                             child: Text('Misto Editável')),
                         DropdownMenuItem(
-                            value: 'Item Desafio',
-                            child: Text('Item Desafio')),
+                            value: 'Item Desafio', child: Text('Item Desafio')),
                         DropdownMenuItem(
-                            value: 'Promocional',
-                            child: Text('Promocional')),
+                            value: 'Promocional', child: Text('Promocional')),
                         DropdownMenuItem(
                             value: 'Normal', child: Text('Normal')),
                         DropdownMenuItem(
-                            value: 'Vencimentos',
-                            child: Text('Vencimentos')),
+                            value: 'Vencimentos', child: Text('Vencimentos')),
                         DropdownMenuItem(
                             value: 'Eletro da Semana',
                             child: Text('Eletro da Semana')),
@@ -1421,8 +1445,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
         final pd = item.printingData;
         if (pd == null) continue;
         if (!vistos.add('${item.ean}_${tiposRef[i]}')) continue;
-        var dados = _aplicarOverride(
-            ajustarDadosLeveGanhe(pd), tiposRef[i]);
+        var dados = _aplicarOverride(ajustarDadosLeveGanhe(pd), tiposRef[i]);
         final qtdEletro = (dados.installmentQuantity ?? 0) > 0
             ? dados.installmentQuantity!
             : 10;
@@ -1552,8 +1575,8 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
             final h = constraints.maxHeight;
             final vfWidth = w * 0.85;
             const vfHeight = 200.0;
-            final vfRect = Rect.fromLTWH((w - vfWidth) / 2,
-                (h - vfHeight) / 2 - 30, vfWidth, vfHeight);
+            final vfRect = Rect.fromLTWH(
+                (w - vfWidth) / 2, (h - vfHeight) / 2 - 30, vfWidth, vfHeight);
             return Stack(
               children: [
                 MobileScanner(
@@ -1752,8 +1775,6 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       ),
     );
   }
-
-
 
   @override
   void dispose() {

@@ -16,7 +16,14 @@ import 'package:minhaloja/utils/celular_semana.dart';
 import 'package:minhaloja/widgets/celular_semana_poster.dart';
 
 class SpinnerCelularScreen extends StatefulWidget {
-  const SpinnerCelularScreen({super.key});
+  final String? descricaoInicial;
+  final double? precoInicial;
+
+  const SpinnerCelularScreen({
+    super.key,
+    this.descricaoInicial,
+    this.precoInicial,
+  });
 
   @override
   State<SpinnerCelularScreen> createState() => _SpinnerCelularScreenState();
@@ -46,6 +53,13 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
     final sunday = monday.add(const Duration(days: 6));
+    if (widget.descricaoInicial != null) {
+      _descCtrl.text = widget.descricaoInicial!;
+    }
+    if (widget.precoInicial != null && widget.precoInicial! > 0) {
+      _priceCtrl.text =
+          _fmtCurrency((widget.precoInicial! * 100).round().toString());
+    }
     _startCtrl.text = _dateText(monday);
     _endCtrl.text = _dateText(sunday);
     _loadDraft();
