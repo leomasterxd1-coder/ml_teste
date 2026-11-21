@@ -8,7 +8,6 @@ import 'package:minhaloja/screens/etiquetas/etiquetas_fragment.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_fragment.dart';
 import 'package:minhaloja/screens/etiquetas/etiquetas_screen.dart';
 import 'package:minhaloja/screens/papeletas/papeletas_diarias_screen.dart';
-import 'package:minhaloja/screens/spinner_celular_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -54,18 +53,10 @@ class _MainScreenState extends State<MainScreen> {
         _selecionarCorpo(1, 'Papeleta avulsa', 'assets/icons/pap_avulsa.png');
         break;
       case 2:
-        _selecionarCorpo(
-            2, 'Etiquetas diárias', 'assets/icons/eti_diaria.png');
+        _selecionarCorpo(2, 'Etiquetas diárias', 'assets/icons/eti_diaria.png');
         break;
       case 3:
-        _selecionarCorpo(
-            3, 'Papeletas diárias', 'assets/icons/pap_diaria.png');
-        break;
-      case 4:
-        setState(() => _menuOpen = false);
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const SpinnerCelularScreen()),
-        );
+        _selecionarCorpo(3, 'Papeletas diárias', 'assets/icons/pap_diaria.png');
         break;
     }
   }
@@ -168,7 +159,8 @@ class _MainScreenState extends State<MainScreen> {
           GestureDetector(
             onTap: () async {
               await Navigator.pushNamed(context, '/profile');
-              if (mounted) setState(() => _fotoPerfilPath = _session.getProfilePhoto());
+              if (mounted)
+                setState(() => _fotoPerfilPath = _session.getProfilePhoto());
             },
             child: Container(
               width: 45,
@@ -179,20 +171,21 @@ class _MainScreenState extends State<MainScreen> {
                 border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
               ),
               alignment: Alignment.center,
-              child: _fotoPerfilPath != null && File(_fotoPerfilPath!).existsSync()
-                  ? Padding(
-                      padding: const EdgeInsets.all(2),
-                      child: ClipOval(
-                        child: Image.file(
-                          File(_fotoPerfilPath!),
-                          width: 41,
-                          height: 41,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                  : const Icon(Icons.person,
-                      size: 22, color: Color(0xFFD81B3A)),
+              child:
+                  _fotoPerfilPath != null && File(_fotoPerfilPath!).existsSync()
+                      ? Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: ClipOval(
+                            child: Image.file(
+                              File(_fotoPerfilPath!),
+                              width: 41,
+                              height: 41,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.person,
+                          size: 22, color: Color(0xFFD81B3A)),
             ),
           ),
         ],
@@ -208,7 +201,10 @@ class _MainScreenState extends State<MainScreen> {
         child: Row(
           children: [
             Image.asset(icon,
-                width: 24, height: 24, fit: BoxFit.contain, color: Colors.white),
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+                color: Colors.white),
             const SizedBox(width: 12),
             Text(label,
                 style: const TextStyle(
@@ -271,9 +267,6 @@ class _MainScreenState extends State<MainScreen> {
           _divider(),
           _menuItem('assets/icons/pap_diaria.png', 'Papeletas diárias',
               () => _onMenuItem(3)),
-          _divider(),
-          _menuItem('assets/icons/pap_diaria.png', 'Celular da semana',
-              () => _onMenuItem(4)),
         ],
       ),
     );

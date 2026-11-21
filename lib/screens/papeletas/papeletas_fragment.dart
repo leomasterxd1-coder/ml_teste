@@ -15,6 +15,7 @@ import 'package:minhaloja/utils/buscar_anim.dart';
 import 'package:minhaloja/widgets/cards.dart';
 import 'package:minhaloja/widgets/action_swipe_card.dart';
 import 'package:minhaloja/widgets/buscar_botao.dart';
+import 'package:minhaloja/screens/spinner_celular_screen.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 class PapeletasFragment extends StatefulWidget {
@@ -39,7 +40,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   String? _deletingId;
 
   String _tipo = 'Promocional'; // Comum / Promocional (default Promocional)
-  String _modelo = 'Misto'; // Misto / Promocional / Promocional Editável / Comum / Comum Editável / Vencimentos
+  String _modelo =
+      'Misto'; // Misto / Editáveis / Vencimentos / Eletro / Celular
   String _buscaTipo = 'EAN'; // EAN / SAP / Descrição
   String _size = '4×1'; // 1×1 / 2×1 / 4×1 / 6×1
   int _selectedSpinnerIndex = -1; // Índice do spinner selecionado (-1 = nenhum)
@@ -125,8 +127,12 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   // Misto/Comum/Promocional Editável/Comum Editável/Vencimentos/Eletro abrem
   // preview (o modo Promocional simples foi removido).
   bool get _abrePreview =>
-      _usarMisto || _usarComumSimples || _usarModeloEditavel ||
-      _usarComumEditavel || _usarVencimentos || _usarEletro;
+      _usarMisto ||
+      _usarComumSimples ||
+      _usarModeloEditavel ||
+      _usarComumEditavel ||
+      _usarVencimentos ||
+      _usarEletro;
 
   static String _templatePorMovimento(String? movement) {
     final m = (movement ?? '').toLowerCase();
@@ -152,8 +158,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   bool _isComumElegivel(PriceSign item) {
     final d = item.printingData;
     if (d == null) return true;
-    final hasInst =
-        d.installmentQuantity != null && d.installmentQuantity! > 0;
+    final hasInst = d.installmentQuantity != null && d.installmentQuantity! > 0;
     final hasPromo = d.promotionPrice != null && d.promotionPrice! > 0;
     final hasTW = d.takeAndWinQuantity != null && d.takeAndWinQuantity! > 0;
     if (hasInst && !hasPromo && !hasTW) return (d.price) > 149.99;
@@ -161,9 +166,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   }
 
   PapeletaPrintingData _eletroData(PapeletaPrintingData d) {
-    final qtd = (d.installmentQuantity ?? 0) > 0
-        ? d.installmentQuantity!
-        : 10;
+    final qtd = (d.installmentQuantity ?? 0) > 0 ? d.installmentQuantity! : 10;
     return d.copyWith(
       template: Constants.signTemplateEletroSemana,
       quantity: 1,
@@ -277,8 +280,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
             onTap: _usarColagem,
             borderRadius: BorderRadius.circular(6),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: Row(
                 children: [
                   const Icon(Icons.content_paste,
@@ -331,13 +333,15 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
 
     // Promocional Editável em item comum → bloquear (fiel ao MLoja).
     if (_usarModeloEditavel && _isItemComum(item)) {
-      ToastUtils.show(context, 'Esta papeleta é do tipo Comum, selecione o modo Comum');
+      ToastUtils.show(
+          context, 'Esta papeleta é do tipo Comum, selecione o modo Comum');
       return;
     }
 
     // Comum Editável em item promocional → bloquear.
     if (_usarComumEditavel && !_isItemComum(item)) {
-      ToastUtils.show(context, 'Esta papeleta é do tipo Promocional, selecione o modo Promocional');
+      ToastUtils.show(context,
+          'Esta papeleta é do tipo Promocional, selecione o modo Promocional');
       return;
     }
 
@@ -347,7 +351,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     final lista = List.generate(
         qtd,
         (_) => _ajustarDadosLeveGanhe(signData.copyWith(
-              template: signData.template ?? _templatePorMovimento(item.movement),
+              template:
+                  signData.template ?? _templatePorMovimento(item.movement),
               quantity: 1,
               size: tamanhoAtual,
             )));
@@ -389,45 +394,49 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
     }
     setState(() => _isGerando = true);
     try {
-    final tamanhoAtual = _size;
-    final lista = <PapeletaPrintingData>[];
-    for (final item in _items) {
-      final ehComum = _isItemComum(item);
-      if (!_usarMisto && !_usarVencimentos) {
-        if (_tipo == 'Normal' && (!ehComum || !_isComumElegivel(item))) continue;
-        if (_tipo == 'Promocional' && ehComum) continue;
+      final tamanhoAtual = _size;
+      final lista = <PapeletaPrintingData>[];
+      for (final item in _items) {
+        final ehComum = _isItemComum(item);
+        if (!_usarMisto && !_usarVencimentos) {
+          if (_tipo == 'Normal' && (!ehComum || !_isComumElegivel(item)))
+            continue;
+          if (_tipo == 'Promocional' && ehComum) continue;
+        }
+        // Comum Editável: somente comums.
+        if (_usarComumEditavel && !ehComum) continue;
+        // Promocional Editável: somente promocionais.
+        if (_usarModeloEditavel && ehComum) continue;
+        final signData = item.printingData;
+        if (signData == null) continue;
+        final qtd = item.quantity;
+        for (int i = 0; i < qtd; i++) {
+          lista.add(_ajustarDadosLeveGanhe(signData.copyWith(
+            template: signData.template ?? _templatePorMovimento(item.movement),
+            quantity: 1,
+            size: tamanhoAtual,
+          )));
+        }
       }
-      // Comum Editável: somente comums.
-      if (_usarComumEditavel && !ehComum) continue;
-      // Promocional Editável: somente promocionais.
-      if (_usarModeloEditavel && ehComum) continue;
-      final signData = item.printingData;
-      if (signData == null) continue;
-      final qtd = item.quantity;
-      for (int i = 0; i < qtd; i++) {
-        lista.add(_ajustarDadosLeveGanhe(signData.copyWith(
-          template: signData.template ?? _templatePorMovimento(item.movement),
-          quantity: 1,
-          size: tamanhoAtual,
-        )));
+      if (lista.isEmpty) {
+        ToastUtils.show(
+            context,
+            _tipo == 'Normal'
+                ? 'Nenhum item do tipo Normal'
+                : 'Nenhum item do tipo Promocional');
+        return;
       }
-    }
-    if (lista.isEmpty) {
-      ToastUtils.show(context,
-          _tipo == 'Normal' ? 'Nenhum item do tipo Normal' : 'Nenhum item do tipo Promocional');
-      return;
-    }
 
-    // Todos os modos atuais (Misto/Comum/Editáveis/Vencimentos) → preview → socket.
-    if (_abrePreview) {
-      await _openPreview(lista, clearAll: true);
-      return;
-    }
+      // Todos os modos atuais (Misto/Comum/Editáveis/Vencimentos) → preview → socket.
+      if (_abrePreview) {
+        await _openPreview(lista, clearAll: true);
+        return;
+      }
 
-    // Fallback: envio direto via API.
-    await _send(lista);
-    setState(() => _items.clear());
-    await _persist();
+      // Fallback: envio direto via API.
+      await _send(lista);
+      setState(() => _items.clear());
+      await _persist();
     } finally {
       if (mounted) setState(() => _isGerando = false);
     }
@@ -436,8 +445,7 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
   Future<void> _send(List<PapeletaPrintingData> lista) async {
     setState(() => _loading = true);
     try {
-      await _api.sendPriceSigns(
-          _store, SendPriceSignRequest(products: lista));
+      await _api.sendPriceSigns(_store, SendPriceSignRequest(products: lista));
       if (!mounted) return;
       ToastUtils.showSuccess(context, 'Papeletas enviadas para impressora');
     } on ApiException catch (e) {
@@ -469,26 +477,25 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
         _usarEletro;
     final modoVencimentos = _usarVencimentos;
     final semOverlay = false;
-    final apiSemOverlay =
-        _usarMisto || _usarModeloEditavel || _usarVencimentos;
+    final apiSemOverlay = _usarMisto || _usarModeloEditavel || _usarVencimentos;
     final hideGerarPreview = !_usarMisto;
-    final result = await Navigator.pushNamed(context, '/modelo_editavel',
-        arguments: {
-          'items': lista,
-          'size': _size,
-          'mostrarCheckbox': true,
-          'modoEditavel': modoEditavel,
-          'modoVencimentos': modoVencimentos,
-          'semOverlay': semOverlay,
-          'apiSemOverlay': apiSemOverlay,
-          'hideGerarPreview': hideGerarPreview,
-          'mostrarCheckboxOverlay': !_usarEletro,
-          'title': _usarEletro
-              ? 'PAPELETA ELETRO DA SEMANA'
-              : modoVencimentos
-                  ? 'PAPELETA DE VENCIMENTOS'
-                  : null,
-        });
+    final result =
+        await Navigator.pushNamed(context, '/modelo_editavel', arguments: {
+      'items': lista,
+      'size': _size,
+      'mostrarCheckbox': true,
+      'modoEditavel': modoEditavel,
+      'modoVencimentos': modoVencimentos,
+      'semOverlay': semOverlay,
+      'apiSemOverlay': apiSemOverlay,
+      'hideGerarPreview': hideGerarPreview,
+      'mostrarCheckboxOverlay': !_usarEletro,
+      'title': _usarEletro
+          ? 'PAPELETA ELETRO DA SEMANA'
+          : modoVencimentos
+              ? 'PAPELETA DE VENCIMENTOS'
+              : null,
+    });
     if (!mounted) return;
     if (result == true) {
       if (clearAll) {
@@ -582,7 +589,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                     value: value,
                     isExpanded: true,
                     isDense: true,
-                    icon: Icon(Icons.keyboard_arrow_down, color: primaryRed, size: 16),
+                    icon: Icon(Icons.keyboard_arrow_down,
+                        color: primaryRed, size: 16),
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -629,53 +637,40 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
               ),
               child: Column(
                 children: [
-                  IntrinsicHeight(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildDropdownItem(
-                            icon: Icons.receipt_long,
-                            label: 'PAPELETA',
-                            value: _tipo,
-                            items: const ['Normal', 'Promocional'],
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() => _tipo = v);
-                            },
+                  _buildDropdownItem(
+                    icon: Icons.tune,
+                    label: 'MODO',
+                    value: _modelo,
+                    items: const [
+                      'Misto',
+                      'Promocional Editável',
+                      'Normal Editável',
+                      'Vencimentos',
+                      'Eletro da semana',
+                      'Celular da semana',
+                    ],
+                    onChanged: (v) {
+                      if (v == null) return;
+                      if (v == 'Celular da semana') {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SpinnerCelularScreen(),
                           ),
-                        ),
-                        const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFF0F2F5)),
-                        Expanded(
-                          child: _buildDropdownItem(
-                            icon: Icons.tune,
-                            label: 'MODO',
-                            value: _modelo,
-                            items: const [
-                              'Misto',
-                              'Promocional Editável',
-                              'Normal',
-                              'Normal Editável',
-                              'Vencimentos',
-                              'Eletro da semana',
-                            ],
-                            onChanged: (v) {
-                              if (v == null) return;
-                              setState(() {
-                                _modelo = v;
-                                if (v == 'Promocional Editável') _tipo = 'Promocional';
-                                if (v == 'Normal Editável') _tipo = 'Normal';
-                                if (v == 'Eletro da semana' &&
-                                    _size != '1×1' &&
-                                    _size != '2×1' &&
-                                    _size != '4×1') {
-                                  _size = '4×1';
-                                }
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                        );
+                        return;
+                      }
+                      setState(() {
+                        _modelo = v;
+                        if (v == 'Promocional Editável') _tipo = 'Promocional';
+                        if (v == 'Normal Editável') _tipo = 'Normal';
+                        if (v == 'Eletro da semana' &&
+                            _size != '1×1' &&
+                            _size != '2×1' &&
+                            _size != '4×1') {
+                          _size = '4×1';
+                        }
+                      });
+                    },
                   ),
                   Container(height: 1, color: borderGrey),
                   IntrinsicHeight(
@@ -696,12 +691,15 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                                     : v == 'SAP'
                                         ? 'Digite o SAP'
                                         : 'Descrição do item';
-                                _eanKeyboardType = v == 'Descrição' ? TextInputType.text : TextInputType.number;
+                                _eanKeyboardType = v == 'Descrição'
+                                    ? TextInputType.text
+                                    : TextInputType.number;
                               });
                             },
                           ),
                         ),
-                        const VerticalDivider(width: 1, thickness: 1, color: Color(0xFFF0F2F5)),
+                        const VerticalDivider(
+                            width: 1, thickness: 1, color: Color(0xFFF0F2F5)),
                         Expanded(
                           child: _buildDropdownItem(
                             icon: Icons.aspect_ratio,
@@ -721,7 +719,8 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                   ),
                   Container(height: 1, color: borderGrey),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
@@ -734,14 +733,20 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
                           children: [
                             Expanded(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
                                 child: TextField(
                                   controller: _eanController,
                                   keyboardType: _eanKeyboardType,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                                  style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Color(0xFF1E293B)),
                                   decoration: InputDecoration(
                                     hintText: _eanHint,
-                                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontWeight: FontWeight.normal),
+                                    hintStyle: const TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontWeight: FontWeight.normal),
                                     border: InputBorder.none,
                                     isDense: true,
                                   ),
@@ -765,44 +770,45 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
           ),
         ),
         if (_items.isNotEmpty)
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _limparLista,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFD32F2F),
-                    side: const BorderSide(color: Color(0xFFD32F2F)),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    textStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _limparLista,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD32F2F),
+                      side: const BorderSide(color: Color(0xFFD32F2F)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      textStyle: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    icon:
+                        const Icon(Icons.cleaning_services_outlined, size: 18),
+                    label: const Text('LIMPAR LISTA'),
                   ),
-                  icon: const Icon(Icons.cleaning_services_outlined, size: 18),
-                  label: const Text('LIMPAR LISTA'),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _isGerando ? null : _imprimirTodas,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFD32F2F),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    textStyle: const TextStyle(
-                        fontSize: 13, fontWeight: FontWeight.bold),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isGerando ? null : _imprimirTodas,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFD32F2F),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      textStyle: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    icon: const Icon(Icons.print, size: 18),
+                    label: const Text('IMPRIMIR TODAS'),
                   ),
-                  icon: const Icon(Icons.print, size: 18),
-                  label: const Text('IMPRIMIR TODAS'),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         if (_items.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 2),
@@ -869,28 +875,28 @@ class _PapeletasFragmentState extends State<PapeletasFragment>
               child: _items.isEmpty
                   ? _emptyState()
                   : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
-                          itemCount: _items.length,
-                           itemBuilder: (context, index) {
-                             final item = _items[index];
-                             return Padding(
-                               padding: const EdgeInsets.only(bottom: 4),
-                               child: SwipeToTrashItem(
-                                 key: Key('papeleta_${item.id}'),
-                                 onDismissed: () => _delete(item),
-                                 child: PapeletaCard(
-                                   item: item,
-                                   onImprimir: (q) => _imprimirItem(item, q),
-                                   onRemover: () => _delete(item),
-                                   onChangedQuantity: (q) {
-                                     item.quantity = q;
-                                     _persist();
-                                   },
-                                 ),
-                               ),
-                             );
-                           },
-                        ),
+                      padding: const EdgeInsets.fromLTRB(8, 2, 8, 8),
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: SwipeToTrashItem(
+                            key: Key('papeleta_${item.id}'),
+                            onDismissed: () => _delete(item),
+                            child: PapeletaCard(
+                              item: item,
+                              onImprimir: (q) => _imprimirItem(item, q),
+                              onRemover: () => _delete(item),
+                              onChangedQuantity: (q) {
+                                item.quantity = q;
+                                _persist();
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -964,10 +970,11 @@ class _SpinnerBoxWidgetState extends State<_SpinnerBoxWidget> {
             return widget.items.map((e) {
               return Align(
                 alignment: Alignment.centerLeft,
-                child: Text(e, style: TextStyle(
-                  color: isActive ? Colors.white : Colors.black,
-                  fontSize: 14,
-                )),
+                child: Text(e,
+                    style: TextStyle(
+                      color: isActive ? Colors.white : Colors.black,
+                      fontSize: 14,
+                    )),
               );
             }).toList();
           },
