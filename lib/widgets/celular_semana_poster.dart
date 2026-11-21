@@ -68,7 +68,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _descricao() {
     return Positioned(
       left: 515,
-      top: 322,
+      top: 340,
       width: 510,
       child: Text(
         data.descricao,
@@ -89,7 +89,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 440,
+      top: 455,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -106,7 +106,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 486,
+      top: 505,
       width: 510,
       height: 96,
       child: FittedBox(
