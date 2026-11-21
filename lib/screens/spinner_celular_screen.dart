@@ -447,8 +447,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
           _textField(
             _descCtrl,
             'Descrição do celular',
-            hint: 'Ex: MOTOROLA MOTO G17 128GB',
-            caps: TextCapitalization.characters,
+            hint: 'Ex: Motorola Moto G17 128GB',
           ),
           const SizedBox(height: 10),
           Row(

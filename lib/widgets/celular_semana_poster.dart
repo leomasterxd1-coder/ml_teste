@@ -272,9 +272,9 @@ class CelularSemanaPoster extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'SFProDisplay',
                   color: _ink,
-                  fontSize: 19.5,
-                  fontWeight: FontWeight.w400,
-                  height: 1.24,
+                  fontSize: 20.5,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
                 ),
               ),
             ),
