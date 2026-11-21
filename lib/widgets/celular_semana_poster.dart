@@ -66,24 +66,60 @@ class CelularSemanaPoster extends StatelessWidget {
   }
 
   Widget _descricao() {
+    final partes = _partesDescricao(data.descricao);
     return Positioned(
       left: 515,
       top: 340,
       width: 510,
-      child: Text(
-        data.descricao,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          fontFamily: 'SFProDisplay',
-          color: _ink,
-          fontSize: 56,
-          fontWeight: FontWeight.w700,
-          height: 0.98,
-          letterSpacing: -1.2,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            partes.$1,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'SFProDisplay',
+              color: _ink,
+              fontSize: 40,
+              fontWeight: FontWeight.w400,
+              height: 1,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            partes.$2,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontFamily: 'SFProDisplay',
+              color: _ink,
+              fontSize: 60,
+              fontWeight: FontWeight.w700,
+              height: 0.95,
+              letterSpacing: -1.2,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  (String, String) _partesDescricao(String descricao) {
+    final palavras = descricao.trim().split(RegExp(r'\s+'));
+    if (palavras.isEmpty || palavras.first.isEmpty) {
+      return ('', '');
+    }
+    var n = 2;
+    if (palavras.length <= 2) {
+      n = 1;
+    } else if (RegExp(r'\d').hasMatch(palavras[1])) {
+      n = 1;
+    }
+    final primeira = palavras.take(n).join(' ');
+    final segunda = palavras.skip(n).join(' ');
+    return (primeira, segunda);
   }
 
   Widget _de() {
@@ -106,9 +142,9 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 505,
+      top: 500,
       width: 510,
-      height: 96,
+      height: 104,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
@@ -125,9 +161,9 @@ class CelularSemanaPoster extends StatelessWidget {
               TextSpan(
                 text: 'R\$ ${_money(data.precoFinal)}',
                 style: const TextStyle(
-                  fontSize: 84,
+                  fontSize: 90,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: -2.5,
+                  letterSpacing: -2.8,
                 ),
               ),
             ],
@@ -236,7 +272,7 @@ class CelularSemanaPoster extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'SFProDisplay',
                   color: _ink,
-                  fontSize: 16.5,
+                  fontSize: 19.5,
                   fontWeight: FontWeight.w400,
                   height: 1.24,
                 ),
