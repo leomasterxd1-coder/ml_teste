@@ -134,7 +134,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 455,
+      top: 510,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -151,7 +151,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 500,
+      top: 565,
       width: 510,
       height: 104,
       child: FittedBox(
@@ -194,28 +194,28 @@ class CelularSemanaPoster extends StatelessWidget {
           _valorCaixa(
             left: 35,
             width: 210,
-            top: 1030,
+            top: 1055,
             texto: 'R\$ ${_money(data.precoOriginal)}',
             fontSize: 34,
           ),
           _valorCaixa(
             left: 280,
             width: 235,
-            top: 1055,
+            top: 1078,
             texto: 'R\$ ${_money(data.descontoPortabilidade)}',
-            fontSize: 32,
+            fontSize: 30,
           ),
           _valorCaixa(
             left: 550,
             width: 235,
-            top: 1030,
+            top: 1052,
             texto: '${data.percentualFormatado}% OFF',
             fontSize: 42,
           ),
           _valorCaixa(
             left: 820,
             width: 200,
-            top: 1028,
+            top: 1048,
             texto: 'R\$ ${_money(data.seguro)}',
             fontSize: 30,
           ),
@@ -265,29 +265,23 @@ class CelularSemanaPoster extends StatelessWidget {
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
       left: 35,
-      top: 1114,
+      top: 1122,
       width: 985,
       height: 176,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(60),
-        ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: SizedBox(
-              width: 965,
-              child: Text(
-                texto,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  color: _ink,
-                  fontSize: 20.5,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: SizedBox(
+            width: 965,
+            child: Text(
+              texto,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'SFProDisplay',
+                color: _ink,
+                fontSize: 20.5,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
               ),
             ),
           ),
