@@ -201,7 +201,7 @@ class CelularSemanaPoster extends StatelessWidget {
           _valorCaixa(
             left: 280,
             width: 235,
-            top: 1038,
+            top: 1055,
             texto: 'R\$ ${_money(data.descontoPortabilidade)}',
             fontSize: 32,
           ),
@@ -265,11 +265,14 @@ class CelularSemanaPoster extends StatelessWidget {
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
       left: 35,
-      top: 1084,
+      top: 1114,
       width: 985,
       height: 176,
-      child: ColoredBox(
-        color: Colors.white,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(60),
+        ),
         child: Center(
           child: FittedBox(
             fit: BoxFit.scaleDown,
