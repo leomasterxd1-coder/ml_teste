@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:minhaloja/utils/celular_semana.dart';
 
-String _money(double value) {
+String _money(double value, {bool omitZeroCents = false}) {
   final fixed = value.toStringAsFixed(2).split('.');
   final inteiro = (int.tryParse(fixed[0]) ?? 0).toString();
   final buf = StringBuffer();
@@ -11,6 +11,7 @@ String _money(double value) {
     if (i > 0 && (inteiro.length - i) % 3 == 0) buf.write('.');
     buf.write(inteiro[i]);
   }
+  if (omitZeroCents && fixed[1] == '00') return buf.toString();
   return '${buf.toString()},${fixed[1]}';
 }
 
@@ -54,7 +55,7 @@ class CelularSemanaPoster extends StatelessWidget {
     final file = path.isEmpty ? null : File(path);
     return Positioned(
       left: 25,
-      top: 330,
+      top: 360,
       width: 480,
       height: 565,
       child: file != null && file.existsSync()
@@ -78,7 +79,7 @@ class CelularSemanaPoster extends StatelessWidget {
     final partes = _partesDescricao(data.descricao);
     return Positioned(
       left: 515,
-      top: 343,
+      top: 380,
       width: 510,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +91,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 64,
+              fontSize: 58,
               fontWeight: FontWeight.w400,
               height: 0.9,
               letterSpacing: -0.5,
@@ -104,7 +105,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 70,
+              fontSize: 62,
               fontWeight: FontWeight.w700,
               height: 0.9,
               letterSpacing: -1.2,
@@ -134,7 +135,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 515,
-      top: 483,
+      top: 500,
       width: 510,
       child: Text(
         'de: R\$ ${_money(data.precoOriginal)} à vista',
@@ -151,9 +152,9 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 515,
-      top: 541,
+      top: 552,
       width: 510,
-      height: 90,
+      height: 88,
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.topLeft,
@@ -170,7 +171,7 @@ class CelularSemanaPoster extends StatelessWidget {
               TextSpan(
                 text: 'R\$ ${_money(data.precoFinal)}',
                 style: const TextStyle(
-                  fontSize: 90,
+                  fontSize: 88,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -2.8,
                 ),
@@ -192,32 +193,32 @@ class CelularSemanaPoster extends StatelessWidget {
       child: Stack(
         children: [
           _valorCaixa(
-            left: 45,
-            width: 210,
-            top: 1055,
-            texto: 'R\$ ${_money(data.precoOriginal)}',
-            fontSize: 34,
+            left: 40,
+            width: 216,
+            top: 1061,
+            texto: 'R\$ ${_money(data.precoOriginal, omitZeroCents: true)}',
+            fontSize: 46,
           ),
           _valorCaixa(
-            left: 292,
-            width: 235,
-            top: 1085,
+            left: 286,
+            width: 231,
+            top: 1078,
             texto: 'R\$ ${_money(data.descontoPortabilidade)}',
-            fontSize: 32,
+            fontSize: 46,
           ),
           _valorCaixa(
-            left: 559,
-            width: 235,
-            top: 1058,
+            left: 548,
+            width: 232,
+            top: 1060,
             texto: '${data.percentualFormatado}% OFF',
-            fontSize: 42,
+            fontSize: 46,
           ),
           _valorCaixa(
-            left: 815,
-            width: 200,
-            top: 1050,
+            left: 806,
+            width: 222,
+            top: 1063,
             texto: 'R\$ ${_money(data.seguro)}',
-            fontSize: 40,
+            fontSize: 46,
           ),
         ],
       ),
