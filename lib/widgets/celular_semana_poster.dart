@@ -43,6 +43,7 @@ class CelularSemanaPoster extends StatelessWidget {
           _descricao(),
           _de(),
           _por(),
+          _badge(),
           _comboValores(),
           _letraMiuda(),
         ],
@@ -182,6 +183,62 @@ class CelularSemanaPoster extends StatelessWidget {
             fontFamily: 'SFProDisplay',
             color: _ink,
             height: 1,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _badge() {
+    return Positioned(
+      left: 510,
+      top: 748,
+      width: 495,
+      height: 139,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              Text(
+                'condições válidas também',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'SFProDisplay',
+                  color: _ink,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
+              Text(
+                'para pagamento no pix',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'SFProDisplay',
+                  color: _ink,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w700,
+                  height: 1,
+                ),
+              ),
+              SizedBox(height: 6),
+              Text(
+                '(consulte opções de parcelamento)',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'SFProDisplay',
+                  color: _ink,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w400,
+                  height: 1,
+                ),
+              ),
+            ],
           ),
         ),
       ),
