@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pdf/pdf.dart' as pdf;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
+import 'package:minhaloja/core/constants.dart';
 import 'package:minhaloja/core/session_manager.dart';
 import 'package:minhaloja/utils/celular_semana.dart';
 import 'package:minhaloja/widgets/celular_semana_poster.dart';
@@ -216,22 +217,80 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     }
   }
 
-  Future<Uint8List> _pdfBytes(Uint8List png) async {
+  Future<Uint8List> _pdfBytes(Uint8List png, String tamanho) async {
     final doc = pw.Document();
     final image = pw.MemoryImage(png);
+    final fourPerPage =
+        tamanho.toUpperCase().replaceAll('×', 'X') == Constants.signSize4x1;
     doc.addPage(
       pw.Page(
         pageFormat: pdf.PdfPageFormat.a4,
         margin: pw.EdgeInsets.zero,
-        build: (_) => pw.Image(
-          image,
-          width: pdf.PdfPageFormat.a4.width,
-          height: pdf.PdfPageFormat.a4.height,
-          fit: pw.BoxFit.fill,
-        ),
+        build: (_) {
+          if (!fourPerPage) {
+            return pw.Image(
+              image,
+              width: pdf.PdfPageFormat.a4.width,
+              height: pdf.PdfPageFormat.a4.height,
+              fit: pw.BoxFit.fill,
+            );
+          }
+          pw.Widget cell() => pw.Image(
+                image,
+                width: pdf.PdfPageFormat.a4.width / 2,
+                height: pdf.PdfPageFormat.a4.height / 2,
+                fit: pw.BoxFit.fill,
+              );
+          return pw.Column(
+            children: [
+              pw.Expanded(
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(child: cell()),
+                    pw.Expanded(child: cell()),
+                  ],
+                ),
+              ),
+              pw.Expanded(
+                child: pw.Row(
+                  children: [
+                    pw.Expanded(child: cell()),
+                    pw.Expanded(child: cell()),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
     return doc.save();
+  }
+
+  Future<String?> _escolherTamanhoImpressao() {
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tamanho da impressão'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.looks_one_outlined),
+              title: const Text('1×1'),
+              subtitle: const Text('1 poster por folha'),
+              onTap: () => Navigator.pop(ctx, Constants.signSize1x1),
+            ),
+            ListTile(
+              leading: const Icon(Icons.grid_view),
+              title: const Text('4×1'),
+              subtitle: const Text('4 posters por folha'),
+              onTap: () => Navigator.pop(ctx, Constants.signSize4x1),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _compartilhar() async {
@@ -258,10 +317,12 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
 
   Future<void> _imprimir() async {
     if (_preview == null) return;
+    final tamanho = await _escolherTamanhoImpressao();
+    if (tamanho == null || !mounted) return;
     setState(() => _busy = 'print');
     try {
       final png = await _capturePng();
-      final bytes = await _pdfBytes(png);
+      final bytes = await _pdfBytes(png, tamanho);
       final session = SessionManager.instance;
       final printerIp =
           session?.getPrinterIp() ?? SessionManager.defaultPrinterIp;
