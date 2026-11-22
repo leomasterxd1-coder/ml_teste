@@ -23,6 +23,7 @@ Future<void> main() async {
   final sessionManager = await SessionManager.getInstance();
   await sessionManager.getToken();
   ApiClient.instance.init(sessionManager);
+  final initialRoute = sessionManager.isLoggedIn() ? '/main' : '/login';
 
   runApp(
     MultiProvider(
@@ -30,13 +31,15 @@ Future<void> main() async {
         Provider<SessionManager>.value(value: sessionManager),
         Provider<ListaStore>.value(value: ListaStore.instance),
       ],
-      child: const MyApp(),
+      child: MyApp(initialRoute: initialRoute),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({super.key, this.initialRoute = '/login'});
 
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
@@ -57,7 +60,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('pt', 'BR'),
       ],
-      initialRoute: '/splash',
+      initialRoute: initialRoute,
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/login': (context) => const LoginScreen(),
