@@ -296,22 +296,22 @@ class CelularSemanaPoster extends StatelessWidget {
         'e condições. Ofertas válidas de ${data.ofertaInicio} a '
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
-      left: 177,
-      top: 1215,
-      width: 700,
-      height: 110,
+      left: 60,
+      top: 1210,
+      width: 900,
+      height: 150,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: SizedBox(
-            width: 700,
+            width: 900,
             child: Text(
               texto,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'SFProDisplay',
                 color: _ink,
-                fontSize: 14.0,
+                fontSize: 18.0,
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),
