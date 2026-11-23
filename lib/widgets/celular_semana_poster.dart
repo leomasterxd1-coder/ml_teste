@@ -55,9 +55,9 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 57,
+      left: 90,
       top: 390,
-      width: 440,
+      width: 407,
       height: 620,
       child: file != null && file.existsSync()
           ? Image.file(
