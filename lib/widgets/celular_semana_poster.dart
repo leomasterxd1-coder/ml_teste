@@ -135,7 +135,7 @@ class CelularSemanaPoster extends StatelessWidget {
       top: 541,
       width: 489,
       child: Text(
-        'de: R\$${_money(data.precoOriginal)} à vista',
+        'de: R\$ ${_money(data.precoOriginal)} à vista',
         style: const TextStyle(
           fontFamily: 'SFProDisplay',
           color: _ink,
@@ -166,7 +166,7 @@ class CelularSemanaPoster extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'R\$${_money(data.precoFinal)}',
+                text: 'R\$ ${_money(data.precoFinal)}',
                 style: const TextStyle(
                   fontSize: 82,
                   fontWeight: FontWeight.w700,
@@ -227,14 +227,14 @@ class CelularSemanaPoster extends StatelessWidget {
             left: 72,
             width: 209,
             top: 1150,
-            texto: 'R\$${_money(data.precoOriginal, omitZeroCents: true)}',
+            texto: 'R\$ ${_money(data.precoOriginal, omitZeroCents: true)}',
             fontSize: 38,
           ),
           _valorCaixa(
             left: 302,
             width: 190,
             top: 1155,
-            texto: 'R\$${_money(data.descontoPortabilidade)}',
+            texto: 'R\$ ${_money(data.descontoPortabilidade)}',
             fontSize: 36,
           ),
           _valorCaixa(
@@ -248,7 +248,7 @@ class CelularSemanaPoster extends StatelessWidget {
             left: 750,
             width: 190,
             top: 1150,
-            texto: 'R\$${_money(data.seguro)}',
+            texto: 'R\$ ${_money(data.seguro)}',
             fontSize: 36,
           ),
         ],
