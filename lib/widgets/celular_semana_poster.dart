@@ -125,14 +125,27 @@ class CelularSemanaPoster extends StatelessWidget {
   }
 
   (String, String) _partesDescricao(String descricao) {
-    final palavras = descricao.trim().split(RegExp(r'\s+'));
-    if (palavras.isEmpty || palavras.first.isEmpty) {
-      return ('', '');
+    final texto = descricao.trim();
+    if (texto.isEmpty) return ('', '');
+    const prefixos = [
+      'Samsung Galaxy ',
+      'Motorola Moto ',
+      'Samsung ',
+      'Motorola ',
+      'Galaxy ',
+      'Moto ',
+    ];
+    final lower = texto.toLowerCase();
+    for (final prefixo in prefixos) {
+      if (lower.startsWith(prefixo.toLowerCase())) {
+        final marca = texto.substring(0, prefixo.length).trimRight();
+        final modelo = texto.substring(prefixo.length).trim();
+        if (modelo.isNotEmpty) return (marca, modelo);
+      }
     }
+    final palavras = texto.split(RegExp(r'\s+'));
     final n = palavras.length <= 2 ? 1 : 2;
-    final primeira = palavras.take(n).join(' ');
-    final segunda = palavras.skip(n).join(' ');
-    return (primeira, segunda);
+    return (palavras.take(n).join(' '), palavras.skip(n).join(' '));
   }
 
   Widget _de() {
@@ -161,31 +174,33 @@ class CelularSemanaPoster extends StatelessWidget {
       child: FittedBox(
         fit: BoxFit.scaleDown,
         alignment: Alignment.topLeft,
-        child: Text.rich(
-          TextSpan(
-            children: [
-              const TextSpan(
-                text: 'por: ',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w400,
-                ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              'por:',
+              style: TextStyle(
+                fontFamily: 'SFProDisplay',
+                color: _ink,
+                fontSize: 32,
+                fontWeight: FontWeight.w400,
+                height: 1,
               ),
-              TextSpan(
-                text: 'R\$ ${_money(data.precoFinal)}',
-                style: const TextStyle(
-                  fontSize: 82,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -2.8,
-                ),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              'R\$ ${_money(data.precoFinal)}',
+              style: const TextStyle(
+                fontFamily: 'SFProDisplay',
+                color: _ink,
+                fontSize: 82,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -2.8,
+                height: 1,
               ),
-            ],
-          ),
-          style: const TextStyle(
-            fontFamily: 'SFProDisplay',
-            color: _ink,
-            height: 1,
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -204,7 +219,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 42,
+              fontSize: 46,
               fontWeight: FontWeight.w700,
               height: 1,
             ),
