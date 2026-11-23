@@ -55,14 +55,15 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 174,
-      top: 435,
-      width: 249,
-      height: 489,
+      left: 57,
+      top: 410,
+      width: 366,
+      height: 590,
       child: file != null && file.existsSync()
           ? Image.file(
               file,
               fit: BoxFit.contain,
+              alignment: Alignment.centerRight,
               filterQuality: FilterQuality.high,
               errorBuilder: (_, __, ___) => _semFoto(),
             )
@@ -79,9 +80,9 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _descricao() {
     final partes = _partesDescricao(data.descricao);
     return Positioned(
-      left: 430,
+      left: 503,
       top: 425,
-      width: 525,
+      width: 489,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -130,9 +131,9 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _de() {
     return Positioned(
-      left: 430,
+      left: 503,
       top: 541,
-      width: 525,
+      width: 489,
       child: Text(
         'de: R\$${_money(data.precoOriginal)} à vista',
         style: const TextStyle(
@@ -147,9 +148,9 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _por() {
     return Positioned(
-      left: 430,
+      left: 503,
       top: 590,
-      width: 525,
+      width: 489,
       height: 88,
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -186,9 +187,9 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _planoControle() {
     return Positioned(
-      left: 430,
+      left: 503,
       top: 700,
-      width: 525,
+      width: 489,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: const [
@@ -208,7 +209,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.w400,
               height: 1,
             ),

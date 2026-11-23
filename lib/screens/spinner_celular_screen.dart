@@ -267,11 +267,12 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     return doc.save();
   }
 
-  Future<String?> _escolherTamanhoImpressao() {
+  Future<String?> _escolherTamanhoImpressao(
+      {String titulo = 'Tamanho da impressão'}) {
     return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Tamanho da impressão'),
+        title: Text(titulo),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -295,18 +296,31 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
 
   Future<void> _compartilhar() async {
     if (_preview == null) return;
+    final tamanho = await _escolherTamanhoImpressao(
+      titulo: 'Tamanho do compartilhamento',
+    );
+    if (tamanho == null || !mounted) return;
     setState(() => _busy = 'share');
     try {
       final png = await _capturePng();
       final dir = await getTemporaryDirectory();
-      final file = File(
-        '${dir.path}/celular_semana_${DateTime.now().millisecondsSinceEpoch}.png',
-      );
-      await file.writeAsBytes(png);
+      final stamp = DateTime.now().millisecondsSinceEpoch;
+      final fourPerPage =
+          tamanho.toUpperCase().replaceAll('×', 'X') == Constants.signSize4x1;
+      final file = fourPerPage
+          ? File('${dir.path}/celular_semana_4x1_$stamp.pdf')
+          : File('${dir.path}/celular_semana_$stamp.png');
+      if (fourPerPage) {
+        await file.writeAsBytes(await _pdfBytes(png, tamanho));
+      } else {
+        await file.writeAsBytes(png);
+      }
       await Share.shareXFiles(
         [XFile(file.path)],
-        subject: 'Celular da semana',
-        text: 'Celular da semana',
+        subject: fourPerPage
+            ? 'Celular da semana 4x1'
+            : 'Celular da semana',
+        text: fourPerPage ? 'Celular da semana 4x1' : 'Celular da semana',
       );
     } catch (e) {
       _toast('Erro ao compartilhar: $e');
