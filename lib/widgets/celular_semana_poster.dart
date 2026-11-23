@@ -55,10 +55,10 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 70,
-      top: 415,
-      width: 345,
-      height: 470,
+      left: 174,
+      top: 435,
+      width: 249,
+      height: 489,
       child: file != null && file.existsSync()
           ? Image.file(
               file,
@@ -131,7 +131,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _de() {
     return Positioned(
       left: 430,
-      top: 550,
+      top: 541,
       width: 525,
       child: Text(
         'de: R\$${_money(data.precoOriginal)} à vista',
@@ -148,7 +148,7 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _por() {
     return Positioned(
       left: 430,
-      top: 600,
+      top: 590,
       width: 525,
       height: 88,
       child: FittedBox(
@@ -295,22 +295,22 @@ class CelularSemanaPoster extends StatelessWidget {
         'e condições. Ofertas válidas de ${data.ofertaInicio} a '
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
-      left: 60,
-      top: 1210,
-      width: 900,
-      height: 135,
+      left: 177,
+      top: 1215,
+      width: 700,
+      height: 110,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: SizedBox(
-            width: 900,
+            width: 700,
             child: Text(
               texto,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'SFProDisplay',
                 color: _ink,
-                fontSize: 18.0,
+                fontSize: 14.0,
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),
