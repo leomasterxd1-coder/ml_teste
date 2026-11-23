@@ -50,7 +50,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
   double _fotoDx = 0;
   double _fotoDy = 0;
   double _fotoScale = 1;
-  double _fotoScaleStart = 1;
+  double _fotoScaleBase = 1;
   bool _ajustandoFoto = false;
 
   @override
@@ -246,7 +246,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
   }
 
   void _fotoScaleStart(ScaleStartDetails details) {
-    _fotoScaleStart = _fotoScale;
+    _fotoScaleBase = _fotoScale;
   }
 
   void _fotoScaleUpdate(ScaleUpdateDetails details) {
@@ -256,7 +256,7 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
         (_fotoDx + details.focalPointDelta.dx).clamp(-25.0, 5.0).toDouble();
     final dy =
         (_fotoDy + details.focalPointDelta.dy).clamp(-40.0, 10.0).toDouble();
-    final scale = (_fotoScaleStart * details.scale).clamp(0.7, 1.6).toDouble();
+    final scale = (_fotoScaleBase * details.scale).clamp(0.7, 1.6).toDouble();
     setState(() {
       _fotoDx = dx;
       _fotoDy = dy;
