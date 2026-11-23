@@ -55,19 +55,25 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 90,
-      top: 390,
+      left: 85 + data.fotoDx,
+      top: 390 + data.fotoDy,
       width: 407,
       height: 620,
-      child: file != null && file.existsSync()
-          ? Image.file(
-              file,
-              fit: BoxFit.contain,
-              alignment: Alignment.centerRight,
-              filterQuality: FilterQuality.high,
-              errorBuilder: (_, __, ___) => _semFoto(),
-            )
-          : _semFoto(),
+      child: ClipRect(
+        child: Transform.scale(
+          scale: data.fotoScale,
+          alignment: Alignment.center,
+          child: file != null && file.existsSync()
+              ? Image.file(
+                  file,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.centerRight,
+                  filterQuality: FilterQuality.high,
+                  errorBuilder: (_, __, ___) => _semFoto(),
+                )
+              : _semFoto(),
+        ),
+      ),
     );
   }
 
@@ -198,7 +204,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 40,
+              fontSize: 42,
               fontWeight: FontWeight.w700,
               height: 1,
             ),
@@ -220,15 +226,17 @@ class CelularSemanaPoster extends StatelessWidget {
   }
 
   Widget _comboValores() {
+    final temCentavos =
+        ((data.precoOriginal * 100).round() % 100) != 0;
     return Positioned.fill(
       child: Stack(
         children: [
           _valorCaixa(
-            left: 72,
-            width: 209,
+            left: 99,
+            width: 191,
             top: 1150,
             texto: 'R\$ ${_money(data.precoOriginal, omitZeroCents: true)}',
-            fontSize: 38,
+            fontSize: temCentavos ? 32 : 38,
           ),
           _valorCaixa(
             left: 302,

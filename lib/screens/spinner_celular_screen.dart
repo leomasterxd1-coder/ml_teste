@@ -47,6 +47,11 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
   String _imagePath = '';
   CelularSemanaData? _preview;
   String? _busy;
+  double _fotoDx = 0;
+  double _fotoDy = 0;
+  double _fotoScale = 1;
+  double _fotoScaleStart = 1;
+  bool _ajustandoFoto = false;
 
   @override
   void initState() {
@@ -89,6 +94,9 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     final insurance = prefs.getString(_key('seguro'));
     final start = prefs.getString(_key('inicio'));
     final end = prefs.getString(_key('fim'));
+    final fotoDx = prefs.getDouble(_key('foto_dx')) ?? 0;
+    final fotoDy = prefs.getDouble(_key('foto_dy')) ?? 0;
+    final fotoScale = prefs.getDouble(_key('foto_scale')) ?? 1;
     if (!mounted) return;
     setState(() {
       if (desc != null && desc.trim().isNotEmpty) _descCtrl.text = desc;
@@ -99,6 +107,9 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
       }
       if (start != null && start.isNotEmpty) _startCtrl.text = start;
       if (end != null && end.isNotEmpty) _endCtrl.text = end;
+      _fotoDx = fotoDx;
+      _fotoDy = fotoDy;
+      _fotoScale = fotoScale;
     });
   }
 
@@ -113,6 +124,9 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     );
     await prefs.setString(_key('inicio'), _startCtrl.text.trim());
     await prefs.setString(_key('fim'), _endCtrl.text.trim());
+    await prefs.setDouble(_key('foto_dx'), _fotoDx);
+    await prefs.setDouble(_key('foto_dy'), _fotoDy);
+    await prefs.setDouble(_key('foto_scale'), _fotoScale);
   }
 
   double _money(String text) {
@@ -141,7 +155,18 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     );
     await File(picked.path).copy(dest.path);
     if (!mounted) return;
-    setState(() => _imagePath = dest.path);
+    setState(() {
+      _imagePath = dest.path;
+      _fotoDx = 0;
+      _fotoDy = 0;
+      _fotoScale = 1;
+      _preview = _preview?.copyWith(
+        imagemPath: dest.path,
+        fotoDx: 0,
+        fotoDy: 0,
+        fotoScale: 1,
+      );
+    });
     await _saveDraft();
   }
 
@@ -190,6 +215,9 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
           seguro: _money(_insuranceCtrl.text),
           ofertaInicio: start,
           ofertaFim: end,
+          fotoDx: _fotoDx,
+          fotoDy: _fotoDy,
+          fotoScale: _fotoScale,
         );
       });
       await _saveDraft();
@@ -203,6 +231,46 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
     } finally {
       if (mounted) setState(() => _busy = null);
     }
+  }
+
+  Rect get _fotoArea =>
+      Rect.fromLTWH(85 + _fotoDx, 390 + _fotoDy, 407, 620);
+
+  void _fotoTap(TapUpDetails details) {
+    final inside = _fotoArea.contains(details.localPosition);
+    if (_ajustandoFoto) {
+      if (!inside) setState(() => _ajustandoFoto = false);
+    } else if (inside) {
+      setState(() => _ajustandoFoto = true);
+    }
+  }
+
+  void _fotoScaleStart(ScaleStartDetails details) {
+    _fotoScaleStart = _fotoScale;
+  }
+
+  void _fotoScaleUpdate(ScaleUpdateDetails details) {
+    final preview = _preview;
+    if (preview == null) return;
+    final dx =
+        (_fotoDx + details.focalPointDelta.dx).clamp(-25.0, 5.0).toDouble();
+    final dy =
+        (_fotoDy + details.focalPointDelta.dy).clamp(-40.0, 10.0).toDouble();
+    final scale = (_fotoScaleStart * details.scale).clamp(0.7, 1.6).toDouble();
+    setState(() {
+      _fotoDx = dx;
+      _fotoDy = dy;
+      _fotoScale = scale;
+      _preview = preview.copyWith(
+        fotoDx: dx,
+        fotoDy: dy,
+        fotoScale: scale,
+      );
+    });
+  }
+
+  void _fotoScaleEnd(ScaleEndDetails details) {
+    _saveDraft();
   }
 
   Future<Uint8List> _capturePng() async {
@@ -464,31 +532,90 @@ class _SpinnerCelularScreenState extends State<SpinnerCelularScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
-      child: preview == null
-          ? const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.image_outlined, size: 54, color: Colors.grey),
-                  SizedBox(height: 8),
-                  Text(
-                    'Preencha os dados e gere a pré-visualização',
-                    style: TextStyle(color: Colors.grey),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: preview == null
+                ? const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.image_outlined,
+                            size: 54, color: Colors.grey),
+                        SizedBox(height: 8),
+                        Text(
+                          'Preencha os dados e gere a pré-visualização',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  )
+                : FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: CelularSemanaPoster.posterWidth,
+                      height: CelularSemanaPoster.posterHeight,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTapUp: _fotoTap,
+                        onScaleStart:
+                            _ajustandoFoto ? _fotoScaleStart : null,
+                        onScaleUpdate:
+                            _ajustandoFoto ? _fotoScaleUpdate : null,
+                        onScaleEnd: _ajustandoFoto ? _fotoScaleEnd : null,
+                        child: RepaintBoundary(
+                          key: _posterKey,
+                          child: CelularSemanaPoster(data: preview),
+                        ),
+                      ),
+                    ),
                   ),
-                ],
-              ),
-            )
-          : FittedBox(
-              fit: BoxFit.contain,
-              child: SizedBox(
-                width: CelularSemanaPoster.posterWidth,
-                height: CelularSemanaPoster.posterHeight,
-                child: RepaintBoundary(
-                  key: _posterKey,
-                  child: CelularSemanaPoster(data: preview),
+          ),
+          if (preview != null)
+            Positioned(
+              left: 8,
+              right: 8,
+              bottom: 8,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _ajustandoFoto
+                            ? 'Arraste para mover e use a pinça para dar zoom'
+                            : 'Toque na foto para ajustar posição e zoom',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    if (_ajustandoFoto)
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => _ajustandoFoto = false),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: const Text(
+                          'CONCLUIR',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
+        ],
+      ),
     );
   }
 
