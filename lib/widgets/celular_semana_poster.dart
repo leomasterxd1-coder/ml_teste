@@ -43,7 +43,7 @@ class CelularSemanaPoster extends StatelessWidget {
           _descricao(),
           _de(),
           _por(),
-          _badge(),
+          _planoControle(),
           _comboValores(),
           _letraMiuda(),
         ],
@@ -55,10 +55,10 @@ class CelularSemanaPoster extends StatelessWidget {
     final path = data.imagemPath.trim();
     final file = path.isEmpty ? null : File(path);
     return Positioned(
-      left: 25,
-      top: 360,
-      width: 480,
-      height: 565,
+      left: 70,
+      top: 415,
+      width: 345,
+      height: 470,
       child: file != null && file.existsSync()
           ? Image.file(
               file,
@@ -79,9 +79,9 @@ class CelularSemanaPoster extends StatelessWidget {
   Widget _descricao() {
     final partes = _partesDescricao(data.descricao);
     return Positioned(
-      left: 515,
-      top: 380,
-      width: 510,
+      left: 430,
+      top: 425,
+      width: 525,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -122,12 +122,7 @@ class CelularSemanaPoster extends StatelessWidget {
     if (palavras.isEmpty || palavras.first.isEmpty) {
       return ('', '');
     }
-    var n = 2;
-    if (palavras.length <= 2) {
-      n = 1;
-    } else if (RegExp(r'\d').hasMatch(palavras[1])) {
-      n = 1;
-    }
+    final n = palavras.length <= 2 ? 1 : 2;
     final primeira = palavras.take(n).join(' ');
     final segunda = palavras.skip(n).join(' ');
     return (primeira, segunda);
@@ -135,15 +130,15 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _de() {
     return Positioned(
-      left: 515,
-      top: 500,
-      width: 510,
+      left: 430,
+      top: 550,
+      width: 525,
       child: Text(
-        'de: R\$ ${_money(data.precoOriginal)} à vista',
+        'de: R\$${_money(data.precoOriginal)} à vista',
         style: const TextStyle(
           fontFamily: 'SFProDisplay',
           color: _ink,
-          fontSize: 36,
+          fontSize: 34,
           fontWeight: FontWeight.w400,
         ),
       ),
@@ -152,9 +147,9 @@ class CelularSemanaPoster extends StatelessWidget {
 
   Widget _por() {
     return Positioned(
-      left: 515,
-      top: 552,
-      width: 510,
+      left: 430,
+      top: 600,
+      width: 525,
       height: 88,
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -170,7 +165,7 @@ class CelularSemanaPoster extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: 'R\$ ${_money(data.precoFinal)}',
+                text: 'R\$${_money(data.precoFinal)}',
                 style: const TextStyle(
                   fontSize: 88,
                   fontWeight: FontWeight.w700,
@@ -189,58 +184,36 @@ class CelularSemanaPoster extends StatelessWidget {
     );
   }
 
-  Widget _badge() {
+  Widget _planoControle() {
     return Positioned(
-      left: 510,
-      top: 748,
-      width: 495,
-      height: 139,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text(
-                'condições válidas também',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  color: _ink,
-                  fontSize: 38,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
-                ),
-              ),
-              Text(
-                'para pagamento no pix',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  color: _ink,
-                  fontSize: 38,
-                  fontWeight: FontWeight.w700,
-                  height: 1,
-                ),
-              ),
-              SizedBox(height: 6),
-              Text(
-                '(consulte opções de parcelamento)',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'SFProDisplay',
-                  color: _ink,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w400,
-                  height: 1,
-                ),
-              ),
-            ],
+      left: 430,
+      top: 700,
+      width: 525,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text(
+            '+ plano controle',
+            style: TextStyle(
+              fontFamily: 'SFProDisplay',
+              color: _ink,
+              fontSize: 44,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
           ),
-        ),
+          SizedBox(height: 4),
+          Text(
+            '(válido na portabilidade para quaisquer bandeiras*)',
+            style: TextStyle(
+              fontFamily: 'SFProDisplay',
+              color: _ink,
+              fontSize: 24,
+              fontWeight: FontWeight.w400,
+              height: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -250,32 +223,32 @@ class CelularSemanaPoster extends StatelessWidget {
       child: Stack(
         children: [
           _valorCaixa(
-            left: 40,
-            width: 216,
-            top: 1061,
-            texto: 'R\$ ${_money(data.precoOriginal, omitZeroCents: true)}',
-            fontSize: 46,
+            left: 72,
+            width: 209,
+            top: 1150,
+            texto: 'R\$${_money(data.precoOriginal, omitZeroCents: true)}',
+            fontSize: 36,
           ),
           _valorCaixa(
-            left: 286,
-            width: 231,
-            top: 1078,
-            texto: 'R\$ ${_money(data.descontoPortabilidade)}',
-            fontSize: 46,
+            left: 302,
+            width: 190,
+            top: 1155,
+            texto: 'R\$${_money(data.descontoPortabilidade)}',
+            fontSize: 36,
           ),
           _valorCaixa(
-            left: 548,
-            width: 232,
-            top: 1060,
+            left: 526,
+            width: 191,
+            top: 1150,
             texto: '${data.percentualFormatado}% OFF',
-            fontSize: 46,
+            fontSize: 36,
           ),
           _valorCaixa(
-            left: 806,
-            width: 222,
-            top: 1063,
-            texto: 'R\$ ${_money(data.seguro)}',
-            fontSize: 46,
+            left: 750,
+            width: 190,
+            top: 1150,
+            texto: 'R\$${_money(data.seguro)}',
+            fontSize: 36,
           ),
         ],
       ),
@@ -316,28 +289,28 @@ class CelularSemanaPoster extends StatelessWidget {
         'O desconto do seguro não está atrelado à venda de nenhum item e a '
         'contratação é opcional.\n'
         'Parcelamento disponível no crédito para todas as bandeiras, '
-        'disponível apenas para ${data.descricao}.\n'
+        'disponível apenas para ${data.descricao.toUpperCase()}.\n'
         'Desconto do plano controle disponível para portabilidade para '
         'quaisquer bandeiras, consulte planos\n'
         'e condições. Ofertas válidas de ${data.ofertaInicio} a '
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
-      left: 35,
-      top: 1135,
-      width: 985,
-      height: 140,
+      left: 60,
+      top: 1210,
+      width: 900,
+      height: 135,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: SizedBox(
-            width: 965,
+            width: 900,
             child: Text(
               texto,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'SFProDisplay',
                 color: _ink,
-                fontSize: 20.5,
+                fontSize: 18.0,
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),
