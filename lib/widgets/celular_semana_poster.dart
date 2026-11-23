@@ -139,7 +139,7 @@ class CelularSemanaPoster extends StatelessWidget {
         style: const TextStyle(
           fontFamily: 'SFProDisplay',
           color: _ink,
-          fontSize: 34,
+          fontSize: 36,
           fontWeight: FontWeight.w400,
         ),
       ),
@@ -161,14 +161,14 @@ class CelularSemanaPoster extends StatelessWidget {
               const TextSpan(
                 text: 'por: ',
                 style: TextStyle(
-                  fontSize: 34,
+                  fontSize: 32,
                   fontWeight: FontWeight.w400,
                 ),
               ),
               TextSpan(
                 text: 'R\$${_money(data.precoFinal)}',
                 style: const TextStyle(
-                  fontSize: 88,
+                  fontSize: 82,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -2.8,
                 ),
@@ -198,7 +198,7 @@ class CelularSemanaPoster extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'SFProDisplay',
               color: _ink,
-              fontSize: 44,
+              fontSize: 40,
               fontWeight: FontWeight.w700,
               height: 1,
             ),
@@ -228,7 +228,7 @@ class CelularSemanaPoster extends StatelessWidget {
             width: 209,
             top: 1150,
             texto: 'R\$${_money(data.precoOriginal, omitZeroCents: true)}',
-            fontSize: 36,
+            fontSize: 38,
           ),
           _valorCaixa(
             left: 302,
@@ -242,7 +242,7 @@ class CelularSemanaPoster extends StatelessWidget {
             width: 191,
             top: 1150,
             texto: '${data.percentualFormatado}% OFF',
-            fontSize: 36,
+            fontSize: 38,
           ),
           _valorCaixa(
             left: 750,
@@ -296,22 +296,22 @@ class CelularSemanaPoster extends StatelessWidget {
         'e condições. Ofertas válidas de ${data.ofertaInicio} a '
         '${data.ofertaFim} podendo encerrar sem aviso prévio.';
     return Positioned(
-      left: 60,
+      left: 57,
       top: 1210,
-      width: 900,
+      width: 935,
       height: 150,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: SizedBox(
-            width: 900,
+            width: 935,
             child: Text(
               texto,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'SFProDisplay',
                 color: _ink,
-                fontSize: 18.0,
+                fontSize: 19.0,
                 fontWeight: FontWeight.w700,
                 height: 1.2,
               ),
