@@ -49,8 +49,24 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   void initState() {
     super.initState();
     _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
+      // Leitura mais rápida: no modo único analisa todos os frames e só
+      // devolve quando o código muda; no contínuo não aplica timeout entre
+      // detecções (o debounce do app evita duplicidades).
+      detectionSpeed: widget.continuo
+          ? DetectionSpeed.unrestricted
+          : DetectionSpeed.noDuplicates,
       facing: CameraFacing.back,
+      // O app trabalha com EAN de produto; limitar os formatos evita gastar
+      // tempo tentando QR/PDF417 etc. Mantém Code 128 para etiquetas internas.
+      formats: const [
+        BarcodeFormat.ean13,
+        BarcodeFormat.ean8,
+        BarcodeFormat.upcA,
+        BarcodeFormat.upcE,
+        BarcodeFormat.code128,
+      ],
+      // Resolução 720p ajuda a ler EAN pequeno/distante sem exagerar no custo.
+      cameraResolution: const Size(1280, 720),
     );
     if (widget.continuo) {
       _api = ApiService(ApiClient.instance.getSlApiService());
@@ -1581,6 +1597,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
                 MobileScanner(
                   controller: _controller,
                   onDetect: _onDetect,
+                  scanWindow: vfRect,
                   errorBuilder: (context, error, child) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (mounted) Navigator.pop(context);
