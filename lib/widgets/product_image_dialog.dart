@@ -13,6 +13,7 @@ Future<void> mostrarImagemProduto(
   required String ean,
   String descricao = '',
   String codSap = '',
+  String urlImagem = '',
   double? saldo,
 }) async {
   FocusManager.instance.primaryFocus?.unfocus();
@@ -24,6 +25,7 @@ Future<void> mostrarImagemProduto(
       ean: ean,
       descricao: descricao,
       codSap: codSap,
+      urlImagem: urlImagem,
       saldo: saldo,
     ),
   );
@@ -35,12 +37,14 @@ class _ProdutoImagemDialog extends StatefulWidget {
   final String ean;
   final String descricao;
   final String codSap;
+  final String urlImagem;
   final double? saldo;
 
   const _ProdutoImagemDialog({
     required this.ean,
     required this.descricao,
     required this.codSap,
+    this.urlImagem = '',
     this.saldo,
   });
 
@@ -66,19 +70,29 @@ class _ProdutoImagemDialogState extends State<_ProdutoImagemDialog> {
   Future<void> _carregar() async {
     ProductImageResult? resultado;
     Uint8List? bytes;
+    final direta = ProductImageService.normalizarUrl(widget.urlImagem);
+    if (direta.isNotEmpty) {
+      bytes = await ProductImageService.baixarBytes(direta);
+      if (bytes != null && bytes.isNotEmpty) {
+        resultado = ProductImageResult(direta, 'Maestro');
+      }
+    }
     try {
       final session = await SessionManager.getInstance();
-      final store = session.getUserStore();
-      _store = store;
-      resultado = await ProductImageService.buscarImagem(
-        widget.ean,
-        store,
-        descricao: widget.descricao,
-      );
-      if (resultado != null) {
-        bytes = await ProductImageService.baixarBytes(resultado.url);
-      }
+      _store = session.getUserStore();
     } catch (_) {}
+    if (resultado == null) {
+      try {
+        resultado = await ProductImageService.buscarImagem(
+          widget.ean,
+          _store ?? '',
+          descricao: widget.descricao,
+        );
+        if (resultado != null) {
+          bytes = await ProductImageService.baixarBytes(resultado.url);
+        }
+      } catch (_) {}
+    }
     if (!mounted) return;
     setState(() {
       _url = resultado?.url;

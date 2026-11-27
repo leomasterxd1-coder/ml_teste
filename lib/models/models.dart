@@ -1,3 +1,26 @@
+String? _urlImagemDe(Map<String, dynamic> j) {
+  dynamic valor = j['urlImagem'] ??
+      j['imageUrl'] ??
+      j['imagemUrl'] ??
+      j['image_url'] ??
+      j['imagem'];
+  if (valor == null) {
+    for (final chave in const ['_printingData', 'printingData']) {
+      final pd = j[chave];
+      if (pd is Map) {
+        valor = pd['urlImagem'] ??
+            pd['imageUrl'] ??
+            pd['imagemUrl'] ??
+            pd['image_url'] ??
+            pd['imagem'];
+        if (valor != null) break;
+      }
+    }
+  }
+  final texto = valor?.toString().trim() ?? '';
+  return texto.isEmpty ? null : texto;
+}
+
 class MenuResponse {
   final Menu menu;
   final Page page;
@@ -135,6 +158,7 @@ class PriceTag {
   bool checkbox;
   int quantity;
   final PrintingData? printingData;
+  final String? urlImagem;
 
   PriceTag(
       {required this.id,
@@ -150,7 +174,8 @@ class PriceTag {
       required this.status,
       this.checkbox = false,
       this.quantity = 1,
-      this.printingData});
+      this.printingData,
+      this.urlImagem});
 
   factory PriceTag.fromJson(Map<String, dynamic> j) => PriceTag(
         id: j['id'] ?? '',
@@ -169,6 +194,7 @@ class PriceTag {
         printingData: j['_printingData'] != null
             ? PrintingData.fromJson(j['_printingData'])
             : null,
+        urlImagem: _urlImagemDe(j),
       );
 
   Map<String, dynamic> toJson() => {
@@ -186,6 +212,7 @@ class PriceTag {
         'checkbox': checkbox,
         'quantity': quantity,
         '_printingData': printingData?.toJson(),
+        'urlImagem': urlImagem,
       };
 }
 
@@ -498,6 +525,7 @@ class PriceSign {
   bool checkbox;
   int quantity;
   final PapeletaPrintingData? printingData;
+  final String? urlImagem;
 
   PriceSign(
       {required this.id,
@@ -513,7 +541,8 @@ class PriceSign {
       required this.status,
       this.checkbox = false,
       this.quantity = 1,
-      this.printingData});
+      this.printingData,
+      this.urlImagem});
 
   factory PriceSign.fromJson(Map<String, dynamic> j) => PriceSign(
         id: j['id'] ?? '',
@@ -532,6 +561,7 @@ class PriceSign {
         printingData: j['_printingData'] != null
             ? PapeletaPrintingData.fromJson(j['_printingData'])
             : null,
+        urlImagem: _urlImagemDe(j),
       );
 
   Map<String, dynamic> toJson() => {
@@ -549,6 +579,7 @@ class PriceSign {
         'checkbox': checkbox,
         'quantity': quantity,
         '_printingData': printingData?.toJson(),
+        'urlImagem': urlImagem,
       };
 }
 
@@ -897,6 +928,7 @@ class SingleLabelItem {
   bool checkbox;
   int quantity;
   final SingleLabelPrintingData? printingData;
+  final String? urlImagem;
   SingleLabelItem(
       {required this.id,
       required this.sap,
@@ -911,7 +943,8 @@ class SingleLabelItem {
       required this.status,
       this.checkbox = false,
       this.quantity = 1,
-      this.printingData});
+      this.printingData,
+      this.urlImagem});
   factory SingleLabelItem.fromJson(Map<String, dynamic> j) => SingleLabelItem(
         id: j['id'] ?? '',
         sap: j['sap'] ?? '',
@@ -929,6 +962,7 @@ class SingleLabelItem {
         printingData: j['_printingData'] != null
             ? SingleLabelPrintingData.fromJson(j['_printingData'])
             : null,
+        urlImagem: _urlImagemDe(j),
       );
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -945,6 +979,7 @@ class SingleLabelItem {
         'checkbox': checkbox,
         'quantity': quantity,
         '_printingData': printingData?.toJson(),
+        'urlImagem': urlImagem,
       };
 }
 

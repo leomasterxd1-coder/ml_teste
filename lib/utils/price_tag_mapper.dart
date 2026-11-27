@@ -37,6 +37,7 @@ PriceTag singleToPriceTag(SingleLabelItem item) => PriceTag(
       quantity: item.quantity,
       printingData:
           item.printingData != null ? toPrintingData(item.printingData!) : null,
+      urlImagem: item.urlImagem,
     );
 
 /// Normaliza o leve_ganhe_cada para o mesmo conteúdo do promocional

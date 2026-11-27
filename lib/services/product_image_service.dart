@@ -20,6 +20,27 @@ class ProductImageService {
       '67902270082286b2ab5ed9467bf3a255afa627572ff5acc1110beeb766802c7d';
   static const String _bluesoftApiKey = 'LFHnNIwZnn7atj61QgyzBA';
 
+  static final Map<String, Uint8List> _cacheBytes = {};
+
+  /// Ajusta a URL devolvida pelo pedido/etiqueta para uma imagem maior.
+  /// Ex.: .../ids/37706410-88-88/arquivo.jpg -> ...-1000-1000/...
+  static String normalizarUrl(String url) {
+    var valor = url.trim();
+    if (valor.isEmpty) return '';
+    if (valor.startsWith('//')) {
+      valor = 'https:$valor';
+    } else if (valor.startsWith('http://')) {
+      valor = 'https://${valor.substring(7)}';
+    }
+    final uri = Uri.tryParse(valor);
+    if (uri == null || !uri.host.contains('vteximg.com.br')) return valor;
+    final path = uri.path.replaceFirst(
+      RegExp(r'-\d+-\d+(?=/)'),
+      '-1000-1000',
+    );
+    return uri.replace(path: path).toString();
+  }
+
   static final Dio _dio = Dio(
     BaseOptions(
       connectTimeout: const Duration(seconds: 10),
@@ -86,14 +107,20 @@ class ProductImageService {
   }
 
   static Future<Uint8List?> baixarBytes(String url) async {
+    final normalizada = normalizarUrl(url);
+    if (normalizada.isEmpty) return null;
+    final cache = _cacheBytes[normalizada];
+    if (cache != null) return cache;
     try {
       final response = await _dio.get<List<int>>(
-        url,
+        normalizada,
         options: Options(responseType: ResponseType.bytes),
       );
       final data = response.data;
-      if (data == null) return null;
-      return Uint8List.fromList(data);
+      if (data == null || data.isEmpty) return null;
+      final bytes = Uint8List.fromList(data);
+      _cacheBytes[normalizada] = bytes;
+      return bytes;
     } catch (_) {
       return null;
     }
